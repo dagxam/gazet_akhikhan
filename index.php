@@ -8,6 +8,7 @@ $mainNews = latest_main_articles(5, $hero['id'] ?? null);
 $districtNews = latest_articles_by_category_slug('novosti-rayona', 8);
 $regionalNews = latest_articles_by_category_slug('regionalnye-novosti', 3);
 $sportNews = latest_articles_by_category_slug('sport', 3);
+$newspaper = latest_newspaper();
 $cats = categories();
 $catBySlug = [];
 foreach ($cats as $cat) $catBySlug[$cat['slug']] = $cat;
@@ -148,22 +149,50 @@ require __DIR__ . '/partials/header.php';
         </div>
       </aside>
 
-      <aside class="newspaper-card">
+      <aside class="newspaper-card <?=$newspaper?'has-newspaper':''?>">
         <div class="newspaper-card-top">
-          <span class="heading-kicker">Газета</span>
-          <span class="newspaper-badge">Скоро</span>
-        </div>
-        <div class="newspaper-placeholder">
-          <div class="newspaper-sheet">
-            <span>АХИХЪАН</span>
-            <i></i><i></i><i></i>
-            <b>Печатный выпуск</b>
+          <div>
+            <span class="heading-kicker">Газета</span>
+            <h3>Свежий выпуск</h3>
           </div>
-          <div class="newspaper-copy">
-            <h3>Свежий номер газеты</h3>
-            <p>Здесь будет размещаться обложка последнего выпуска, номер и ссылка для чтения.</p>
-          </div>
+          <?php if($newspaper):?>
+            <span class="newspaper-badge"><?=e($newspaper['issue_number'] ?: 'Новый номер')?></span>
+          <?php else:?>
+            <span class="newspaper-badge">Архив</span>
+          <?php endif;?>
         </div>
+
+        <?php if($newspaper):?>
+          <div class="newspaper-live">
+            <a class="newspaper-cover-frame" href="<?=e(base_url($newspaper['pdf_file']))?>" target="_blank" aria-label="Открыть PDF газеты">
+              <?php if(!empty($newspaper['cover_image'])):?>
+                <img src="<?=e(base_url($newspaper['cover_image']))?>" alt="<?=e($newspaper['title'])?>">
+              <?php else:?>
+                <canvas data-pdf-preview="<?=e(base_url($newspaper['pdf_file']))?>" aria-label="Первая страница газеты"></canvas>
+                <span class="newspaper-cover-loading">PDF</span>
+              <?php endif;?>
+            </a>
+
+            <div class="newspaper-live-copy">
+              <span><?=e(ru_date($newspaper['issue_date']))?></span>
+              <h4><?=e($newspaper['title'])?></h4>
+              <p><?=e($newspaper['issue_number'] ? 'Выпуск '.$newspaper['issue_number'].' доступен для чтения в PDF.' : 'Свежий выпуск газеты доступен для чтения в PDF.')?></p>
+              <a class="newspaper-open" href="<?=e(base_url($newspaper['pdf_file']))?>" target="_blank">Читать газету <b>→</b></a>
+            </div>
+          </div>
+        <?php else:?>
+          <div class="newspaper-placeholder">
+            <div class="newspaper-sheet">
+              <span>АХИХЪАН</span>
+              <i></i><i></i><i></i>
+              <b>Печатный выпуск</b>
+            </div>
+            <div class="newspaper-copy">
+              <h3>Выпусков пока нет</h3>
+              <p>После загрузки PDF в разделе «Газета» здесь автоматически появится последний опубликованный номер.</p>
+            </div>
+          </div>
+        <?php endif;?>
       </aside>
     </div>
   </div>
@@ -299,6 +328,32 @@ require __DIR__ . '/partials/header.php';
     </div>
   </div>
 </section>
+
+<?php if($newspaper && empty($newspaper['cover_image'])):?>
+<script type="module" id="public-newspaper-pdf-renderer">
+const canvases=[...document.querySelectorAll('canvas[data-pdf-preview]')];
+if(canvases.length){
+  try{
+    const pdfjs=await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs');
+    pdfjs.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
+    for(const canvas of canvases){
+      try{
+        const pdf=await pdfjs.getDocument(canvas.dataset.pdfPreview).promise;
+        const page=await pdf.getPage(1);
+        const base=page.getViewport({scale:1});
+        const cssWidth=Math.max(180,canvas.parentElement.clientWidth);
+        const ratio=Math.min(window.devicePixelRatio||1,2);
+        const viewport=page.getViewport({scale:(cssWidth*ratio)/base.width});
+        canvas.width=Math.floor(viewport.width);
+        canvas.height=Math.floor(viewport.height);
+        await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
+        canvas.parentElement.querySelector('.newspaper-cover-loading')?.remove();
+      }catch(e){}
+    }
+  }catch(e){}
+}
+</script>
+<?php endif;?>
 
 </div>
 <?php require __DIR__ . '/partials/footer.php'; ?>
