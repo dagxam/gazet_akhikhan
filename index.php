@@ -4,7 +4,7 @@ if (!APP_INSTALLED) { header('Location: install.php'); exit; }
 
 $hero = featured_article();
 $latest = latest_articles(12, $hero['id'] ?? null);
-$mainNews = latest_main_articles(5, $hero['id'] ?? null);
+$mainNews = latest_main_articles(6);
 $districtNews = latest_articles_by_category_slug('novosti-rayona', 8);
 $regionalNews = latest_articles_by_category_slug('regionalnye-novosti', 3);
 $sportNews = latest_articles_by_category_slug('sport', 3);
@@ -38,51 +38,35 @@ require __DIR__ . '/partials/header.php';
 
 <div class="wrap home-shell">
 
-<section class="home-lead-grid">
-  <article class="hero-story <?=empty($hero['cover_image'])?'hero-reference':''?>" data-interactive-hero><?php if(!empty($hero['cover_image'])): ?> style="background-image:linear-gradient(90deg,rgba(19,21,18,.86) 0%,rgba(19,21,18,.54) 44%,rgba(19,21,18,.08) 78%),url('<?=e(base_url($hero['cover_image']))?>')"<?php endif; ?>>
-    <div class="hero-story-copy">
-      <span class="kicker" data-hero-kicker><?=e($hero ? setting('hero_kicker','Главная тема') : 'Главная тема')?></span>
-      <h1 data-hero-title><?=e($hero['title'] ?? 'Унцукульский район: традиции, люди и движение вперёд')?></h1>
-      <p data-hero-excerpt><?=e($hero['excerpt'] ?? 'АХИХЪАН рассказывает о событиях района, людях, которые его создают, и наследии, которое объединяет поколения.')?></p>
-      <a class="story-button" data-hero-link href="<?=e($hero ? article_url($hero) : base_url('news.php'))?>">Читать материал <span>→</span></a>
+<section class="main-news-section">
+  <div class="main-news-heading">
+    <div>
+      <span class="heading-kicker">Главное</span>
+      <h1>Главные новости</h1>
     </div>
-    <div class="hero-location">
-      <span>Унцукульский район</span>
-      <b>Дагестан</b>
-    </div>
-  </article>
+    <a href="<?=e(isset($catBySlug['glavnye-novosti']) ? category_url($catBySlug['glavnye-novosti']) : base_url('news.php'))?>">Все главные новости →</a>
+  </div>
 
-  <aside class="latest-panel">
-    <div class="block-heading compact">
-      <div>
-        <span class="heading-kicker">Главное</span>
-        <h2>Главные новости</h2>
-      </div>
-      <a href="<?=e(base_url('news.php'))?>">Все →</a>
-    </div>
-    <div class="latest-list">
-      <?php if($mainNews): ?>
-        <?php foreach($mainNews as $i=>$item): ?>
-          <article class="latest-item<?=$i===0?' is-active':''?>"
-                   tabindex="0"
-                   data-hero-title="<?=e($item['title'])?>"
-                   data-hero-excerpt="<?=e($item['excerpt'] ?: 'Читайте подробности события в материале «АХИХЪАН».')?>"
-                   data-hero-kicker="Главные новости"
-                   data-hero-url="<?=e(article_url($item))?>"
-                   data-hero-cover="<?=e(!empty($item['cover_image']) ? base_url($item['cover_image']) : '')?>">
+  <?php if($mainNews):?>
+    <div class="main-news-grid">
+      <?php foreach($mainNews as $item):?>
+        <article class="main-news-card">
+          <div class="main-news-card-top">
             <time><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></time>
-            <h3><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h3>
-            <div class="tiny-meta">Главные новости · ◉ <?=number_format((int)$item['views'],0,'.',' ')?></div>
-          </article>
-        <?php endforeach; ?>
-      <?php else: ?>
-        <div class="latest-empty">
-          <strong>Главных новостей пока нет</strong>
-          <span>При добавлении новости выберите рубрику «Главные новости» — материал появится здесь.</span>
-        </div>
-      <?php endif; ?>
+            <span>◉ <?=number_format((int)$item['views'],0,'.',' ')?></span>
+          </div>
+          <h2><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h2>
+          <?php if(!empty($item['excerpt'])):?><p><?=e($item['excerpt'])?></p><?php endif;?>
+          <a class="main-news-read" href="<?=e(article_url($item))?>">Читать <b>→</b></a>
+        </article>
+      <?php endforeach;?>
     </div>
-  </aside>
+  <?php else:?>
+    <div class="main-news-empty">
+      <strong>Главных новостей пока нет</strong>
+      <span>Опубликуйте материал в рубрике «Главные новости», и он появится здесь.</span>
+    </div>
+  <?php endif;?>
 </section>
 
 <section class="district-ribbon">
