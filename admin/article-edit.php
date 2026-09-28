@@ -35,7 +35,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     }
 
     if($id){
-      $q=db()->prepare('UPDATE articles SET category_id=?,title=?,slug=?,excerpt=?,content=?,cover_image=?,status=?,is_featured=?,published_at=? WHERE id=?');
+      $q=db()->prepare('UPDATE articles SET category_id=?,title=?,slug=?,excerpt=?,content=?,cover_image=?,status=?,is_featured=?,published_at=?,updated_at=CURRENT_TIMESTAMP WHERE id=?');
       $q->execute([$category,$title,$slug,$excerpt,$content,$cover,$status,$featured,$publishedAt,$id]);
     } else {
       $q=db()->prepare('INSERT INTO articles(category_id,author_id,title,slug,excerpt,content,cover_image,status,is_featured,published_at) VALUES(?,?,?,?,?,?,?,?,?,?)');
