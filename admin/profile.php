@@ -257,7 +257,7 @@ require __DIR__.'/_top.php';
           <div class="user-admin-identity">
             <span class="user-mini-avatar"><?=e(function_exists('mb_substr') ? mb_strtoupper(mb_substr($user['name'],0,1,'UTF-8'),'UTF-8') : strtoupper(substr($user['name'],0,1)))?></span>
             <div>
-              <strong><?=e($user['name'])?> <?=$user['id']===(int)$current['id']?'<em>Вы</em>':''?></strong>
+              <strong><?=e($user['name'])?> <?=((int)$user['id']===(int)$current['id'])?'<em>Вы</em>':''?></strong>
               <small><?=e($user['email'])?></small>
             </div>
           </div>
