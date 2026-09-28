@@ -20,3 +20,7 @@ date_default_timezone_set($config['site']['timezone'] ?? 'Europe/Moscow');
 
 require_once ROOT_PATH . '/app/db.php';
 require_once ROOT_PATH . '/app/helpers.php';
+
+if (APP_INSTALLED) {
+    ensure_default_categories();
+}
