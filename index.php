@@ -4,6 +4,7 @@ if (!APP_INSTALLED) { header('Location: install.php'); exit; }
 
 $hero = featured_article();
 $latest = latest_articles(12, $hero['id'] ?? null);
+$mainNews = latest_main_articles(5, $hero['id'] ?? null);
 $districtNews = latest_articles_by_category_slug('novosti-rayona', 8);
 $cats = categories();
 $catBySlug = [];
@@ -50,40 +51,31 @@ require __DIR__ . '/partials/header.php';
   <aside class="latest-panel">
     <div class="block-heading compact">
       <div>
-        <span class="heading-kicker">Лента</span>
-        <h2>Последние новости</h2>
+        <span class="heading-kicker">Главное</span>
+        <h2>Главные новости</h2>
       </div>
       <a href="<?=e(base_url('news.php'))?>">Все →</a>
     </div>
     <div class="latest-list">
-      <?php if($latest): ?>
-        <?php foreach(array_slice($latest,0,5) as $i=>$item): ?>
+      <?php if($mainNews): ?>
+        <?php foreach($mainNews as $i=>$item): ?>
           <article class="latest-item<?=$i===0?' is-active':''?>"
                    tabindex="0"
                    data-hero-title="<?=e($item['title'])?>"
                    data-hero-excerpt="<?=e($item['excerpt'] ?: 'Читайте подробности события в материале «АХИХЪАН».')?>"
-                   data-hero-kicker="<?=e($item['category_name'] ?: 'Новости района')?>"
+                   data-hero-kicker="Главные новости"
                    data-hero-url="<?=e(article_url($item))?>"
                    data-hero-cover="<?=e(!empty($item['cover_image']) ? base_url($item['cover_image']) : '')?>">
             <time><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></time>
             <h3><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h3>
-            <div class="tiny-meta"><?=e($item['category_name'] ?: 'Новости')?> · ◉ <?=number_format((int)$item['views'],0,'.',' ')?></div>
+            <div class="tiny-meta">Главные новости · ◉ <?=number_format((int)$item['views'],0,'.',' ')?></div>
           </article>
         <?php endforeach; ?>
       <?php else: ?>
-        <?php foreach($demoNews as $i=>$item): ?>
-          <article class="latest-item<?=$i===0?' is-active':''?>"
-                   tabindex="0"
-                   data-hero-title="<?=e($item['title'])?>"
-                   data-hero-excerpt="<?=e($item['excerpt'])?>"
-                   data-hero-kicker="Новости района"
-                   data-hero-url="<?=e(base_url('news.php'))?>"
-                   data-hero-cover="">
-            <time><?=e($item['date'])?></time>
-            <h3><a href="<?=e(base_url('news.php'))?>"><?=e($item['title'])?></a></h3>
-            <div class="tiny-meta">Новости района · ◉ <?=e($item['views'])?></div>
-          </article>
-        <?php endforeach; ?>
+        <div class="latest-empty">
+          <strong>Главных новостей пока нет</strong>
+          <span>При добавлении новости выберите рубрику «Главные новости» — материал появится здесь.</span>
+        </div>
       <?php endif; ?>
     </div>
   </aside>
