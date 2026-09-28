@@ -1,18 +1,25 @@
 <?php
-require dirname(__DIR__) . '/app/bootstrap.php'; require_admin();
-$id=(int)($_GET['id']??0); $article=null;
+require dirname(__DIR__) . '/app/bootstrap.php';
+require_admin();
+
+$id=(int)($_GET['id']??0);
+$article=null;
+
 if($id){
   $q=db()->prepare('SELECT * FROM articles WHERE id=?');
   $q->execute([$id]);
   $article=$q->fetch();
   if(!$article) exit('Материал не найден');
 }
+
 $error='';
+
 if($_SERVER['REQUEST_METHOD']==='POST'){
   verify_csrf();
   try{
     $title=trim($_POST['title']??'');
     if(!$title) throw new RuntimeException('Введите заголовок.');
+
     $slug=trim($_POST['slug']??'') ?: slugify($title);
     $category=(int)($_POST['category_id']??0) ?: null;
     $excerpt=trim($_POST['excerpt']??'');
@@ -22,13 +29,11 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     $publishedAt=trim($_POST['published_at']??'');
     $publishedAt=$publishedAt?str_replace('T',' ',$publishedAt).(strlen($publishedAt)===16?':00':''):null;
     $cover=handle_cover_upload($_FILES['cover']??[], $article['cover_image']??null);
-    if($featured) db()->exec('UPDATE articles SET is_featureured=0');
-  }catch(Throwable $e){
-    if (str_contains($e->getMessage(), 'is_featureured')) {}
-  }
-  try{
-    if(!isset($title)){ throw new RuntimeException('Не удалось сохранить материал.'); }
-    if($featured) db()->exec('UPDATE articles SET is_featured=0');
+
+    if($featured){
+      db()->exec('UPDATE articles SET is_featured=0');
+    }
+
     if($id){
       $q=db()->prepare('UPDATE articles SET category_id=?,title=?,slug=?,excerpt=?,content=?,cover_image=?,status=?,is_featured=?,published_at=? WHERE id=?');
       $q->execute([$category,$title,$slug,$excerpt,$content,$cover,$status,$featured,$publishedAt,$id]);
@@ -37,17 +42,20 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
       $q->execute([$category,admin_user()['id'],$title,$slug,$excerpt,$content,$cover,$status,$featured,$publishedAt]);
       $id=(int)db()->lastInsertId();
     }
+
     header('Location: '.base_url('admin/article-edit.php?id='.$id.'&saved=1'));
     exit;
   }catch(Throwable $e){
     $error=$e->getMessage();
   }
 }
+
 if($id){
   $q=db()->prepare('SELECT * FROM articles WHERE id=?');
   $q->execute([$id]);
   $article=$q->fetch();
 }
+
 $cats=categories();
 $adminTitle=$id?'Редактирование материала':'Новый материал';
 require __DIR__.'/_top.php';
