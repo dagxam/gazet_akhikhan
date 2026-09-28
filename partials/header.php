@@ -20,7 +20,7 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20260928-mainmenu1'))?>">
+<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20260928-menuoverflow2'))?>">
 </head>
 <body>
 <a id="top"></a>
@@ -68,10 +68,19 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
       <span></span><span></span><span></span><b>Меню</b>
     </button>
 
-    <div class="site-menu" id="site-menu">
-      <?php foreach($mainMenuItems as $menuItem):?>
-        <a href="<?=e(main_menu_url($menuItem['url']))?>" <?=$menuItem['open_new_tab']?'target="_blank" rel="noopener"':''?>><?=e($menuItem['label'])?></a>
-      <?php endforeach;?>
+    <div class="desktop-menu-shell" data-menu-shell>
+      <div class="site-menu" id="site-menu">
+        <?php foreach($mainMenuItems as $menuItem):?>
+          <a href="<?=e(main_menu_url($menuItem['url']))?>" <?=$menuItem['open_new_tab']?'target="_blank" rel="noopener"':''?>><?=e($menuItem['label'])?></a>
+        <?php endforeach;?>
+      </div>
+
+      <button class="menu-overflow-toggle" type="button" data-menu-overflow-toggle aria-expanded="false" aria-controls="menu-overflow-panel" hidden>
+        <span>Ещё</span>
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7.5l5 5 5-5"></path></svg>
+      </button>
+
+      <div class="menu-overflow-panel" id="menu-overflow-panel" data-menu-overflow-panel></div>
     </div>
 
     <form class="header-search" action="<?=e(base_url('search.php'))?>" method="get">
