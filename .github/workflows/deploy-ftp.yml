@@ -36,11 +36,15 @@ jobs:
             config.php
             README.md
             uploads/**
+            storage/*.sqlite
+            storage/*.sqlite-*
+            storage/*.db
 
-      - name: Verify deployed installer
+      - name: Verify production site
         shell: bash
         run: |
           set -e
-          html="$(curl --fail --silent --show-error --location --max-time 30 https://akhikhan.ru/install.php)"
-          echo "$html" | grep -q "Установка AKHIKHAN.RU"
-          echo "AKHIKHAN.RU installer is reachable."
+          code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan.html --write-out '%{http_code}' https://akhikhan.ru/)"
+          test "$code" = "200"
+          grep -q "AKHIKHAN.RU" /tmp/akhikhan.html
+          echo "AKHIKHAN.RU is reachable."
