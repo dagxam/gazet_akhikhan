@@ -2,6 +2,7 @@
 $navCategories = categories();
 $bySlug = [];
 foreach ($navCategories as $cat) $bySlug[$cat['slug']] = $cat;
+$mainMenuItems = main_menu_items();
 
 function nav_link_for_slug(string $slug, string $fallbackLabel): string {
     global $bySlug;
@@ -19,7 +20,7 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20260928-news-polish3'))?>">
+<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20260928-mainmenu1'))?>">
 </head>
 <body>
 <a id="top"></a>
@@ -68,16 +69,9 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
     </button>
 
     <div class="site-menu" id="site-menu">
-      <a href="<?=e(base_url())?>">Главная</a>
-      <a href="<?=e(base_url('news.php'))?>">Новости</a>
-      <a href="<?=e(nav_link_for_slug('obschestvo','Общество'))?>">Общество</a>
-      <a href="<?=e(nav_link_for_slug('ekonomika','Экономика'))?>">Экономика</a>
-      <a href="<?=e(nav_link_for_slug('kultura','Культура'))?>">Культура</a>
-      <a href="<?=e(nav_link_for_slug('sport','Спорт'))?>">Спорт</a>
-      <a href="<?=e(nav_link_for_slug('lyudi','Люди'))?>">Люди</a>
-      <a href="<?=e(nav_link_for_slug('istoriya','История'))?>">История</a>
-      <a href="<?=e(base_url('search.php?q=' . rawurlencode('Фото')))?>">Фото</a>
-      <a href="<?=e(base_url('search.php?q=' . rawurlencode('Видео')))?>">Видео</a>
+      <?php foreach($mainMenuItems as $menuItem):?>
+        <a href="<?=e(main_menu_url($menuItem['url']))?>" <?=$menuItem['open_new_tab']?'target="_blank" rel="noopener"':''?>><?=e($menuItem['label'])?></a>
+      <?php endforeach;?>
     </div>
 
     <form class="header-search" action="<?=e(base_url('search.php'))?>" method="get">
