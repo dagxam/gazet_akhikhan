@@ -21,14 +21,10 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     if(!$title) throw new RuntimeException('Введите заголовок.');
 
     $slug=trim($_POST['slug']??'') ?: slugify($title);
+    $categoryIds=array_values(array_unique(array_filter(array_map('intval',(array)($_POST['category_ids']??[])))));
 
     $newCategoryName=trim($_POST['new_category_name']??'');
     $newCategoryDescription=trim($_POST['new_category_description']??'');
-    if($newCategoryName!==''){
-      $category=find_or_create_category($newCategoryName,$newCategoryDescription);
-    } else {
-      $category=(int)($_POST['category_id']??0) ?: null;
-    }
 
     $excerpt=trim($_POST['excerpt']??'');
     $content=trim($_POST['content']??'');
@@ -38,17 +34,33 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     $publishedAt=$publishedAt?str_replace('T',' ',$publishedAt).(strlen($publishedAt)===16?':00':''):null;
     $cover=handle_cover_upload($_FILES['cover']??[], $article['cover_image']??null);
 
-    if($featured){
-      db()->exec('UPDATE articles SET is_featured=0');
-    }
+    $pdo=db();
+    $pdo->beginTransaction();
+    try{
+      if($newCategoryName!==''){
+        $categoryIds[]=find_or_create_category($newCategoryName,$newCategoryDescription);
+        $categoryIds=array_values(array_unique($categoryIds));
+      }
+      if(!$categoryIds) throw new RuntimeException('Выберите хотя бы одну рубрику.');
 
-    if($id){
-      $q=db()->prepare('UPDATE articles SET category_id=?,title=?,slug=?,excerpt=?,content=?,cover_image=?,status=?,is_featured=?,published_at=?,updated_at=CURRENT_TIMESTAMP WHERE id=?');
-      $q->execute([$category,$title,$slug,$excerpt,$content,$cover,$status,$featured,$publishedAt,$id]);
-    } else {
-      $q=db()->prepare('INSERT INTO articles(category_id,author_id,title,slug,excerpt,content,cover_image,status,is_featured,published_at) VALUES(?,?,?,?,?,?,?,?,?,?)');
-      $q->execute([$category,admin_user()['id'],$title,$slug,$excerpt,$content,$cover,$status,$featured,$publishedAt]);
-      $id=(int)db()->lastInsertId();
+      if($featured){
+        $pdo->exec('UPDATE articles SET is_featured=0');
+      }
+
+      if($id){
+        $q=$pdo->prepare('UPDATE articles SET title=?,slug=?,excerpt=?,content=?,cover_image=?,status=?,is_featured=?,published_at=?,updated_at=CURRENT_TIMESTAMP WHERE id=?');
+        $q->execute([$title,$slug,$excerpt,$content,$cover,$status,$featured,$publishedAt,$id]);
+      } else {
+        $q=$pdo->prepare('INSERT INTO articles(category_id,author_id,title,slug,excerpt,content,cover_image,status,is_featured,published_at) VALUES(NULL,?,?,?,?,?,?,?,?,?)');
+        $q->execute([admin_user()['id'],$title,$slug,$excerpt,$content,$cover,$status,$featured,$publishedAt]);
+        $id=(int)$pdo->lastInsertId();
+      }
+
+      set_article_categories($id,$categoryIds);
+      $pdo->commit();
+    }catch(Throwable $e){
+      if($pdo->inTransaction()) $pdo->rollBack();
+      throw $e;
     }
 
     header('Location: '.base_url('admin/article-edit.php?id='.$id.'&saved=1'));
@@ -65,11 +77,19 @@ if($id){
 }
 
 $cats=categories();
+$mainCategoryId=category_id_by_slug('glavnye-novosti');
+if($_SERVER['REQUEST_METHOD']==='POST'){
+  $currentCategories=array_values(array_unique(array_filter(array_map('intval',(array)($_POST['category_ids']??[])))));
+} elseif($id){
+  $currentCategories=article_category_ids($id);
+} else {
+  $currentCategories=$mainCategoryId?[$mainCategoryId]:[];
+}
+
 $adminTitle=$id?'Редактирование новости':'Новая новость';
 require __DIR__.'/_top.php';
 
 $currentStatus=$article['status']??'draft';
-$currentCategory=(int)($article['category_id']??0);
 $currentTitle=$article['title']??'';
 $currentExcerpt=$article['excerpt']??'';
 $currentContent=$article['content']??'';
@@ -86,7 +106,7 @@ $currentPublished=!empty($article['published_at'])?date('Y-m-d\\TH:i',strtotime(
   <div>
     <span class="editor-eyebrow"><?=$id?'Редактирование материала':'Новый материал'?></span>
     <h2><?=$id?'Редактирование новости':'Создание новости'?></h2>
-    <p>Подготовьте материал, выберите рубрику и настройте публикацию.</p>
+    <p>Подготовьте материал, выберите одну или несколько рубрик и настройте публикацию.</p>
   </div>
   <div class="editor-page-actions">
     <a class="editor-back" href="<?=e(base_url('admin/articles.php'))?>">← К списку</a>
@@ -158,7 +178,7 @@ $currentPublished=!empty($article['published_at'])?date('Y-m-d\\TH:i',strtotime(
       <label class="featured-switch">
         <input type="checkbox" name="is_featured" <?=!empty($article['is_featured'])?'checked':''?>>
         <span class="switch-ui"></span>
-        <span><b>Показать в главном блоке</b><small>Сделать материал главным на главной странице</small></span>
+        <span><b>Показать в большом блоке</b><small>Эта новость станет большой новостью слева на главной</small></span>
       </label>
 
       <button class="primary wide editor-save-main" type="submit"><span>Сохранить новость</span><b>→</b></button>
@@ -166,22 +186,28 @@ $currentPublished=!empty($article['published_at'])?date('Y-m-d\\TH:i',strtotime(
     </section>
 
     <section class="editor-card editor-category-card">
-      <div class="side-card-title"><span class="side-icon">#</span><div><h3>Рубрика</h3><p>Где будет опубликована новость</p></div></div>
-      <label class="field-modern compact">
-        <span>Выберите рубрику</span>
-        <select name="category_id">
-          <option value="" <?=$currentCategory===0?'selected':''?>>Главные новости</option>
-          <?php foreach($cats as $c):?>
-            <option value="<?=$c['id']?>" <?=$currentCategory===(int)$c['id']?'selected':''?>><?=e($c['name'])?></option>
-          <?php endforeach;?>
-        </select>
-      </label>
-      <p class="field-hint category-note"><b>Главные новости</b> — материалы без отдельной тематической рубрики. «Новости района» автоматически используются в одноимённом блоке на главной.</p>
+      <div class="side-card-title"><span class="side-icon">#</span><div><h3>Рубрики</h3><p>Можно выбрать несколько</p></div></div>
+      <div class="category-picker">
+        <?php foreach($cats as $c):
+          $checked=in_array((int)$c['id'],$currentCategories,true);
+          $isMain=$c['slug']==='glavnye-novosti';
+        ?>
+          <label class="category-option <?=$isMain?'is-main':''?>">
+            <input type="checkbox" name="category_ids[]" value="<?=$c['id']?>" <?=$checked?'checked':''?>>
+            <span class="category-check">✓</span>
+            <span class="category-option-copy">
+              <b><?=e($c['name'])?></b>
+              <?php if(!empty($c['description'])):?><small><?=e($c['description'])?></small><?php endif;?>
+            </span>
+          </label>
+        <?php endforeach;?>
+      </div>
+      <p class="field-hint category-note">Новость появится во <b>всех выбранных рубриках</b>. «Главные новости» отвечают за правый блок на главной странице.</p>
       <button class="secondary category-create-toggle" type="button" data-category-toggle>＋ Новая рубрика</button>
       <div class="category-create-box modern-category-create" data-category-create hidden>
         <label class="field-modern compact"><span>Название</span><input name="new_category_name" value="<?=e($_POST['new_category_name']??'')?>" placeholder="Например: Образование"></label>
         <label class="field-modern compact"><span>Описание</span><textarea name="new_category_description" rows="3" placeholder="Необязательно"><?=e($_POST['new_category_description']??'')?></textarea></label>
-        <p class="field-hint">Новая рубрика создастся одновременно с сохранением новости.</p>
+        <p class="field-hint">Новая рубрика создастся и автоматически добавится к этой новости.</p>
       </div>
     </section>
 
