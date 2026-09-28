@@ -120,3 +120,77 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
     });
   });
 })();
+
+(function(){
+  const shell=document.querySelector('[data-menu-shell]');
+  const menu=document.querySelector('#site-menu');
+  const toggle=document.querySelector('[data-menu-overflow-toggle]');
+  const panel=document.querySelector('[data-menu-overflow-panel]');
+  if(!shell||!menu||!toggle||!panel) return;
+
+  let raf=0;
+
+  function closeOverflow(){
+    shell.classList.remove('is-open');
+    toggle.setAttribute('aria-expanded','false');
+  }
+
+  function restoreItems(){
+    while(panel.firstChild){
+      menu.appendChild(panel.firstChild);
+    }
+  }
+
+  function fitMenu(){
+    window.cancelAnimationFrame(raf);
+    raf=window.requestAnimationFrame(function(){
+      restoreItems();
+      closeOverflow();
+      toggle.hidden=true;
+
+      if(window.innerWidth<=900) return;
+
+      toggle.hidden=false;
+
+      let guard=0;
+      while(menu.scrollWidth>menu.clientWidth+1 && menu.children.length>1 && guard<100){
+        panel.insertBefore(menu.lastElementChild,panel.firstChild);
+        guard++;
+      }
+
+      if(panel.children.length===0){
+        toggle.hidden=true;
+      }else{
+        toggle.hidden=false;
+        toggle.title='Ещё '+panel.children.length+' пунктов меню';
+      }
+    });
+  }
+
+  toggle.addEventListener('click',function(e){
+    e.stopPropagation();
+    const open=!shell.classList.contains('is-open');
+    shell.classList.toggle('is-open',open);
+    toggle.setAttribute('aria-expanded',open?'true':'false');
+  });
+
+  panel.addEventListener('click',function(e){
+    if(e.target.closest('a')) closeOverflow();
+  });
+
+  document.addEventListener('click',function(e){
+    if(window.innerWidth<=900) return;
+    if(!shell.contains(e.target)) closeOverflow();
+  });
+
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape') closeOverflow();
+  });
+
+  window.addEventListener('resize',fitMenu);
+  window.addEventListener('load',fitMenu);
+  if(document.fonts&&document.fonts.ready){
+    document.fonts.ready.then(fitMenu);
+  }
+  fitMenu();
+})();
