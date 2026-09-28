@@ -2169,3 +2169,208 @@ h1,h2,h3,h4{
     linear-gradient(180deg,rgba(255,255,255,.015),rgba(0,0,0,.18)),
     radial-gradient(circle at 18% 82%,rgba(166,125,73,.08),transparent 34%);
 }
+
+
+/* polished news sections v3 */
+.news-section-heading{
+  position:relative;
+  margin-bottom:18px;
+  padding:0 2px 15px;
+  border-bottom:1px solid #d9cdbc;
+}
+.news-section-heading:after{
+  content:"";
+  position:absolute;
+  left:0;
+  bottom:-1px;
+  width:72px;
+  height:2px;
+  background:linear-gradient(90deg,var(--gold),#d5b98f);
+}
+.news-section-heading h2{
+  margin:4px 0 0;
+  font-size:31px;
+  line-height:1.05;
+  letter-spacing:-.03em;
+  font-weight:600;
+}
+.news-section-heading>a,
+.news-section-heading .block-note{
+  align-self:center;
+}
+.dual-section-heading{
+  margin-bottom:18px;
+}
+
+/* Район: более цельная журнальная композиция */
+.district-news-section .news-magazine-grid{
+  gap:20px;
+  margin-top:0;
+}
+.district-news-section .news-feature,
+.district-news-section .news-stack,
+.district-news-section .magazine-side-column>*{
+  border-color:#ded4c7;
+}
+.district-news-section .news-feature{
+  position:relative;
+  border-radius:18px;
+  box-shadow:0 12px 32px rgba(68,48,30,.055);
+}
+.district-news-section .news-feature:after{
+  content:"";
+  position:absolute;
+  inset:auto 0 0 0;
+  height:3px;
+  background:linear-gradient(90deg,var(--gold),rgba(166,125,73,.10));
+}
+.district-news-section .news-image.large{
+  height:300px;
+}
+.district-news-section .news-feature-body{
+  padding:22px 24px 25px;
+}
+.district-news-section .news-feature h3{
+  margin:8px 0 11px;
+  font-size:28px;
+  line-height:1.1;
+}
+.district-news-section .news-feature p{
+  color:#786e64;
+  font-size:13.5px;
+  line-height:1.55;
+}
+.district-news-section .news-stack{
+  padding:3px 18px;
+  border-radius:18px;
+  box-shadow:0 10px 28px rgba(68,48,30,.045);
+}
+.district-news-section .news-row{
+  grid-template-columns:118px minmax(0,1fr);
+  gap:15px;
+  padding:15px 0;
+}
+.district-news-section .news-image.small{
+  height:82px;
+  border-radius:11px;
+}
+.district-news-section .news-row h3{
+  margin:5px 0 8px;
+  font-size:16px;
+  line-height:1.24;
+}
+
+/* Региональные новости + спорт: одинаковая визуальная система */
+.dual-news-card{
+  border-radius:18px;
+  border-color:#ded4c7;
+  box-shadow:0 12px 32px rgba(68,48,30,.05);
+}
+.dual-news-card:before{
+  width:3px;
+}
+.dual-news-head{
+  min-height:86px;
+  padding:19px 22px 16px 25px;
+  background:linear-gradient(180deg,#fff,#fcfaf7);
+}
+.dual-news-head h2{
+  font-size:25px;
+  line-height:1.08;
+}
+.regional-news-card .dual-news-head{
+  background:linear-gradient(180deg,#fff,#fbf6ef);
+}
+.sport-news-card .dual-news-head{
+  background:linear-gradient(180deg,#fff,#f7f9f6);
+}
+.dual-news-lead{
+  grid-template-columns:42% 58%;
+  min-height:250px;
+}
+.dual-news-image{
+  min-height:250px;
+  position:relative;
+}
+.dual-news-image:after,
+.dual-news-thumb:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,transparent 68%,rgba(28,20,14,.08));
+  pointer-events:none;
+}
+.dual-news-lead-copy{
+  padding:22px 23px 20px;
+}
+.dual-news-lead-copy h3{
+  font-size:23px;
+  line-height:1.14;
+}
+.dual-news-lead-copy p{
+  font-size:12px;
+  line-height:1.5;
+}
+.dual-news-list{
+  padding:0 22px 13px 25px;
+}
+.dual-news-row{
+  grid-template-columns:minmax(0,1fr) 106px;
+  gap:14px;
+  padding:15px 0;
+}
+.dual-news-row h4{
+  font-size:16px;
+  line-height:1.25;
+}
+.dual-news-thumb{
+  position:relative;
+  width:106px;
+  height:72px;
+  overflow:hidden;
+}
+
+/* единые метаданные */
+.district-news-section .article-label,
+.dual-news-card .article-label{
+  color:#a1774b;
+  font:800 8px/1 var(--sans);
+  letter-spacing:.11em;
+  text-transform:uppercase;
+}
+.district-news-section .article-meta,
+.dual-news-card .article-meta{
+  color:#9a9187;
+  font-size:8.5px;
+}
+
+@media(max-width:1120px){
+  .district-news-section .news-magazine-grid{
+    grid-template-columns:1.15fr 1fr;
+  }
+}
+@media(max-width:980px){
+  .news-section-heading h2{font-size:28px}
+  .dual-news-grid{gap:16px}
+}
+@media(max-width:900px){
+  .district-news-section .news-magazine-grid{grid-template-columns:1fr}
+  .district-news-section .news-image.large{height:280px}
+}
+@media(max-width:680px){
+  .news-section-heading{
+    align-items:flex-start;
+    gap:10px;
+  }
+  .news-section-heading h2{font-size:26px}
+  .news-section-heading .block-note{display:none}
+  .district-news-section .news-feature-body{padding:19px}
+  .district-news-section .news-feature h3{font-size:24px}
+  .district-news-section .news-row{grid-template-columns:98px minmax(0,1fr);gap:12px}
+  .district-news-section .news-image.small{height:72px}
+  .dual-news-head{min-height:0}
+}
+@media(max-width:430px){
+  .district-news-section .news-row{grid-template-columns:82px minmax(0,1fr)}
+  .district-news-section .news-image.small{height:66px}
+}
