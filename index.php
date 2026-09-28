@@ -2,9 +2,9 @@
 require __DIR__ . '/app/bootstrap.php';
 if (!APP_INSTALLED) { header('Location: install.php'); exit; }
 
-$hero = featured_article();
+$mainNews = latest_main_articles(5);
+$hero = $mainNews[0] ?? null;
 $latest = latest_articles(12, $hero['id'] ?? null);
-$mainNews = latest_main_articles(5, $hero['id'] ?? null);
 $districtNews = latest_articles_by_category_slug('novosti-rayona', 8);
 $regionalNews = latest_articles_by_category_slug('regionalnye-novosti', 3);
 $sportNews = latest_articles_by_category_slug('sport', 3);
@@ -41,10 +41,15 @@ require __DIR__ . '/partials/header.php';
 <section class="home-lead-grid">
   <article class="hero-story hero-clean" data-interactive-hero>
     <div class="hero-story-copy">
-      <span class="kicker" data-hero-kicker><?=e($hero ? setting('hero_kicker','Главная тема') : 'Главная тема')?></span>
-      <h1 data-hero-title><?=e($hero['title'] ?? 'Унцукульский район: традиции, люди и движение вперёд')?></h1>
-      <p data-hero-excerpt><?=e($hero['excerpt'] ?? 'АХИХЪАН рассказывает о событиях района, людях, которые его создают, и наследии, которое объединяет поколения.')?></p>
-      <a class="story-button" data-hero-link href="<?=e($hero ? article_url($hero) : base_url('news.php'))?>">Читать материал <span>→</span></a>
+      <span class="kicker" data-hero-kicker>Главные новости</span>
+      <?php if($hero):?>
+        <h1 data-hero-title><?=e($hero['title'])?></h1>
+        <p data-hero-excerpt><?=e($hero['excerpt'] ?: 'Читайте подробности события в материале «АХИХЪАН».')?></p>
+        <a class="story-button" data-hero-link href="<?=e(article_url($hero))?>">Читать материал <span>→</span></a>
+      <?php else:?>
+        <h1 data-hero-title>Главных новостей пока нет</h1>
+        <p data-hero-excerpt>Опубликуйте материал в рубрике «Главные новости», и он появится в этом блоке.</p>
+      <?php endif;?>
     </div>
     <div class="hero-location">
       <span>Унцукульский район</span>
