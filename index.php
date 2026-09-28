@@ -4,6 +4,7 @@ if (!APP_INSTALLED) { header('Location: install.php'); exit; }
 
 $hero = featured_article();
 $latest = latest_articles(12, $hero['id'] ?? null);
+$districtNews = latest_articles_by_category_slug('novosti-rayona', 8);
 $cats = categories();
 $catBySlug = [];
 foreach ($cats as $cat) $catBySlug[$cat['slug']] = $cat;
@@ -93,7 +94,7 @@ require __DIR__ . '/partials/header.php';
     <span>АХИХЪАН</span>
     <strong>Район в фокусе</strong>
   </div>
-  <a href="<?=e(nav_link_for_slug('obschestvo','Общество'))?>"><b>01</b><span>События района<small>Главное рядом</small></span></a>
+  <a href="<?=e(nav_link_for_slug('novosti-rayona','Новости района'))?>"><b>01</b><span>Новости района<small>Главное рядом</small></span></a>
   <a href="<?=e(nav_link_for_slug('lyudi','Люди'))?>"><b>02</b><span>Наши люди<small>Истории земляков</small></span></a>
   <a href="<?=e(nav_link_for_slug('kultura','Культура'))?>"><b>03</b><span>Культура<small>Унцукульские традиции</small></span></a>
   <a href="<?=e(nav_link_for_slug('istoriya','История'))?>"><b>04</b><span>История<small>Память и места</small></span></a>
@@ -109,10 +110,9 @@ require __DIR__ . '/partials/header.php';
   </div>
 
   <div class="news-magazine-grid">
-    <?php if($latest): 
-      $lead = $latest[5] ?? $latest[0];
-      $secondary = array_slice($latest,6,4);
-      if(!$secondary) $secondary = array_slice($latest,1,4);
+    <?php if($districtNews):
+      $lead = $districtNews[0];
+      $secondary = array_slice($districtNews,1,4);
     ?>
       <article class="news-feature">
         <a class="news-image large" href="<?=e(article_url($lead))?>" style="<?=!empty($lead['cover_image']) ? "background-image:url('".e(base_url($lead['cover_image']))."')" : ''?>"></a>
