@@ -2514,3 +2514,48 @@ h1,h2,h3,h4{
     display:none!important;
   }
 }
+
+
+/* ten-item main navigation v3 */
+@media(min-width:901px){
+  .desktop-menu-shell .site-menu{
+    display:flex;
+    align-items:stretch;
+    justify-content:stretch;
+  }
+  .desktop-menu-shell .site-menu>a{
+    flex:1 1 0;
+    min-width:0;
+    justify-content:center;
+    padding:0 8px;
+    text-align:center;
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:.045em;
+  }
+  .desktop-menu-shell .site-menu>a:after{
+    left:10px;
+    right:10px;
+  }
+  .menu-overflow-toggle{
+    min-width:58px;
+    padding:0 10px;
+    font-size:8.5px;
+  }
+  .menu-overflow-panel{
+    justify-content:flex-start;
+    padding:6px 8px;
+  }
+  .menu-overflow-panel>a{
+    min-height:40px;
+    padding:0 15px;
+    font-size:9px;
+  }
+}
+@media(min-width:1180px){
+  .desktop-menu-shell .site-menu>a{
+    font-size:11px;
+    padding-left:10px;
+    padding-right:10px;
+  }
+}
