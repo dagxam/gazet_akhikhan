@@ -95,10 +95,10 @@ require __DIR__ . '/partials/header.php';
 <section class="content-section">
   <div class="block-heading">
     <div>
-      <span class="heading-kicker">Главное</span>
-      <h2>Новости района</h2>
+      <span class="heading-kicker">Новости района</span>
+      <h2>Последние новости района</h2>
     </div>
-    <a href="<?=e(base_url('news.php'))?>">Смотреть все материалы →</a>
+    <a href="<?=e(isset($catBySlug['novosti-rayona']) ? category_url($catBySlug['novosti-rayona']) : base_url('news.php'))?>">Все новости района →</a>
   </div>
 
   <div class="news-magazine-grid">
@@ -109,18 +109,18 @@ require __DIR__ . '/partials/header.php';
       <article class="news-feature">
         <a class="news-image large" href="<?=e(article_url($lead))?>" style="<?=!empty($lead['cover_image']) ? "background-image:url('".e(base_url($lead['cover_image']))."')" : ''?>"></a>
         <div class="news-feature-body">
-          <div class="article-label"><?=e($lead['category_name'] ?: 'Новости')?></div>
+          <div class="article-label">Новости района</div>
           <h3><a href="<?=e(article_url($lead))?>"><?=e($lead['title'])?></a></h3>
-          <p><?=e($lead['excerpt'])?></p>
+          <?php if(!empty($lead['excerpt'])):?><p><?=e($lead['excerpt'])?></p><?php endif;?>
           <div class="article-meta"><span><?=e(ru_date($lead['published_at'] ?: $lead['created_at']))?></span><span>◉ <?=number_format((int)$lead['views'],0,'.',' ')?></span></div>
         </div>
       </article>
       <div class="news-stack">
-        <?php foreach($secondary as $i=>$item): ?>
+        <?php foreach($secondary as $item): ?>
           <article class="news-row">
-            <a class="news-image small demo-<?=e($demoNews[$i]['class'] ?? 'road')?>" href="<?=e(article_url($item))?>" style="<?=!empty($item['cover_image']) ? "background-image:url('".e(base_url($item['cover_image']))."')" : ''?>"></a>
+            <a class="news-image small" href="<?=e(article_url($item))?>" style="<?=!empty($item['cover_image']) ? "background-image:url('".e(base_url($item['cover_image']))."')" : ''?>"></a>
             <div>
-              <div class="article-label"><?=e($item['category_name'] ?: 'Новости')?></div>
+              <div class="article-label">Новости района</div>
               <h3><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h3>
               <div class="article-meta"><span><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></span><span>◉ <?=number_format((int)$item['views'],0,'.',' ')?></span></div>
             </div>
@@ -128,38 +128,42 @@ require __DIR__ . '/partials/header.php';
         <?php endforeach; ?>
       </div>
     <?php else: ?>
-      <article class="news-feature">
-        <a class="news-image large demo-road" href="<?=e(base_url('news.php'))?>"></a>
-        <div class="news-feature-body">
-          <div class="article-label">Инфраструктура</div>
-          <h3><a href="<?=e(base_url('news.php'))?>"><?=e($demoNews[0]['title'])?></a></h3>
-          <p><?=e($demoNews[0]['excerpt'])?></p>
-          <div class="article-meta"><span><?=e($demoNews[0]['date'])?></span><span>◉ <?=e($demoNews[0]['views'])?></span></div>
-        </div>
-      </article>
-      <div class="news-stack">
-        <?php foreach(array_slice($demoNews,1,4) as $item): ?>
-          <article class="news-row">
-            <a class="news-image small demo-<?=e($item['class'])?>" href="<?=e(base_url('news.php'))?>"></a>
-            <div>
-              <div class="article-label">Новости района</div>
-              <h3><a href="<?=e(base_url('news.php'))?>"><?=e($item['title'])?></a></h3>
-              <div class="article-meta"><span><?=e($item['date'])?></span><span>◉ <?=e($item['views'])?></span></div>
-            </div>
-          </article>
-        <?php endforeach; ?>
+      <div class="district-news-empty">
+        <span class="heading-kicker">Новости района</span>
+        <strong>В этой рубрике пока нет опубликованных материалов</strong>
+        <p>Новости появятся здесь автоматически после публикации материала в рубрике «Новости района».</p>
       </div>
     <?php endif; ?>
 
-    <aside class="editorial-card">
-      <div class="editorial-frame"></div>
-      <div class="editorial-copy">
-        <span class="heading-kicker">От редакции</span>
-        <h3>О районе — с уважением к людям и истории</h3>
-        <p>«<?=nl2br(e(setting('editor_note','Наша задача — рассказывать о важном для жителей района, сохранять память о прошлом и показывать людей, которые сегодня меняют родной край.')))?>»</p>
-        <strong>Редакция «АХИХЪАН»</strong>
-      </div>
-    </aside>
+    <div class="magazine-side-column">
+      <aside class="editorial-card editorial-card-compact">
+        <div class="editorial-frame"></div>
+        <div class="editorial-copy">
+          <span class="heading-kicker">От редакции</span>
+          <h3>О районе — с уважением к людям и истории</h3>
+          <p>«<?=nl2br(e(setting('editor_note','Наша задача — рассказывать о важном для жителей района, сохранять память о прошлом и показывать людей, которые сегодня меняют родной край.')))?>»</p>
+          <strong>Редакция «АХИХЪАН»</strong>
+        </div>
+      </aside>
+
+      <aside class="newspaper-card">
+        <div class="newspaper-card-top">
+          <span class="heading-kicker">Газета</span>
+          <span class="newspaper-badge">Скоро</span>
+        </div>
+        <div class="newspaper-placeholder">
+          <div class="newspaper-sheet">
+            <span>АХИХЪАН</span>
+            <i></i><i></i><i></i>
+            <b>Печатный выпуск</b>
+          </div>
+          <div class="newspaper-copy">
+            <h3>Свежий номер газеты</h3>
+            <p>Здесь будет размещаться обложка последнего выпуска, номер и ссылка для чтения.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
   </div>
 </section>
 
