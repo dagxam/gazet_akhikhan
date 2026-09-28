@@ -137,3 +137,35 @@ body{background:#f4f2ee;font-family:Inter,-apple-system,BlinkMacSystemFont,"Sego
 .category-option-copy b{display:block;font-size:12px;color:#40372f;line-height:1.25}
 .category-option-copy small{display:block;margin-top:3px;color:#9a9085;font-size:9.5px;line-height:1.35;font-weight:500}
 @media(max-width:900px){.category-picker{max-height:none}}
+
+
+/* news list actions v1 */
+.news-card-head{align-items:flex-start}
+.news-card-head .admin-intro{margin:5px 0 0;max-width:720px}
+.news-title-link{text-decoration:none}
+.news-title-link:hover{color:#765534}
+.row-actions{display:flex;align-items:center;gap:7px;white-space:nowrap}
+.row-actions form{margin:0}
+.edit-action{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:36px;
+  padding:9px 12px;
+  border-radius:8px;
+  background:#eee8df;
+  border:1px solid #ddd1c2;
+  color:#594630;
+  text-decoration:none;
+  font-size:12px;
+  font-weight:750;
+}
+.edit-action:hover{background:#e6dccf;border-color:#ccb99f}
+.row-actions .danger{min-height:36px;font-size:12px;font-weight:700}
+.news-table td:last-child{width:1%}
+@media(max-width:720px){
+  .news-card-head{align-items:stretch;flex-direction:column;gap:14px}
+  .news-card-head .primary{text-align:center}
+  .row-actions{flex-direction:column;align-items:stretch}
+  .edit-action,.row-actions .danger{width:100%;text-align:center}
+}
