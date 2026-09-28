@@ -12,12 +12,16 @@
 </section>
 
 <footer class="site-footer" id="contacts">
+  <div class="footer-ornament" aria-hidden="true"></div>
+
   <div class="wrap footer-main">
     <div class="footer-identity">
+      <span class="footer-kicker">Сетевое издание</span>
       <a href="<?=e(base_url())?>" class="footer-logo">
         <img src="<?=e(base_url('assets/img/akhikhan-logo-user.jpg'))?>" alt="АХИХЪАН">
       </a>
-      <p>Сетевое издание Унцукульского района Республики Дагестан. Новости, общественная жизнь, культура, спорт, люди и история родного края.</p>
+      <p>Новости и истории Унцукульского района Республики Дагестан. Рассказываем о событиях, людях, культуре и памяти родного края.</p>
+      <div class="footer-region">Унцукульский район · Дагестан</div>
     </div>
 
     <div class="footer-column">
@@ -37,13 +41,14 @@
     </div>
 
     <div class="footer-contact">
-      <span class="footer-district">Унцукульский район<br>Республика Дагестан</span>
+      <span class="footer-contact-label">Мы в социальных сетях</span>
       <div class="footer-socials socials">
-        <a href="#" aria-label="Telegram">➤</a>
-        <a href="#" aria-label="VK">vk</a>
-        <a href="#" aria-label="YouTube">▶</a>
-        <a href="#" aria-label="Instagram">◎</a>
+        <a href="#" aria-label="Telegram">TG</a>
+        <a href="#" aria-label="VK">VK</a>
+        <a href="#" aria-label="YouTube">YT</a>
+        <a href="#" aria-label="Instagram">IG</a>
       </div>
+      <a class="footer-contact-link" href="<?=e(base_url('contacts.php'))?>">Связаться с редакцией →</a>
     </div>
   </div>
 
@@ -56,7 +61,7 @@
   </div>
 </footer>
 
-<script src="<?=e(base_url('assets/js/app.js?v=20260928-redesign1'))?>"></script>
+<script src="<?=e(base_url('assets/js/app.js?v=20260928-editorial2'))?>"></script>
 </div>
 </body>
 </html>
