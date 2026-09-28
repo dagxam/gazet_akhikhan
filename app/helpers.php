@@ -16,7 +16,7 @@ function base_url(string $path = ''): string
 function slugify(string $text): string
 {
     $map = ['а'=>'a','б'=>'b','в'=>'v','г'=>'g','д'=>'d','е'=>'e','ё'=>'e','ж'=>'zh','з'=>'z','и'=>'i','й'=>'y','к'=>'k','л'=>'l','м'=>'m','н'=>'n','о'=>'o','п'=>'p','р'=>'r','с'=>'s','т'=>'t','у'=>'u','ф'=>'f','х'=>'h','ц'=>'c','ч'=>'ch','ш'=>'sh','щ'=>'sch','ъ'=>'','ы'=>'y','ь'=>'','э'=>'e','ю'=>'yu','я'=>'ya'];
-    $text = mb_strtolower(trim($text), 'UTF-8');
+    $text = function_exists('mb_strtolower') ? mb_strtolower(trim($text), 'UTF-8') : strtolower(trim($text));
     $text = strtr($text, $map);
     $text = preg_replace('~[^a-z0-9]+~', '-', $text) ?? '';
     return trim($text, '-') ?: 'material';
@@ -33,6 +33,21 @@ function setting(string $key, string $default = ''): string
     } catch (Throwable $e) {
         return $default;
     }
+}
+
+function save_setting(string $key, string $value): void
+{
+    $check = db()->prepare('SELECT setting_key FROM settings WHERE setting_key=? LIMIT 1');
+    $check->execute([$key]);
+
+    if ($check->fetchColumn() !== false) {
+        $q = db()->prepare('UPDATE settings SET setting_value=?, updated_at=CURRENT_TIMESTAMP WHERE setting_key=?');
+        $q->execute([$value, $key]);
+        return;
+    }
+
+    $q = db()->prepare('INSERT INTO settings(setting_key,setting_value) VALUES(?,?)');
+    $q->execute([$key, $value]);
 }
 
 function ru_date(?string $date): string
@@ -61,7 +76,7 @@ function latest_articles(int $limit = 8, ?int $excludeId = null): array
     if (!APP_INSTALLED) return [];
     $sql = "SELECT a.*, c.name category_name, c.slug category_slug
             FROM articles a LEFT JOIN categories c ON c.id=a.category_id
-            WHERE a.status='published' AND (a.published_at IS NULL OR a.published_at<=NOW())";
+            WHERE a.status='published' AND (a.published_at IS NULL OR a.published_at<=CURRENT_TIMESTAMP)";
     $params = [];
     if ($excludeId) { $sql .= ' AND a.id<>?'; $params[] = $excludeId; }
     $sql .= ' ORDER BY COALESCE(a.published_at,a.created_at) DESC LIMIT ' . max(1, $limit);
@@ -76,7 +91,7 @@ function featured_article(): ?array
     $q = db()->query("SELECT a.*, c.name category_name, c.slug category_slug
                      FROM articles a LEFT JOIN categories c ON c.id=a.category_id
                      WHERE a.status='published' AND a.is_featured=1
-                     AND (a.published_at IS NULL OR a.published_at<=NOW())
+                     AND (a.published_at IS NULL OR a.published_at<=CURRENT_TIMESTAMP)
                      ORDER BY COALESCE(a.published_at,a.created_at) DESC LIMIT 1");
     $row = $q->fetch();
     return $row ?: null;
