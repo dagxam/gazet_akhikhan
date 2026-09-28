@@ -14,7 +14,27 @@ foreach($rows as &$row){
 unset($row);
 require __DIR__.'/_top.php';
 ?>
-<section class="admin-card"><div class="card-head"><h2>Все новости</h2><a class="primary" href="<?=e(base_url('admin/article-edit.php'))?>">+ Добавить новость</a></div><div class="table-scroll"><table><thead><tr><th>Новость</th><th>Рубрика</th><th>Статус</th><th>Просмотры</th><th></th></tr></thead><tbody>
-<?php foreach($rows as $r):?><tr><td><a href="<?=e(base_url('admin/article-edit.php?id='.$r['id']))?>"><strong><?=e($r['title'])?></strong></a><small><?=e($r['slug'])?></small></td><td><?=e($r['category_names'] ?: '—')?></td><td><span class="status <?=$r['status']==='published'?'green':'gray'?>"><?=e($r['status']==='published'?'Опубликовано':'Черновик')?></span></td><td><?=$r['views']?></td><td><form method="post" onsubmit="return confirm('Удалить новость?')"><input type="hidden" name="csrf" value="<?=e(csrf_token())?>"><input type="hidden" name="delete_id" value="<?=$r['id']?>"><button class="danger">Удалить</button></form></td></tr><?php endforeach;?>
+<section class="admin-card news-admin-card">
+<div class="card-head news-card-head">
+  <div><h2>Все новости</h2><p class="admin-intro">Открывайте любую новость для полного редактирования заголовка, текста, рубрик, обложки и публикации.</p></div>
+  <a class="primary" href="<?=e(base_url('admin/article-edit.php'))?>">+ Добавить новость</a>
+</div>
+<div class="table-scroll"><table class="news-table"><thead><tr><th>Новость</th><th>Рубрики</th><th>Статус</th><th>Просмотры</th><th>Действия</th></tr></thead><tbody>
+<?php foreach($rows as $r):?><tr>
+<td><a class="news-title-link" href="<?=e(base_url('admin/article-edit.php?id='.$r['id']))?>"><strong><?=e($r['title'])?></strong></a><small><?=e($r['slug'])?></small></td>
+<td><?=e($r['category_names'] ?: '—')?></td>
+<td><span class="status <?=$r['status']==='published'?'green':'gray'?>"><?=e($r['status']==='published'?'Опубликовано':'Черновик')?></span></td>
+<td><?=$r['views']?></td>
+<td>
+  <div class="row-actions">
+    <a class="edit-action" href="<?=e(base_url('admin/article-edit.php?id='.$r['id']))?>">Редактировать</a>
+    <form method="post" onsubmit="return confirm('Удалить новость?')">
+      <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
+      <input type="hidden" name="delete_id" value="<?=$r['id']?>">
+      <button class="danger">Удалить</button>
+    </form>
+  </div>
+</td>
+</tr><?php endforeach;?>
 </tbody></table></div></section>
 <?php require __DIR__.'/_bottom.php'; ?>
