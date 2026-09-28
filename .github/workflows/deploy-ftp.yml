@@ -37,3 +37,11 @@ jobs:
             config.example.php
             README.md
             uploads/**
+
+      - name: Verify deployed installer
+        shell: bash
+        run: |
+          set -e
+          html="$(curl --fail --silent --show-error --location --max-time 30 https://akhikhan.ru/install.php)"
+          echo "$html" | grep -q "Установка AKHIKHAN.RU"
+          echo "AKHIKHAN.RU installer is reachable."
