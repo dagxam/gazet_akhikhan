@@ -1,11 +1,20 @@
 <?php
 require __DIR__ . '/app/bootstrap.php';
 if (!APP_INSTALLED) { header('Location: install.php'); exit; }
+
 $slug = trim($_GET['slug'] ?? '');
 $q = db()->prepare('SELECT * FROM categories WHERE slug=? AND is_active=1 LIMIT 1');
 $q->execute([$slug]);
 $category=$q->fetch();
-if(!$category){ http_response_code(404); exit('Рубрика не найдена'); }
+
+if(!$category){
+  http_response_code(404);
+  $pageTitle='Рубрика не найдена';
+  require __DIR__.'/partials/header.php';
+  echo '<div class="wrap page-shell"><div class="page-head"><div><span class="heading-kicker">404</span><h1>Рубрика не найдена</h1></div><div class="page-head-mark"></div></div></div>';
+  require __DIR__.'/partials/footer.php';
+  exit;
+}
 
 $q=db()->prepare("SELECT a.*,c.name category_name,c.slug category_slug
 FROM articles a LEFT JOIN categories c ON c.id=a.category_id
@@ -15,10 +24,38 @@ $q->execute([$category['id']]);
 $articles=$q->fetchAll();
 
 $pageTitle=$category['name'];
+$pageDescription=$category['description'] ?: 'Публикации рубрики «'.$category['name'].'» сетевого издания «АХИХЪАН».';
 require __DIR__.'/partials/header.php';
 ?>
-<div class="wrap page-shell"><section class="panel listing"><div class="section-head"><h1><?=e($category['name'])?></h1></div>
-<?php foreach($articles as $a): ?><article class="list-card"><a class="list-thumb" href="<?=e(article_url($a))?>" style="<?=!empty($a['cover_image']) ? "background-image:url('".e(base_url($a['cover_image']))."')" : ''?>"></a><div><div class="meta"><?=e(ru_date($a['published_at'] ?: $a['created_at']))?></div><h2><a href="<?=e(article_url($a))?>"><?=e($a['title'])?></a></h2><p><?=e($a['excerpt'])?></p></div></article><?php endforeach; ?>
-<?php if(!$articles): ?><div class="empty">В этой рубрике пока нет публикаций.</div><?php endif; ?>
-</section></div>
+<div class="wrap page-shell">
+  <div class="page-head">
+    <div>
+      <span class="heading-kicker">Рубрика</span>
+      <h1><?=e($category['name'])?></h1>
+      <p><?=e($category['description'] ?: 'Материалы сетевого издания «АХИХЪАН» о жизни Унцукульского района.')?></p>
+    </div>
+    <div class="page-head-mark" aria-hidden="true"></div>
+  </div>
+
+  <?php if($articles): ?>
+  <section class="listing-grid">
+    <?php foreach($articles as $a): ?>
+      <article class="list-card">
+        <a class="list-thumb<?=empty($a['cover_image'])?' demo-road':''?>" href="<?=e(article_url($a))?>" style="<?=!empty($a['cover_image']) ? "background-image:url('".e(base_url($a['cover_image']))."')" : ''?>"></a>
+        <div class="list-card-body">
+          <div class="article-label"><?=e($a['category_name'] ?: $category['name'])?></div>
+          <h2><a href="<?=e(article_url($a))?>"><?=e($a['title'])?></a></h2>
+          <p><?=e($a['excerpt'])?></p>
+          <div class="article-meta">
+            <span><?=e(ru_date($a['published_at'] ?: $a['created_at']))?></span>
+            <span>◉ <?=number_format((int)$a['views'],0,'.',' ')?></span>
+          </div>
+        </div>
+      </article>
+    <?php endforeach; ?>
+  </section>
+  <?php else: ?>
+    <div class="empty">В этой рубрике пока нет опубликованных материалов.</div>
+  <?php endif; ?>
+</div>
 <?php require __DIR__.'/partials/footer.php'; ?>
