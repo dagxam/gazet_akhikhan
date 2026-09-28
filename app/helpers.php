@@ -70,6 +70,7 @@ function current_date_ru(): string
 function default_category_seed(): array
 {
     return [
+        ['Главные новости', 'glavnye-novosti', 'Ключевые материалы редакции и главные события дня.', 5],
         ['Региональные новости', 'regionalnye-novosti', 'Новости Республики Дагестан, важные для жителей Унцукульского района.', 10],
         ['Новости района', 'novosti-rayona', 'События и новости Унцукульского района.', 20],
         ['Общество', 'obschestvo', 'Общественная жизнь района и социальные темы.', 30],
@@ -100,6 +101,104 @@ function ensure_default_categories(): void
         }
     } catch (Throwable $e) {
     }
+}
+
+function category_id_by_slug(string $slug): ?int
+{
+    if (!APP_INSTALLED) return null;
+    $q = db()->prepare('SELECT id FROM categories WHERE slug=? LIMIT 1');
+    $q->execute([$slug]);
+    $id = $q->fetchColumn();
+    return $id === false ? null : (int)$id;
+}
+
+function ensure_article_categories_schema(): void
+{
+    if (!APP_INSTALLED) return;
+    if (setting('schema_article_categories_v1', '') === '1') return;
+
+    $pdo = db();
+    $driver = (string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+    if ($driver === 'sqlite') {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS article_categories (
+            article_id INTEGER NOT NULL,
+            category_id INTEGER NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (article_id, category_id),
+            FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE,
+            FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+        )");
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_article_categories_category ON article_categories(category_id,article_id)');
+        $pdo->exec('INSERT OR IGNORE INTO article_categories(article_id,category_id) SELECT id,category_id FROM articles WHERE category_id IS NOT NULL');
+        $mainId = category_id_by_slug('glavnye-novosti');
+        if ($mainId) {
+            $q = $pdo->prepare('INSERT OR IGNORE INTO article_categories(article_id,category_id) SELECT id,? FROM articles WHERE category_id IS NULL');
+            $q->execute([$mainId]);
+            $pdo->prepare('UPDATE articles SET category_id=? WHERE category_id IS NULL')->execute([$mainId]);
+        }
+    } else {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS article_categories (
+            article_id INT UNSIGNED NOT NULL,
+            category_id INT UNSIGNED NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (article_id,category_id),
+            INDEX idx_article_categories_category (category_id,article_id),
+            CONSTRAINT fk_article_categories_article FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE,
+            CONSTRAINT fk_article_categories_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        $pdo->exec('INSERT IGNORE INTO article_categories(article_id,category_id) SELECT id,category_id FROM articles WHERE category_id IS NOT NULL');
+        $mainId = category_id_by_slug('glavnye-novosti');
+        if ($mainId) {
+            $q = $pdo->prepare('INSERT IGNORE INTO article_categories(article_id,category_id) SELECT id,? FROM articles WHERE category_id IS NULL');
+            $q->execute([$mainId]);
+            $pdo->prepare('UPDATE articles SET category_id=? WHERE category_id IS NULL')->execute([$mainId]);
+        }
+    }
+
+    save_setting('schema_article_categories_v1', '1');
+}
+
+function article_category_ids(int $articleId): array
+{
+    if (!$articleId) return [];
+    $q = db()->prepare('SELECT category_id FROM article_categories WHERE article_id=? ORDER BY category_id');
+    $q->execute([$articleId]);
+    return array_map('intval', array_column($q->fetchAll(), 'category_id'));
+}
+
+function article_categories(int $articleId): array
+{
+    if (!$articleId) return [];
+    $q = db()->prepare('SELECT c.* FROM categories c INNER JOIN article_categories ac ON ac.category_id=c.id WHERE ac.article_id=? ORDER BY c.sort_order,c.name');
+    $q->execute([$articleId]);
+    return $q->fetchAll();
+}
+
+function set_article_categories(int $articleId, array $categoryIds): void
+{
+    $ids = array_values(array_unique(array_filter(array_map('intval', $categoryIds), fn($id) => $id > 0)));
+    if (!$ids) throw new RuntimeException('Выберите хотя бы одну рубрику.');
+
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $q = db()->prepare("SELECT id,slug FROM categories WHERE is_active=1 AND id IN ($placeholders) ORDER BY sort_order,name");
+    $q->execute($ids);
+    $valid = $q->fetchAll();
+    if (!$valid) throw new RuntimeException('Выбранные рубрики не найдены.');
+
+    $primaryId = (int)$valid[0]['id'];
+    foreach ($valid as $row) {
+        if ($row['slug'] !== 'glavnye-novosti') {
+            $primaryId = (int)$row['id'];
+            break;
+        }
+    }
+
+    db()->prepare('DELETE FROM article_categories WHERE article_id=?')->execute([$articleId]);
+    $insert = db()->prepare('INSERT INTO article_categories(article_id,category_id) VALUES(?,?)');
+    foreach ($valid as $row) $insert->execute([$articleId, (int)$row['id']]);
+
+    db()->prepare('UPDATE articles SET category_id=? WHERE id=?')->execute([$primaryId, $articleId]);
 }
 
 function find_or_create_category(string $name, string $description = '', int $sortOrder = 100): int
@@ -142,7 +241,8 @@ function latest_articles_by_category_slug(string $slug, int $limit = 8): array
     if (!APP_INSTALLED) return [];
     $sql = "SELECT a.*, c.name category_name, c.slug category_slug
             FROM articles a
-            INNER JOIN categories c ON c.id=a.category_id
+            INNER JOIN article_categories ac ON ac.article_id=a.id
+            INNER JOIN categories c ON c.id=ac.category_id
             WHERE a.status='published'
               AND c.slug=?
               AND c.is_active=1
@@ -163,10 +263,13 @@ function categories(): array
 function latest_main_articles(int $limit = 5, ?int $excludeId = null): array
 {
     if (!APP_INSTALLED) return [];
-    $sql = "SELECT a.*, NULL AS category_name, NULL AS category_slug
+    $sql = "SELECT a.*, c.name category_name, c.slug category_slug
             FROM articles a
+            INNER JOIN article_categories ac ON ac.article_id=a.id
+            INNER JOIN categories c ON c.id=ac.category_id
             WHERE a.status='published'
-              AND a.category_id IS NULL
+              AND c.slug='glavnye-novosti'
+              AND c.is_active=1
               AND (a.published_at IS NULL OR a.published_at<=CURRENT_TIMESTAMP)";
     $params = [];
     if ($excludeId) {
