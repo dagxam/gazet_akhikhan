@@ -48,29 +48,21 @@ img{max-width:100%}
 .socials a:nth-child(2){font-size:9px;text-transform:uppercase}
 .brand-header{background:rgba(255,253,249,.95)}
 .brand-grid{
-  min-height:114px;
+  min-height:190px;
   display:grid;
-  grid-template-columns:1.28fr .72fr .85fr;
+  grid-template-columns:minmax(350px,1.38fr) .55fr .72fr;
   align-items:center;
-  gap:28px;
+  gap:24px;
 }
 .brand{display:flex;align-items:center;min-width:0}
-.brand-seal{width:112px;height:106px;object-fit:contain;flex:0 0 auto;margin-left:-4px}
-.brand-copy{display:block;margin-left:4px;line-height:1}
-.brand-copy strong{
+.brand-logo-link{align-self:stretch;display:flex;align-items:center}
+.brand-logo-image{
   display:block;
-  font-size:42px;
-  line-height:.95;
-  letter-spacing:-1.5px;
-  font-weight:700;
-  white-space:nowrap;
-}
-.brand-copy small{
-  display:block;
-  font-size:18px;
-  margin-top:8px;
-  color:#6f675e;
-  white-space:nowrap;
+  width:100%;
+  max-width:390px;
+  height:auto;
+  object-fit:contain;
+  object-position:left center;
 }
 .brand-motto{
   color:#a06e3c;
@@ -95,7 +87,7 @@ img{max-width:100%}
 }
 .nav-ornament{
   position:absolute;top:0;bottom:0;width:132px;
-  background:url("../img/ornament.svg") center/cover no-repeat;
+  background:url("../img/ornament-nav-user.jpg") center/cover no-repeat;
 }
 .nav-ornament-left{left:0}
 .nav-ornament-right{right:0;transform:scaleX(-1)}
@@ -298,23 +290,30 @@ img{max-width:100%}
   opacity:.42;
 }
 .paper-card{
-  min-height:126px;
-  background:
-   linear-gradient(#fffdf9,#fffaf2);
-  border:1px solid #c9b18c;
-  outline:4px double #d3bc98;
-  outline-offset:-7px;
-  display:grid;place-items:center;
-  padding:15px 24px;
+  min-height:148px;
+  position:relative;
+  background:#fbf8f1 url("../img/ornament-frame-user.jpg") center/100% 100% no-repeat;
+  border:0;
+  outline:0;
+  display:grid;
+  place-items:center;
+  padding:26px 34px;
   text-align:center;
   color:#8a5d31;
   font-family:"Segoe Script","Brush Script MT",cursive;
   font-size:25px;
   line-height:1.2;
-  transform:rotate(-.3deg);
+  overflow:hidden;
 }
-.paper-card:before,.paper-card:after{content:"✥";position:absolute;color:#b38f63;font-family:Georgia;font-size:15px}
-.paper-card span{transform:rotate(-4deg)}
+.paper-card:before,.paper-card:after{display:none}
+.paper-card span{
+  transform:rotate(-4deg);
+  position:relative;
+  z-index:1;
+  padding:10px 16px;
+  background:rgba(251,248,241,.72);
+  border-radius:8px;
+}
 .paper-card b{font-weight:400}
 
 .categories-panel{margin-top:12px}
@@ -362,7 +361,7 @@ img{max-width:100%}
 }
 
 .quote-band{
-  min-height:92px;
+  min-height:96px;
   border-top:1px solid #b89363;
   border-bottom:1px solid #b89363;
   position:relative;
@@ -370,7 +369,7 @@ img{max-width:100%}
   align-items:center;
   justify-content:center;
   overflow:hidden;
-  background:#fbf7ef;
+  background:#fbf7ef url("../img/ornament-footer-user.jpg") center/100% 100% no-repeat;
 }
 .quote-inner{
   text-align:center;
@@ -382,18 +381,7 @@ img{max-width:100%}
   padding:0 16px;
   position:relative;z-index:2;
 }
-.quote-orn{
-  position:absolute;top:0;bottom:0;width:36%;
-  background:url("../img/ornament.svg") center/auto 88px repeat-x;
-  opacity:.78;
-}
-.quote-orn-left{left:-20px}
-.quote-orn-right{right:-20px;transform:scaleX(-1)}
-.quote-band:after{
-  content:"✥";
-  position:absolute;bottom:-12px;left:50%;transform:translateX(-50%);
-  color:#9a7040;font-size:28px;background:#fbf7ef;padding:0 8px;
-}
+.quote-band:after{display:none}
 
 footer{position:relative;background:#fbf8f1;padding:27px 0 35px}
 .footer-grid{display:grid;grid-template-columns:1.05fr 1.4fr .8fr;align-items:center;gap:30px}
@@ -420,9 +408,8 @@ footer{position:relative;background:#fbf8f1;padding:27px 0 35px}
 
 @media(max-width:1050px){
   .wrap{width:calc(100% - 24px)}
-  .brand-grid{grid-template-columns:1.25fr .6fr .8fr}
-  .brand-copy strong{font-size:36px}
-  .brand-copy small{font-size:16px}
+  .brand-grid{grid-template-columns:1.32fr .55fr .68fr;min-height:174px}
+  .brand-logo-image{max-width:350px}
   .nav-inner{padding:0 98px}
   .nav-inner>a{padding:0 9px;font-size:10px}
   .nav-ornament{width:108px}
@@ -443,11 +430,9 @@ footer{position:relative;background:#fbf8f1;padding:27px 0 35px}
 @media(max-width:680px){
   .topbar{height:31px}.topbar-inner{font-size:11px}
   .socials{gap:8px}.socials a{width:19px;height:19px}
-  .brand-grid{min-height:88px;grid-template-columns:1fr}
+  .brand-grid{min-height:148px;grid-template-columns:1fr}
   .district-mark{display:none}
-  .brand-seal{width:72px;height:72px}
-  .brand-copy strong{font-size:29px}
-  .brand-copy small{font-size:13px}
+  .brand-logo-image{max-width:305px}
   .main-nav{height:42px}
   .nav-inner>a{font-size:10px;padding:0 10px}
   .search button{width:42px}
@@ -465,7 +450,6 @@ footer{position:relative;background:#fbf8f1;padding:27px 0 35px}
   .large-thumb{height:220px}
   .sidebar{grid-template-columns:1fr}
   .category-cards{grid-template-columns:1fr 1fr}
-  .quote-orn{width:28%;opacity:.35}
   .quote-inner{font-size:19px}
   .footer-grid{grid-template-columns:1fr;gap:20px}
   .footer-links{justify-content:flex-start;flex-wrap:wrap;white-space:normal}
@@ -477,9 +461,7 @@ footer{position:relative;background:#fbf8f1;padding:27px 0 35px}
 }
 @media(max-width:430px){
   .topbar .socials{display:none}
-  .brand-copy strong{font-size:26px}
-  .brand-seal{width:65px;height:65px}
-  .brand-copy small{font-size:12px}
+  .brand-logo-image{max-width:265px}
   .hero{min-height:330px}
   .hero h1{font-size:31px}
   .feature-strip{grid-template-columns:1fr}
