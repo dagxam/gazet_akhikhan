@@ -474,3 +474,162 @@ function handle_newspaper_pdf_upload(array $file, ?string $oldPdf = null, ?strin
 
     return ['pdf_file'=>$pdfRelative, 'cover_image'=>$coverRelative];
 }
+
+
+function ensure_documents_schema(): void
+{
+    if (!APP_INSTALLED) return;
+    if (setting('schema_documents_v1', '') === '1') return;
+
+    $pdo = db();
+    $driver = (string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+    if ($driver === 'sqlite') {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS documents (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            description TEXT,
+            document_date TEXT NOT NULL,
+            file_path TEXT NOT NULL,
+            file_ext TEXT NOT NULL,
+            original_name TEXT,
+            file_size INTEGER NOT NULL DEFAULT 0,
+            status TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('draft','published')),
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )");
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_documents_status_date ON documents(status,document_date)');
+    } else {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS documents (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            description TEXT NULL,
+            document_date DATE NOT NULL,
+            file_path VARCHAR(500) NOT NULL,
+            file_ext VARCHAR(12) NOT NULL,
+            original_name VARCHAR(255) NULL,
+            file_size BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            status ENUM('draft','published') NOT NULL DEFAULT 'published',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_documents_status_date (status,document_date)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    }
+
+    save_setting('schema_documents_v1', '1');
+}
+
+function latest_documents(int $limit = 8): array
+{
+    if (!APP_INSTALLED) return [];
+    $sql = "SELECT * FROM documents WHERE status='published' ORDER BY document_date DESC,id DESC LIMIT " . max(1,$limit);
+    return db()->query($sql)->fetchAll();
+}
+
+function document_format_label(string $ext): string
+{
+    $ext = strtolower($ext);
+    return match($ext) {
+        'doc','docx' => 'WORD',
+        'xls','xlsx' => 'EXCEL',
+        'ppt','pptx' => 'POWERPOINT',
+        'pdf' => 'PDF',
+        default => strtoupper($ext),
+    };
+}
+
+function document_format_class(string $ext): string
+{
+    $ext = strtolower($ext);
+    return match($ext) {
+        'doc','docx' => 'word',
+        'xls','xlsx' => 'excel',
+        'ppt','pptx' => 'powerpoint',
+        'pdf' => 'pdf',
+        default => 'file',
+    };
+}
+
+function human_file_size(int $bytes): string
+{
+    if ($bytes < 1024) return $bytes . ' Б';
+    if ($bytes < 1024 * 1024) return number_format($bytes / 1024, 1, ',', ' ') . ' КБ';
+    return number_format($bytes / (1024 * 1024), 1, ',', ' ') . ' МБ';
+}
+
+function safe_delete_document_upload(?string $relativePath): void
+{
+    if (!$relativePath || !str_starts_with($relativePath, 'uploads/documents/')) return;
+    $full = ROOT_PATH . '/' . ltrim($relativePath,'/');
+    if (is_file($full)) @unlink($full);
+}
+
+function handle_document_upload(array $file, ?string $oldPath = null, ?string $oldExt = null, ?string $oldName = null, int $oldSize = 0): array
+{
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+        return [
+            'file_path'=>$oldPath,
+            'file_ext'=>$oldExt,
+            'original_name'=>$oldName,
+            'file_size'=>$oldSize,
+        ];
+    }
+
+    if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+        throw new RuntimeException('Ошибка загрузки документа.');
+    }
+
+    $size=(int)($file['size']??0);
+    if ($size <= 0 || $size > 80 * 1024 * 1024) {
+        throw new RuntimeException('Размер документа должен быть не более 80 МБ.');
+    }
+
+    $original=(string)($file['name']??'document');
+    $ext=strtolower(pathinfo($original,PATHINFO_EXTENSION));
+    $allowed=['pdf','doc','docx','xls','xlsx','ppt','pptx'];
+    if (!in_array($ext,$allowed,true)) {
+        throw new RuntimeException('Разрешены PDF, DOC, DOCX, XLS, XLSX, PPT и PPTX.');
+    }
+
+    $finfo=new finfo(FILEINFO_MIME_TYPE);
+    $mime=(string)$finfo->file($file['tmp_name']);
+    $acceptedMimes=[
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'application/zip',
+        'application/x-zip',
+        'application/x-zip-compressed',
+        'application/octet-stream',
+        'application/x-ole-storage',
+        'application/CDFV2',
+    ];
+    if (!in_array($mime,$acceptedMimes,true)) {
+        throw new RuntimeException('Формат файла не соответствует разрешённым документам.');
+    }
+
+    $folder='uploads/documents/'.date('Y/m');
+    $dir=ROOT_PATH.'/'.$folder;
+    if (!is_dir($dir) && !mkdir($dir,0775,true) && !is_dir($dir)) {
+        throw new RuntimeException('Не удалось создать папку для документов.');
+    }
+
+    $name=bin2hex(random_bytes(12)).'.'.$ext;
+    $relative=$folder.'/'.$name;
+    if (!move_uploaded_file($file['tmp_name'],ROOT_PATH.'/'.$relative)) {
+        throw new RuntimeException('Не удалось сохранить документ.');
+    }
+
+    if ($oldPath && $oldPath !== $relative) safe_delete_document_upload($oldPath);
+
+    return [
+        'file_path'=>$relative,
+        'file_ext'=>$ext,
+        'original_name'=>function_exists('mb_substr') ? mb_substr($original,0,255,'UTF-8') : substr($original,0,255),
+        'file_size'=>$size,
+    ];
+}
