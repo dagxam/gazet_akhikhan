@@ -1,8 +1,6 @@
 </main>
 <section class="quote-band">
-  <div class="quote-orn quote-orn-left" aria-hidden="true"></div>
   <div class="wrap quote-inner">« <?=e(setting('footer_quote','Сила народа — в его корнях, а будущее — в его людях'))?> »</div>
-  <div class="quote-orn quote-orn-right" aria-hidden="true"></div>
 </section>
 <footer id="contacts">
   <div class="wrap footer-grid">
