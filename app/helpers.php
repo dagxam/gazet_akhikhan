@@ -358,3 +358,119 @@ function handle_cover_upload(array $file, ?string $old = null): ?string
     }
     return $folder . '/' . $name;
 }
+
+
+function ensure_newspapers_schema(): void
+{
+    if (!APP_INSTALLED) return;
+    if (setting('schema_newspapers_v1', '') === '1') return;
+
+    $pdo = db();
+    $driver = (string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+    if ($driver === 'sqlite') {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS newspapers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            issue_number TEXT,
+            issue_date TEXT NOT NULL,
+            pdf_file TEXT NOT NULL,
+            cover_image TEXT,
+            status TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('draft','published')),
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )");
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_newspapers_status_date ON newspapers(status,issue_date)');
+    } else {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS newspapers (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            issue_number VARCHAR(80) NULL,
+            issue_date DATE NOT NULL,
+            pdf_file VARCHAR(500) NOT NULL,
+            cover_image VARCHAR(500) NULL,
+            status ENUM('draft','published') NOT NULL DEFAULT 'published',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_newspapers_status_date (status,issue_date)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    }
+
+    save_setting('schema_newspapers_v1', '1');
+}
+
+function latest_newspaper(): ?array
+{
+    if (!APP_INSTALLED) return null;
+    $q = db()->query("SELECT * FROM newspapers WHERE status='published' ORDER BY issue_date DESC,id DESC LIMIT 1");
+    $row = $q->fetch();
+    return $row ?: null;
+}
+
+function safe_delete_newspaper_upload(?string $relativePath): void
+{
+    if (!$relativePath || !str_starts_with($relativePath, 'uploads/newspapers/')) return;
+    $full = ROOT_PATH . '/' . ltrim($relativePath, '/');
+    if (is_file($full)) @unlink($full);
+}
+
+function handle_newspaper_pdf_upload(array $file, ?string $oldPdf = null, ?string $oldCover = null): array
+{
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+        return ['pdf_file'=>$oldPdf, 'cover_image'=>$oldCover];
+    }
+    if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+        throw new RuntimeException('Ошибка загрузки PDF.');
+    }
+    if (($file['size'] ?? 0) > 80 * 1024 * 1024) {
+        throw new RuntimeException('PDF слишком большой. Максимум 80 МБ.');
+    }
+
+    $head = file_get_contents($file['tmp_name'], false, null, 0, 5);
+    if ($head !== '%PDF-') {
+        throw new RuntimeException('Загрузите файл газеты в формате PDF.');
+    }
+
+    $folder = 'uploads/newspapers/' . date('Y/m');
+    $dir = ROOT_PATH . '/' . $folder;
+    if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
+        throw new RuntimeException('Не удалось создать папку для газет.');
+    }
+
+    $baseName = bin2hex(random_bytes(12));
+    $pdfRelative = $folder . '/' . $baseName . '.pdf';
+    $pdfFull = ROOT_PATH . '/' . $pdfRelative;
+    if (!move_uploaded_file($file['tmp_name'], $pdfFull)) {
+        throw new RuntimeException('Не удалось сохранить PDF.');
+    }
+
+    $coverRelative = null;
+
+    if (class_exists('Imagick')) {
+        try {
+            $coverRelative = $folder . '/' . $baseName . '-cover.webp';
+            $coverFull = ROOT_PATH . '/' . $coverRelative;
+
+            $image = new Imagick();
+            $image->setResolution(150, 150);
+            $image->readImage($pdfFull . '[0]');
+            $image->setImageBackgroundColor('white');
+            if (method_exists($image, 'setImageAlphaChannel')) {
+                $image->setImageAlphaChannel(Imagick::ALPHACHANNEL_REMOVE);
+            }
+            $image->setImageFormat('webp');
+            $image->setImageCompressionQuality(88);
+            $image->thumbnailImage(1000, 0);
+            $image->writeImage($coverFull);
+            $image->clear();
+            $image->destroy();
+        } catch (Throwable $e) {
+            $coverRelative = null;
+        }
+    }
+
+    if ($oldPdf && $oldPdf !== $pdfRelative) safe_delete_newspaper_upload($oldPdf);
+    if ($oldCover && $oldCover !== $coverRelative) safe_delete_newspaper_upload($oldCover);
+
+    return ['pdf_file'=>$pdfRelative, 'cover_image'=>$coverRelative];
+}
