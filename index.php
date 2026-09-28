@@ -9,6 +9,7 @@ $districtNews = latest_articles_by_category_slug('novosti-rayona', 8);
 $regionalNews = latest_articles_by_category_slug('regionalnye-novosti', 3);
 $sportNews = latest_articles_by_category_slug('sport', 3);
 $newspaper = latest_newspaper();
+$documents = latest_documents(8);
 $cats = categories();
 $catBySlug = [];
 foreach ($cats as $cat) $catBySlug[$cat['slug']] = $cat;
@@ -288,6 +289,46 @@ require __DIR__ . '/partials/header.php';
     </section>
 
   </div>
+</section>
+
+<section class="content-section documents-strip-section">
+  <div class="block-heading documents-heading">
+    <div>
+      <span class="heading-kicker">Официальные материалы</span>
+      <h2>Последние документы</h2>
+    </div>
+    <span class="block-note">PDF · Word · Excel · PowerPoint</span>
+  </div>
+
+  <?php if($documents):?>
+    <div class="documents-strip" aria-label="Последние документы">
+      <?php foreach($documents as $doc):
+        $formatClass=document_format_class($doc['file_ext']);
+        $formatLabel=document_format_label($doc['file_ext']);
+      ?>
+        <a class="document-card" href="<?=e(base_url($doc['file_path']))?>" target="_blank">
+          <span class="document-format-icon <?=$formatClass?>">
+            <b><?=e(strtoupper($doc['file_ext']))?></b>
+            <small><?=e($formatLabel)?></small>
+          </span>
+          <span class="document-card-copy">
+            <small class="document-date"><?=e(ru_date($doc['document_date']))?></small>
+            <strong><?=e($doc['title'])?></strong>
+            <?php if(!empty($doc['description'])):?><span><?=e($doc['description'])?></span><?php endif;?>
+            <i><?=e(human_file_size((int)$doc['file_size']))?> · Открыть →</i>
+          </span>
+        </a>
+      <?php endforeach;?>
+    </div>
+  <?php else:?>
+    <div class="documents-empty">
+      <span class="document-format-icon file"><b>DOC</b><small>ФАЙЛ</small></span>
+      <div>
+        <strong>Документы пока не опубликованы</strong>
+        <p>После добавления в разделе «Документы» они автоматически появятся здесь.</p>
+      </div>
+    </div>
+  <?php endif;?>
 </section>
 
 <section class="content-section categories-section">
