@@ -71,3 +71,19 @@ CREATE TABLE IF NOT EXISTS newspapers (
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_newspapers_status_date ON newspapers(status,issue_date);
+
+
+CREATE TABLE IF NOT EXISTS documents (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  description TEXT,
+  document_date TEXT NOT NULL,
+  file_path TEXT NOT NULL,
+  file_ext TEXT NOT NULL,
+  original_name TEXT,
+  file_size INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('draft','published')),
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_documents_status_date ON documents(status,document_date);
