@@ -122,3 +122,18 @@ body{background:#f4f2ee;font-family:Inter,-apple-system,BlinkMacSystemFont,"Sego
   .section-help{display:none}
   .modern-content-editor{min-height:420px}
 }
+
+
+/* multi category picker v1 */
+.category-picker{display:grid;gap:8px;max-height:360px;overflow:auto;padding-right:3px;margin-bottom:14px}
+.category-option{position:relative;display:flex;align-items:flex-start;gap:10px;margin:0;padding:11px 12px;border:1px solid #e2ddd5;border-radius:11px;background:#fbfaf8;cursor:pointer;transition:.18s ease}
+.category-option:hover{border-color:#cdb89e;background:#fff}
+.category-option input{position:absolute;opacity:0;pointer-events:none;width:auto;margin:0}
+.category-check{flex:0 0 auto;width:22px;height:22px;border:1px solid #cabfae;border-radius:7px;display:grid;place-items:center;color:transparent;background:#fff;font-size:12px;font-weight:900;transition:.18s ease}
+.category-option input:checked + .category-check{background:#795734;border-color:#795734;color:#fff;box-shadow:0 0 0 3px rgba(121,87,52,.10)}
+.category-option:has(input:checked){border-color:#bda17e;background:#faf5ee}
+.category-option.is-main:has(input:checked){background:linear-gradient(135deg,#faf3e8,#fff)}
+.category-option-copy{min-width:0;display:block;padding-top:1px}
+.category-option-copy b{display:block;font-size:12px;color:#40372f;line-height:1.25}
+.category-option-copy small{display:block;margin-top:3px;color:#9a9085;font-size:9.5px;line-height:1.35;font-weight:500}
+@media(max-width:900px){.category-picker{max-height:none}}
