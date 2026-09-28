@@ -65,6 +65,95 @@ function current_date_ru(): string
     return $week[(int)date('N')] . ', ' . ru_date(date('Y-m-d'));
 }
 
+
+
+function default_category_seed(): array
+{
+    return [
+        ['Региональные новости', 'regionalnye-novosti', 'Новости Республики Дагестан, важные для жителей Унцукульского района.', 10],
+        ['Новости района', 'novosti-rayona', 'События и новости Унцукульского района.', 20],
+        ['Общество', 'obschestvo', 'Общественная жизнь района и социальные темы.', 30],
+        ['Экономика', 'ekonomika', 'Экономика, развитие и проекты.', 40],
+        ['Культура', 'kultura', 'Культура, традиции и народные промыслы.', 50],
+        ['Спорт', 'sport', 'Спортивные события, команды и достижения.', 60],
+        ['Криминал', 'kriminal', 'Происшествия, безопасность и официальная информация правоохранительных органов.', 70],
+        ['Люди', 'lyudi', 'Истории жителей и земляков.', 80],
+        ['История', 'istoriya', 'История района, память и памятные места.', 90],
+    ];
+}
+
+function ensure_default_categories(): void
+{
+    if (!APP_INSTALLED) return;
+    try {
+        $rows = db()->query('SELECT slug FROM categories')->fetchAll();
+        $existing = [];
+        foreach ($rows as $row) $existing[(string)$row['slug']] = true;
+
+        $insert = db()->prepare('INSERT INTO categories(name,slug,description,sort_order,is_active) VALUES(?,?,?,?,1)');
+        foreach (default_category_seed() as $row) {
+            [$name, $slug, $description, $sort] = $row;
+            if (!isset($existing[$slug])) {
+                $insert->execute([$name, $slug, $description, $sort]);
+                $existing[$slug] = true;
+            }
+        }
+    } catch (Throwable $e) {
+    }
+}
+
+function find_or_create_category(string $name, string $description = '', int $sortOrder = 100): int
+{
+    $name = trim($name);
+    if ($name === '') throw new RuntimeException('Введите название новой рубрики.');
+
+    if (function_exists('mb_substr')) {
+        $name = mb_substr($name, 0, 120, 'UTF-8');
+        $description = mb_substr(trim($description), 0, 1500, 'UTF-8');
+    } else {
+        $name = substr($name, 0, 120);
+        $description = substr(trim($description), 0, 1500);
+    }
+
+    $byName = db()->prepare('SELECT id FROM categories WHERE name=? LIMIT 1');
+    $byName->execute([$name]);
+    $id = $byName->fetchColumn();
+    if ($id !== false) return (int)$id;
+
+    $baseSlug = substr(slugify($name), 0, 150);
+    $slug = $baseSlug;
+    $bySlug = db()->prepare('SELECT id FROM categories WHERE slug=? LIMIT 1');
+
+    for ($i = 1; $i < 100; $i++) {
+        $bySlug->execute([$slug]);
+        $slugId = $bySlug->fetchColumn();
+        if ($slugId === false) break;
+        if ($i === 1) return (int)$slugId;
+        $slug = substr($baseSlug, 0, 145) . '-' . ($i + 1);
+    }
+
+    $q = db()->prepare('INSERT INTO categories(name,slug,description,sort_order,is_active) VALUES(?,?,?,?,1)');
+    $q->execute([$name, $slug, $description !== '' ? $description : null, $sortOrder]);
+    return (int)db()->lastInsertId();
+}
+
+function latest_articles_by_category_slug(string $slug, int $limit = 8): array
+{
+    if (!APP_INSTALLED) return [];
+    $sql = "SELECT a.*, c.name category_name, c.slug category_slug
+            FROM articles a
+            INNER JOIN categories c ON c.id=a.category_id
+            WHERE a.status='published'
+              AND c.slug=?
+              AND c.is_active=1
+              AND (a.published_at IS NULL OR a.published_at<=CURRENT_TIMESTAMP)
+            ORDER BY COALESCE(a.published_at,a.created_at) DESC
+            LIMIT " . max(1, $limit);
+    $q = db()->prepare($sql);
+    $q->execute([$slug]);
+    return $q->fetchAll();
+}
+
 function categories(): array
 {
     if (!APP_INSTALLED) return [];
