@@ -26,4 +26,5 @@ if (APP_INSTALLED) {
     ensure_article_categories_schema();
     ensure_newspapers_schema();
     ensure_documents_schema();
+    ensure_main_menu_schema();
 }
