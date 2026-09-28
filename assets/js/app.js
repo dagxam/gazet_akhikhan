@@ -67,6 +67,14 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
   let current=null;
   let switchTimer=null;
 
+  items.forEach(function(item){
+    const cover=item.dataset.heroCover;
+    if(cover){
+      const preload=new Image();
+      preload.src=cover;
+    }
+  });
+
   function selectItem(item){
     if(!item||current===item) return;
     current=item;
@@ -84,9 +92,18 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
       if(kicker) kicker.textContent=item.dataset.heroKicker||'Новости района';
       if(link) link.href=item.dataset.heroUrl||'#';
 
-      hero.classList.add('hero-clean');
+      const cover=item.dataset.heroCover||'';
       hero.classList.remove('hero-reference');
-      hero.style.backgroundImage='';
+
+      if(cover){
+        hero.classList.remove('hero-clean');
+        hero.classList.add('hero-has-cover');
+        hero.style.backgroundImage='linear-gradient(90deg,rgba(19,21,18,.88) 0%,rgba(19,21,18,.57) 45%,rgba(19,21,18,.14) 82%),url("'+cover.replace(/"/g,'%22')+'")';
+      }else{
+        hero.classList.remove('hero-has-cover');
+        hero.classList.add('hero-clean');
+        hero.style.backgroundImage='';
+      }
 
       requestAnimationFrame(function(){
         hero.classList.remove('is-switching');
