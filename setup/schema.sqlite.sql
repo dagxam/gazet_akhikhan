@@ -87,3 +87,16 @@ CREATE TABLE IF NOT EXISTS documents (
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_documents_status_date ON documents(status,document_date);
+
+
+CREATE TABLE IF NOT EXISTS main_menu_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  label TEXT NOT NULL,
+  url TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 100,
+  is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0,1)),
+  open_new_tab INTEGER NOT NULL DEFAULT 0 CHECK (open_new_tab IN (0,1)),
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_main_menu_active_sort ON main_menu_items(is_active,sort_order);
