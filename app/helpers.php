@@ -326,7 +326,40 @@ function verify_csrf(): void
     }
 }
 
-function admin_user(): ?array { return $_SESSION['admin_user'] ?? null; }
+function admin_user(): ?array
+{
+    if (empty($_SESSION['admin_user']['id']) || !APP_INSTALLED) return null;
+
+    static $loaded = false;
+    static $cached = null;
+    if ($loaded) return $cached;
+    $loaded = true;
+
+    try {
+        $q = db()->prepare("SELECT id,name,email,role,status FROM users WHERE id=? LIMIT 1");
+        $q->execute([(int)$_SESSION['admin_user']['id']]);
+        $user = $q->fetch();
+
+        if (!$user || ($user['status'] ?? '') !== 'active') {
+            unset($_SESSION['admin_user']);
+            $cached = null;
+            return null;
+        }
+
+        unset($user['status']);
+        $_SESSION['admin_user'] = $user;
+        $cached = $user;
+        return $cached;
+    } catch (Throwable $e) {
+        return $_SESSION['admin_user'] ?? null;
+    }
+}
+
+function is_site_admin(): bool
+{
+    $user = admin_user();
+    return $user && ($user['role'] ?? '') === 'admin';
+}
 
 function require_admin(): void
 {
@@ -334,6 +367,25 @@ function require_admin(): void
         header('Location: ' . base_url('admin/login.php'));
         exit;
     }
+}
+
+function require_site_admin(): void
+{
+    require_admin();
+    if (!is_site_admin()) {
+        http_response_code(403);
+        exit('Недостаточно прав для этого действия.');
+    }
+}
+
+function maintenance_mode_enabled(): bool
+{
+    return APP_INSTALLED && setting('maintenance_mode', '0') === '1';
+}
+
+function role_label(string $role): string
+{
+    return $role === 'admin' ? 'Администратор' : 'Редактор';
 }
 
 function handle_cover_upload(array $file, ?string $old = null): ?string
