@@ -3,8 +3,7 @@ require dirname(__DIR__) . '/app/bootstrap.php'; require_admin();
 $keys=['site_name','site_subtitle','hero_kicker','editor_note','footer_quote'];
 if($_SERVER['REQUEST_METHOD']==='POST'){
  verify_csrf();
- $q=db()->prepare('INSERT INTO settings(setting_key,setting_value) VALUES(?,?) ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value)');
- foreach($keys as $k) $q->execute([$k,trim($_POST[$k]??'')]);
+ foreach($keys as $k) save_setting($k,trim($_POST[$k]??''));
  header('Location: '.base_url('admin/settings.php?saved=1'));
  exit;
 }
