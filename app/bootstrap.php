@@ -24,4 +24,5 @@ require_once ROOT_PATH . '/app/helpers.php';
 if (APP_INSTALLED) {
     ensure_default_categories();
     ensure_article_categories_schema();
+    ensure_newspapers_schema();
 }
