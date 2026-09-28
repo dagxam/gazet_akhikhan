@@ -6,6 +6,8 @@ $hero = featured_article();
 $latest = latest_articles(12, $hero['id'] ?? null);
 $mainNews = latest_main_articles(5, $hero['id'] ?? null);
 $districtNews = latest_articles_by_category_slug('novosti-rayona', 8);
+$regionalNews = latest_articles_by_category_slug('regionalnye-novosti', 3);
+$sportNews = latest_articles_by_category_slug('sport', 3);
 $cats = categories();
 $catBySlug = [];
 foreach ($cats as $cat) $catBySlug[$cat['slug']] = $cat;
@@ -164,6 +166,98 @@ require __DIR__ . '/partials/header.php';
         </div>
       </aside>
     </div>
+  </div>
+</section>
+
+<section class="content-section dual-news-section">
+  <div class="dual-news-grid">
+
+    <section class="dual-news-card regional-news-card">
+      <div class="dual-news-head">
+        <div>
+          <span class="heading-kicker">Регион</span>
+          <h2>Региональные новости</h2>
+        </div>
+        <a href="<?=e(isset($catBySlug['regionalnye-novosti']) ? category_url($catBySlug['regionalnye-novosti']) : base_url('news.php'))?>">Все →</a>
+      </div>
+
+      <?php if($regionalNews):
+        $regionalLead = $regionalNews[0];
+        $regionalMore = array_slice($regionalNews,1,2);
+      ?>
+        <article class="dual-news-lead">
+          <a class="dual-news-image" href="<?=e(article_url($regionalLead))?>" style="<?=!empty($regionalLead['cover_image']) ? "background-image:url('".e(base_url($regionalLead['cover_image']))."')" : ''?>"></a>
+          <div class="dual-news-lead-copy">
+            <span class="article-label">Региональные новости</span>
+            <h3><a href="<?=e(article_url($regionalLead))?>"><?=e($regionalLead['title'])?></a></h3>
+            <?php if(!empty($regionalLead['excerpt'])):?><p><?=e($regionalLead['excerpt'])?></p><?php endif;?>
+            <div class="article-meta"><span><?=e(ru_date($regionalLead['published_at'] ?: $regionalLead['created_at']))?></span><span>◉ <?=number_format((int)$regionalLead['views'],0,'.',' ')?></span></div>
+          </div>
+        </article>
+
+        <div class="dual-news-list">
+          <?php foreach($regionalMore as $item):?>
+            <article class="dual-news-row">
+              <div>
+                <span class="article-label">Регион</span>
+                <h4><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h4>
+                <div class="article-meta"><span><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></span><span>◉ <?=number_format((int)$item['views'],0,'.',' ')?></span></div>
+              </div>
+              <a class="dual-news-thumb" href="<?=e(article_url($item))?>" style="<?=!empty($item['cover_image']) ? "background-image:url('".e(base_url($item['cover_image']))."')" : ''?>"></a>
+            </article>
+          <?php endforeach;?>
+        </div>
+      <?php else:?>
+        <div class="dual-news-empty">
+          <strong>Региональных новостей пока нет</strong>
+          <p>После публикации материалов в рубрике «Региональные новости» они автоматически появятся здесь.</p>
+        </div>
+      <?php endif;?>
+    </section>
+
+    <section class="dual-news-card sport-news-card">
+      <div class="dual-news-head">
+        <div>
+          <span class="heading-kicker">Спорт</span>
+          <h2>Спортивные новости</h2>
+        </div>
+        <a href="<?=e(isset($catBySlug['sport']) ? category_url($catBySlug['sport']) : base_url('news.php'))?>">Все →</a>
+      </div>
+
+      <?php if($sportNews):
+        $sportLead = $sportNews[0];
+        $sportMore = array_slice($sportNews,1,2);
+      ?>
+        <article class="dual-news-lead">
+          <a class="dual-news-image" href="<?=e(article_url($sportLead))?>" style="<?=!empty($sportLead['cover_image']) ? "background-image:url('".e(base_url($sportLead['cover_image']))."')" : ''?>"></a>
+          <div class="dual-news-lead-copy">
+            <span class="article-label">Спорт</span>
+            <h3><a href="<?=e(article_url($sportLead))?>"><?=e($sportLead['title'])?></a></h3>
+            <?php if(!empty($sportLead['excerpt'])):?><p><?=e($sportLead['excerpt'])?></p><?php endif;?>
+            <div class="article-meta"><span><?=e(ru_date($sportLead['published_at'] ?: $sportLead['created_at']))?></span><span>◉ <?=number_format((int)$sportLead['views'],0,'.',' ')?></span></div>
+          </div>
+        </article>
+
+        <div class="dual-news-list">
+          <?php foreach($sportMore as $item):?>
+            <article class="dual-news-row">
+              <div>
+                <span class="article-label">Спорт</span>
+                <h4><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h4>
+                <div class="article-meta"><span><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></span><span>◉ <?=number_format((int)$item['views'],0,'.',' ')?></span></div>
+              </div>
+              <a class="dual-news-thumb" href="<?=e(article_url($item))?>" style="<?=!empty($item['cover_image']) ? "background-image:url('".e(base_url($item['cover_image']))."')" : ''?>"></a>
+            </article>
+          <?php endforeach;?>
+        </div>
+      <?php else:?>
+        <div class="dual-news-empty">
+          <strong>Спортивных новостей пока нет</strong>
+          <p>После публикации материалов в рубрике «Спорт» они автоматически появятся здесь.</p>
+        </div>
+      <?php endif;?>
+    </section>
+
   </div>
 </section>
 
