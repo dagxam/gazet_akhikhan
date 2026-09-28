@@ -8,7 +8,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
   try{
     if(isset($_POST['delete_id'])){
       $id=(int)$_POST['delete_id'];
-      $countQ=db()->prepare('SELECT COUNT(*) FROM articles WHERE category_id=?');
+      $countQ=db()->prepare('SELECT COUNT(*) FROM article_categories WHERE category_id=?');
       $countQ->execute([$id]);
       if((int)$countQ->fetchColumn()>0) throw new RuntimeException('Нельзя удалить рубрику, пока в ней есть материалы.');
       db()->prepare('DELETE FROM categories WHERE id=?')->execute([$id]);
@@ -32,7 +32,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     $error=$e->getMessage();
   }
 }
-$rows=db()->query('SELECT c.*,(SELECT COUNT(*) FROM articles a WHERE a.category_id=c.id) article_count FROM categories c ORDER BY sort_order,name')->fetchAll();
+$rows=db()->query('SELECT c.*,(SELECT COUNT(*) FROM article_categories ac WHERE ac.category_id=c.id) article_count FROM categories c ORDER BY sort_order,name')->fetchAll();
 $adminTitle='Рубрики';
 require __DIR__.'/_top.php';
 ?>
