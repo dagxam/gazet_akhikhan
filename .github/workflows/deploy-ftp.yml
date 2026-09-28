@@ -41,10 +41,12 @@ jobs:
           cat \
             .github/assets/akhikhan-logo-transparent.part01.b64 \
             .github/assets/akhikhan-logo-transparent.part02.b64 \
-            .github/assets/akhikhan-logo-transparent.part03.b64 \
+            .github/assets/akhikhan-logo-transparent.part03a.b64 \
+            .github/assets/akhikhan-logo-transparent.part03b.b64 \
             .github/assets/akhikhan-logo-transparent.part04.b64 \
             .github/assets/akhikhan-logo-transparent.part05.b64 \
-            .github/assets/akhikhan-logo-transparent.part06.b64 \
+            .github/assets/akhikhan-logo-transparent.part06a.b64 \
+            .github/assets/akhikhan-logo-transparent.part06b.b64 \
             .github/assets/akhikhan-logo-transparent.part07.b64 \
             .github/assets/akhikhan-logo-transparent.part08.b64 \
             .github/assets/akhikhan-logo-transparent.part09.b64 \
