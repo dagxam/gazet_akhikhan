@@ -34,6 +34,23 @@ jobs:
             | base64 --decode > assets/img/akhikhan-logo-hq.webp
           printf '%s  %s\n' "06f06f4e249cd0199599140ec1d97411796eefcc00c840c3e789e9a6bb741e6a" "assets/img/akhikhan-logo-hq.webp" | sha256sum -c -
 
+      - name: Build transparent main logo
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat \
+            .github/assets/akhikhan-logo-transparent.part01.b64 \
+            .github/assets/akhikhan-logo-transparent.part02.b64 \
+            .github/assets/akhikhan-logo-transparent.part03.b64 \
+            .github/assets/akhikhan-logo-transparent.part04.b64 \
+            .github/assets/akhikhan-logo-transparent.part05.b64 \
+            .github/assets/akhikhan-logo-transparent.part06.b64 \
+            .github/assets/akhikhan-logo-transparent.part07.b64 \
+            .github/assets/akhikhan-logo-transparent.part08.b64 \
+            .github/assets/akhikhan-logo-transparent.part09.b64 \
+            | base64 --decode > assets/img/akhikhan-logo-transparent.webp
+          printf '%s  %s\n' "938e90f2288289612a47389b6e1035df01100f743c3701db383fcc483211cec3" "assets/img/akhikhan-logo-transparent.webp" | sha256sum -c -
+
       - name: Upload site via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
@@ -61,8 +78,8 @@ jobs:
           code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan.html --write-out '%{http_code}' https://akhikhan.ru/)"
           test "$code" = "200"
           grep -q "site-shell" /tmp/akhikhan.html
-          grep -q "akhikhan-logo-hq.webp" /tmp/akhikhan.html
-          logo_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-logo.webp --write-out '%{http_code}' https://akhikhan.ru/assets/img/akhikhan-logo-hq.webp)"
-          test "$logo_code" = "200"
-          test "$(wc -c < /tmp/akhikhan-logo.webp)" -gt 50000
-          echo "Akhikhan production site and high-resolution logo are reachable."
+          grep -q "akhikhan-logo-transparent.webp" /tmp/akhikhan.html
+          transparent_logo_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-logo-transparent.webp --write-out '%{http_code}' https://akhikhan.ru/assets/img/akhikhan-logo-transparent.webp)"
+          test "$transparent_logo_code" = "200"
+          test "$(wc -c < /tmp/akhikhan-logo-transparent.webp)" -gt 50000
+          echo "Akhikhan production site and transparent main logo are reachable."

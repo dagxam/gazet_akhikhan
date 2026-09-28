@@ -123,13 +123,13 @@ button{cursor:pointer}
 .masthead-logo{
   display:flex;
   align-items:center;
-  width:min(100%,560px);
+  width:min(100%,760px);
   min-height:0;
 }
 .masthead-logo img{
   display:block;
   width:100%;
-  max-width:560px;
+  max-width:760px;
   height:auto;
   object-fit:contain;
   object-position:left center;
@@ -1231,8 +1231,8 @@ button{cursor:pointer}
 @media(max-width:1120px){
   .wrap{width:min(100% - 32px,1280px)}
   .masthead-inner{grid-template-columns:1.25fr .75fr;gap:32px;min-height:260px}
-  .masthead-logo{width:min(100%,500px)}
-  .masthead-logo img{max-width:500px;height:auto}
+  .masthead-logo{width:min(100%,650px)}
+  .masthead-logo img{max-width:650px;height:auto}
   .site-menu>a{padding:0 10px;font-size:8px}
   .header-search input{width:92px}
   .home-lead-grid{grid-template-columns:1.75fr .85fr}
@@ -1250,8 +1250,8 @@ button{cursor:pointer}
   .utility-place{display:none}
   .masthead-inner{grid-template-columns:1fr;min-height:auto}
   .masthead-brand{text-align:center;padding:12px 0}
-  .masthead-logo{justify-content:center;margin:auto;width:min(100%,520px)}
-  .masthead-logo img{max-width:520px;height:auto;object-position:center}
+  .masthead-logo{justify-content:center;margin:auto;width:min(100%,700px)}
+  .masthead-logo img{max-width:700px;height:auto;object-position:center}
   .masthead-note{display:none}
   .primary-nav{height:auto;min-height:54px;overflow:visible}
   .primary-nav-inner{min-height:54px;display:grid;grid-template-columns:auto 1fr;gap:12px}
