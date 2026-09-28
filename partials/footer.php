@@ -16,9 +16,8 @@
 
   <div class="wrap footer-main">
     <div class="footer-identity">
-      <span class="footer-kicker">Сетевое издание</span>
       <a href="<?=e(base_url())?>" class="footer-logo">
-        <img src="<?=e(base_url('assets/img/akhikhan-logo-user.jpg'))?>" alt="АХИХЪАН">
+        <img src="<?=e(base_url('assets/img/akhikhan-logo-hq.webp?v=20260928-logo3'))?>" alt="АХИХЪАН" width="900" height="468">
       </a>
       <p>Новости и истории Унцукульского района Республики Дагестан. Рассказываем о событиях, людях, культуре и памяти родного края.</p>
       <div class="footer-region">Унцукульский район · Дагестан</div>

@@ -19,7 +19,7 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20260928-editorial2'))?>">
+<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20260928-logo3'))?>">
 </head>
 <body>
 <a id="top"></a>
@@ -43,13 +43,9 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 
   <div class="wrap masthead-inner">
     <div class="masthead-brand">
-      <span class="masthead-eyebrow">Сетевое издание Унцукульского района</span>
       <a class="masthead-logo" href="<?=e(base_url())?>" aria-label="АХИХЪАН — главная">
-        <img src="<?=e(base_url('assets/img/akhikhan-logo-user.jpg'))?>" alt="АХИХЪАН — сетевое издание Унцукульского района">
+        <img src="<?=e(base_url('assets/img/akhikhan-logo-hq.webp?v=20260928-logo3'))?>" alt="АХИХЪАН — сетевое издание Унцукульского района" width="900" height="468">
       </a>
-      <div class="masthead-caption">
-        <span>Новости</span><i></i><span>Люди</span><i></i><span>Культура</span><i></i><span>История</span>
-      </div>
     </div>
 
     <div class="masthead-note">
