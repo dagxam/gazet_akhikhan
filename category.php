@@ -16,11 +16,13 @@ if(!$category){
   exit;
 }
 
-$q=db()->prepare("SELECT a.*,c.name category_name,c.slug category_slug
-FROM articles a LEFT JOIN categories c ON c.id=a.category_id
-WHERE a.category_id=? AND a.status='published'
+$q=db()->prepare("SELECT a.*,? AS category_name,? AS category_slug
+FROM articles a
+INNER JOIN article_categories ac ON ac.article_id=a.id
+WHERE ac.category_id=? AND a.status='published'
+AND (a.published_at IS NULL OR a.published_at<=CURRENT_TIMESTAMP)
 ORDER BY COALESCE(a.published_at,a.created_at) DESC");
-$q->execute([$category['id']]);
+$q->execute([$category['name'],$category['slug'],$category['id']]);
 $articles=$q->fetchAll();
 
 $pageTitle=$category['name'];
