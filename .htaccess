@@ -1,10 +1,13 @@
 Options -Indexes
 RewriteEngine On
 
+# Internal application files must never be served directly.
+RewriteRule ^(app|setup|partials)/ - [F,L]
+
 RewriteRule ^article/([A-Za-z0-9-]+)/?$ article.php?slug=$1 [L,QSA]
 RewriteRule ^category/([A-Za-z0-9-]+)/?$ category.php?slug=$1 [L,QSA]
 
-<FilesMatch "^(config\.php|config\.example\.php)$">
+<FilesMatch "^(config\.php|config\.example\.php|README\.md)$">
   Require all denied
 </FilesMatch>
 
