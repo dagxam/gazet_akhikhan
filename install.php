@@ -120,21 +120,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $q->execute([$adminName, $adminEmail, $hash]);
         }
 
-        $seed = [
-            ['Общество','obschestvo',10],
-            ['Экономика','ekonomika',20],
-            ['Культура','kultura',30],
-            ['Спорт','sport',40],
-            ['Люди','lyudi',50],
-            ['История','istoriya',60],
-        ];
+        $seed = default_category_seed();
 
         $existsCategory = $pdo->prepare('SELECT id FROM categories WHERE slug=? LIMIT 1');
-        $insertCategory = $pdo->prepare('INSERT INTO categories(name,slug,sort_order,is_active) VALUES(?,?,?,1)');
+        $insertCategory = $pdo->prepare('INSERT INTO categories(name,slug,description,sort_order,is_active) VALUES(?,?,?,?,1)');
         foreach ($seed as $row) {
-            $existsCategory->execute([$row[1]]);
+            [$categoryName, $categorySlug, $categoryDescription, $categorySort] = $row;
+            $existsCategory->execute([$categorySlug]);
             if ($existsCategory->fetchColumn() === false) {
-                $insertCategory->execute($row);
+                $insertCategory->execute([$categoryName, $categorySlug, $categoryDescription, $categorySort]);
             }
         }
 
