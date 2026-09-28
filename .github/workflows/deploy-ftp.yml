@@ -46,5 +46,5 @@ jobs:
           set -e
           code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan.html --write-out '%{http_code}' https://akhikhan.ru/)"
           test "$code" = "200"
-          grep -q "AKHIKHAN.RU" /tmp/akhikhan.html
-          echo "AKHIKHAN.RU is reachable."
+          grep -q "site-shell" /tmp/akhikhan.html
+          echo "Akhikhan production site is reachable."
