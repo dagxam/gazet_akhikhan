@@ -42,6 +42,16 @@ CREATE TABLE IF NOT EXISTS articles (
 CREATE INDEX IF NOT EXISTS idx_articles_status_date ON articles(status,published_at);
 CREATE INDEX IF NOT EXISTS idx_articles_category ON articles(category_id);
 
+CREATE TABLE IF NOT EXISTS article_categories (
+  article_id INTEGER NOT NULL,
+  category_id INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (article_id,category_id),
+  FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE,
+  FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_article_categories_category ON article_categories(category_id,article_id);
+
 CREATE TABLE IF NOT EXISTS settings (
   setting_key TEXT PRIMARY KEY,
   setting_value TEXT,
