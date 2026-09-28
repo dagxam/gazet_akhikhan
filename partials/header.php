@@ -15,7 +15,7 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title><?=e(($pageTitle ?? '') ? $pageTitle . ' — ' . setting('site_name','AKHIKHAN.RU') : setting('site_name','AKHIKHAN.RU'))?></title>
 <meta name="description" content="<?=e($pageDescription ?? setting('site_subtitle','Местная газета для наших людей'))?>">
-<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css'))?>">
+<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20260928-ornaments'))?>">
 </head>
 <body>
 <div class="site-paper">
@@ -36,12 +36,8 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 
 <header class="brand-header">
   <div class="wrap brand-grid">
-    <a class="brand" href="<?=e(base_url())?>">
-      <img class="brand-seal" src="<?=e(base_url('assets/img/seal.svg'))?>" alt="">
-      <span class="brand-copy">
-        <strong><?=e(setting('site_name','AKHIKHAN.RU'))?></strong>
-        <small><?=e(setting('site_subtitle','Местная газета для наших людей'))?></small>
-      </span>
+    <a class="brand brand-logo-link" href="<?=e(base_url())?>">
+      <img class="brand-logo-image" src="<?=e(base_url('assets/img/akhikhan-logo-user.jpg'))?>" alt="АХИХЪАН — сетевое издание Унцукульского района">
     </a>
     <div class="brand-motto">Наш край<br>Наши люди<br>Наша история</div>
     <div class="district-mark">
