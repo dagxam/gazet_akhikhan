@@ -76,6 +76,13 @@ button{cursor:pointer}
 .utility-links{justify-self:end;display:flex;gap:20px}
 .utility-links a{transition:.2s ease}
 .utility-links a:hover{color:#fff}
+.utility-links .utility-login{
+  padding-left:18px;
+  border-left:1px solid rgba(200,171,130,.28);
+  color:#e4c99f;
+  font-weight:700;
+}
+.utility-links .utility-login:hover{color:#fff}
 
 /* masthead */
 .masthead{
