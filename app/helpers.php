@@ -160,6 +160,25 @@ function categories(): array
     return db()->query('SELECT * FROM categories WHERE is_active=1 ORDER BY sort_order, name')->fetchAll();
 }
 
+function latest_main_articles(int $limit = 5, ?int $excludeId = null): array
+{
+    if (!APP_INSTALLED) return [];
+    $sql = "SELECT a.*, NULL AS category_name, NULL AS category_slug
+            FROM articles a
+            WHERE a.status='published'
+              AND a.category_id IS NULL
+              AND (a.published_at IS NULL OR a.published_at<=CURRENT_TIMESTAMP)";
+    $params = [];
+    if ($excludeId) {
+        $sql .= ' AND a.id<>?';
+        $params[] = $excludeId;
+    }
+    $sql .= ' ORDER BY COALESCE(a.published_at,a.created_at) DESC LIMIT ' . max(1, $limit);
+    $q = db()->prepare($sql);
+    $q->execute($params);
+    return $q->fetchAll();
+}
+
 function latest_articles(int $limit = 8, ?int $excludeId = null): array
 {
     if (!APP_INSTALLED) return [];
