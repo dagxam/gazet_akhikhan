@@ -34,7 +34,6 @@ jobs:
             **/.github/**
             **/node_modules/**
             config.php
-            config.example.php
             README.md
             uploads/**
 
