@@ -633,3 +633,94 @@ function handle_document_upload(array $file, ?string $oldPath = null, ?string $o
         'file_size'=>$size,
     ];
 }
+
+
+function default_main_menu_seed(): array
+{
+    return [
+        ['Главная', '/', 10],
+        ['Новости', 'news.php', 20],
+        ['Общество', 'category:obschestvo', 30],
+        ['Экономика', 'category:ekonomika', 40],
+        ['Культура', 'category:kultura', 50],
+        ['Спорт', 'category:sport', 60],
+        ['Люди', 'category:lyudi', 70],
+        ['История', 'category:istoriya', 80],
+        ['Фото', 'search.php?q=Фото', 90],
+        ['Видео', 'search.php?q=Видео', 100],
+    ];
+}
+
+function ensure_main_menu_schema(): void
+{
+    if (!APP_INSTALLED) return;
+    if (setting('schema_main_menu_v1', '') === '1') return;
+
+    $pdo = db();
+    $driver = (string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+    if ($driver === 'sqlite') {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS main_menu_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            label TEXT NOT NULL,
+            url TEXT NOT NULL,
+            sort_order INTEGER NOT NULL DEFAULT 100,
+            is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0,1)),
+            open_new_tab INTEGER NOT NULL DEFAULT 0 CHECK (open_new_tab IN (0,1)),
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )");
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_main_menu_active_sort ON main_menu_items(is_active,sort_order)');
+    } else {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS main_menu_items (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            label VARCHAR(120) NOT NULL,
+            url VARCHAR(500) NOT NULL,
+            sort_order INT NOT NULL DEFAULT 100,
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            open_new_tab TINYINT(1) NOT NULL DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_main_menu_active_sort (is_active,sort_order)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    }
+
+    $count=(int)$pdo->query('SELECT COUNT(*) FROM main_menu_items')->fetchColumn();
+    if($count===0){
+        $insert=$pdo->prepare('INSERT INTO main_menu_items(label,url,sort_order,is_active,open_new_tab) VALUES(?,?,?,1,0)');
+        foreach(default_main_menu_seed() as $item){
+            $insert->execute([$item[0],$item[1],$item[2]]);
+        }
+    }
+
+    save_setting('schema_main_menu_v1', '1');
+}
+
+function main_menu_items(bool $activeOnly = true): array
+{
+    if (!APP_INSTALLED) return [];
+    $sql='SELECT * FROM main_menu_items';
+    if($activeOnly) $sql .= ' WHERE is_active=1';
+    $sql .= ' ORDER BY sort_order,id';
+    return db()->query($sql)->fetchAll();
+}
+
+function main_menu_url(string $value): string
+{
+    $value=trim($value);
+    if($value==='') return base_url();
+
+    if(str_starts_with($value,'category:')){
+        $slug=trim(substr($value,9));
+        $q=db()->prepare('SELECT * FROM categories WHERE slug=? AND is_active=1 LIMIT 1');
+        $q->execute([$slug]);
+        $cat=$q->fetch();
+        return $cat ? category_url($cat) : base_url('news.php');
+    }
+
+    if(preg_match('~^(https?://|mailto:|tel:)~i',$value)) return $value;
+    if(str_starts_with($value,'#')) return $value;
+    if($value==='/') return base_url();
+
+    return base_url(ltrim($value,'/'));
+}
