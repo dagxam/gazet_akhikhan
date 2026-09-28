@@ -2374,3 +2374,17 @@ h1,h2,h3,h4{
   .district-news-section .news-row{grid-template-columns:82px minmax(0,1fr)}
   .district-news-section .news-image.small{height:66px}
 }
+
+
+/* configurable menu overflow v1 */
+.site-menu{
+  min-width:0;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:none;
+}
+.site-menu::-webkit-scrollbar{display:none}
+.site-menu>a{flex:0 0 auto}
+@media(max-width:900px){
+  .site-menu{overflow:visible}
+}
