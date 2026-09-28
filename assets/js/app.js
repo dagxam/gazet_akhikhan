@@ -150,12 +150,10 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
 
       if(window.innerWidth<=900) return;
 
-      toggle.hidden=false;
+      const maxVisibleItems=10;
 
-      let guard=0;
-      while(menu.scrollWidth>menu.clientWidth+1 && menu.children.length>1 && guard<100){
+      while(menu.children.length>maxVisibleItems){
         panel.insertBefore(menu.lastElementChild,panel.firstChild);
-        guard++;
       }
 
       if(panel.children.length===0){
