@@ -1,8 +1,8 @@
 Options -Indexes
 RewriteEngine On
 
-# Internal application files must never be served directly.
-RewriteRule ^(app|setup|partials)/ - [F,L]
+# Internal application files and the SQLite database must never be served directly.
+RewriteRule ^(app|setup|partials|storage)/ - [F,L]
 
 RewriteRule ^article/([A-Za-z0-9-]+)/?$ article.php?slug=$1 [L,QSA]
 RewriteRule ^category/([A-Za-z0-9-]+)/?$ category.php?slug=$1 [L,QSA]
