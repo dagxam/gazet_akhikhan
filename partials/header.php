@@ -19,7 +19,7 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20260928-logo3'))?>">
+<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20260928-hover1'))?>">
 </head>
 <body>
 <a id="top"></a>

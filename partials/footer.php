@@ -60,7 +60,7 @@
   </div>
 </footer>
 
-<script src="<?=e(base_url('assets/js/app.js?v=20260928-editorial2'))?>"></script>
+<script src="<?=e(base_url('assets/js/app.js?v=20260928-hover1'))?>"></script>
 </div>
 </body>
 </html>
