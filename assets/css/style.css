@@ -1598,3 +1598,202 @@ h1,h2,h3,h4{
 @media(max-width:680px){
   .hero-story h1{font-size:clamp(29px,8vw,36px);line-height:1.08}
 }
+
+
+/* district news + newspaper sidebar v1 */
+.magazine-side-column{
+  display:grid;
+  grid-template-rows:minmax(0,1fr) auto;
+  gap:16px;
+  min-width:0;
+}
+.editorial-card-compact{
+  min-height:325px;
+  height:auto;
+}
+.editorial-card-compact .editorial-copy{
+  padding:24px 20px;
+}
+.editorial-card-compact .editorial-copy h3{
+  font-size:21px;
+  line-height:1.15;
+  margin:8px 0 11px;
+}
+.editorial-card-compact .editorial-copy p{
+  font-size:12.5px;
+  line-height:1.55;
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:5;
+  overflow:hidden;
+}
+.editorial-card-compact .editorial-copy strong{
+  margin-top:14px;
+  font-size:8px;
+}
+
+.newspaper-card{
+  border:1px solid #d3c2ad;
+  border-radius:var(--radius);
+  background:
+    linear-gradient(135deg,rgba(166,125,73,.06),transparent 42%),
+    var(--paper-white);
+  padding:18px;
+  box-shadow:var(--shadow-sm);
+  overflow:hidden;
+}
+.newspaper-card-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+}
+.newspaper-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:24px;
+  padding:0 9px;
+  border:1px solid #d7c8b5;
+  border-radius:999px;
+  color:#8d7458;
+  background:#f7f1e8;
+  font:700 8px/1 var(--sans);
+  text-transform:uppercase;
+  letter-spacing:.1em;
+}
+.newspaper-placeholder{
+  display:grid;
+  grid-template-columns:92px 1fr;
+  gap:15px;
+  align-items:center;
+}
+.newspaper-sheet{
+  position:relative;
+  min-height:122px;
+  padding:12px 10px;
+  border:1px solid #d8c8b5;
+  border-radius:8px;
+  background:
+    linear-gradient(rgba(255,255,255,.94),rgba(255,255,255,.94)),
+    url("../img/ornament-nav-user.jpg") center/220px auto;
+  box-shadow:0 8px 20px rgba(74,49,29,.08);
+  transform:rotate(-2deg);
+}
+.newspaper-sheet:before{
+  content:"";
+  position:absolute;
+  inset:6px;
+  border:1px solid rgba(166,125,73,.20);
+  pointer-events:none;
+}
+.newspaper-sheet span{
+  display:block;
+  position:relative;
+  z-index:1;
+  color:#65452d;
+  font:700 13px/1.1 var(--serif);
+  text-align:center;
+  letter-spacing:.05em;
+}
+.newspaper-sheet i{
+  display:block;
+  position:relative;
+  z-index:1;
+  height:1px;
+  margin:9px 4px 0;
+  background:#d7cabc;
+}
+.newspaper-sheet i:nth-of-type(2){width:70%}
+.newspaper-sheet i:nth-of-type(3){width:82%}
+.newspaper-sheet b{
+  display:block;
+  position:absolute;
+  left:10px;
+  right:10px;
+  bottom:12px;
+  z-index:1;
+  color:#9a8063;
+  font:700 6.5px/1.2 var(--sans);
+  text-align:center;
+  text-transform:uppercase;
+  letter-spacing:.09em;
+}
+.newspaper-copy h3{
+  margin:0 0 7px;
+  font-size:17px;
+  line-height:1.15;
+}
+.newspaper-copy p{
+  margin:0;
+  color:#81766b;
+  font-size:10.5px;
+  line-height:1.5;
+}
+.district-news-empty{
+  grid-column:1 / 3;
+  min-height:420px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:flex-start;
+  padding:38px;
+  border:1px dashed #d0c2b2;
+  border-radius:var(--radius);
+  background:var(--paper-white);
+}
+.district-news-empty strong{
+  max-width:540px;
+  margin:8px 0 10px;
+  font-size:27px;
+  line-height:1.16;
+}
+.district-news-empty p{
+  max-width:520px;
+  margin:0;
+  color:#81766b;
+  font-size:13px;
+  line-height:1.55;
+}
+@media(max-width:1120px){
+  .news-magazine-grid{
+    grid-template-columns:1.15fr 1fr;
+  }
+  .magazine-side-column{
+    grid-column:1/-1;
+    grid-template-columns:1.15fr .85fr;
+    grid-template-rows:auto;
+  }
+  .editorial-card-compact{
+    min-height:250px;
+  }
+  .newspaper-card{
+    min-height:250px;
+  }
+  .district-news-empty{
+    grid-column:1/-1;
+  }
+}
+@media(max-width:900px){
+  .magazine-side-column{
+    grid-column:auto;
+    grid-template-columns:1fr;
+  }
+  .editorial-card-compact,
+  .newspaper-card{
+    min-height:0;
+  }
+  .district-news-empty{
+    grid-column:auto;
+    min-height:260px;
+  }
+}
+@media(max-width:520px){
+  .newspaper-placeholder{
+    grid-template-columns:76px 1fr;
+  }
+  .newspaper-sheet{
+    min-height:108px;
+  }
+}
