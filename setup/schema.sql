@@ -68,3 +68,19 @@ CREATE TABLE IF NOT EXISTS newspapers (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_newspapers_status_date (status,issue_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+CREATE TABLE IF NOT EXISTS documents (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  description TEXT NULL,
+  document_date DATE NOT NULL,
+  file_path VARCHAR(500) NOT NULL,
+  file_ext VARCHAR(12) NOT NULL,
+  original_name VARCHAR(255) NULL,
+  file_size BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  status ENUM('draft','published') NOT NULL DEFAULT 'published',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_documents_status_date (status,document_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
