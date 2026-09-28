@@ -130,7 +130,7 @@ $q=db()->prepare('SELECT id,name,email,role,status,created_at FROM users WHERE i
 $q->execute([(int)$me['id']]);
 $current=$q->fetch() ?: $me;
 $users=is_site_admin()
-    ? db()->query('SELECT id,name,email,role,status,created_at FROM users ORDER BY CASE WHEN role="admin" THEN 0 ELSE 1 END,name')->fetchAll()
+    ? db()->query("SELECT id,name,email,role,status,created_at FROM users ORDER BY CASE WHEN role='admin' THEN 0 ELSE 1 END,name")->fetchAll()
     : [];
 
 $adminTitle='Профиль';
