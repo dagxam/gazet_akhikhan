@@ -33,6 +33,7 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
       <a href="<?=e(base_url('about.php'))?>">О редакции</a>
       <a href="<?=e(base_url('advertising.php'))?>">Реклама</a>
       <a href="<?=e(base_url('contacts.php'))?>">Контакты</a>
+      <a class="utility-login" href="<?=e(base_url('admin/login.php'))?>">Вход</a>
     </div>
   </div>
 </div>
