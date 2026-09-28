@@ -101,11 +101,11 @@ require __DIR__ . '/partials/header.php';
   <a href="<?=e(nav_link_for_slug('istoriya','История'))?>"><b>04</b><span>История<small>Память и места</small></span></a>
 </section>
 
-<section class="content-section">
-  <div class="block-heading">
+<section class="content-section district-news-section">
+  <div class="block-heading news-section-heading">
     <div>
-      <span class="heading-kicker">Новости района</span>
-      <h2>Последние новости района</h2>
+      <span class="heading-kicker">Район</span>
+      <h2>Новости района</h2>
     </div>
     <a href="<?=e(isset($catBySlug['novosti-rayona']) ? category_url($catBySlug['novosti-rayona']) : base_url('news.php'))?>">Все новости района →</a>
   </div>
@@ -205,6 +205,13 @@ require __DIR__ . '/partials/header.php';
 </section>
 
 <section class="content-section dual-news-section">
+  <div class="block-heading news-section-heading dual-section-heading">
+    <div>
+      <span class="heading-kicker">Лента</span>
+      <h2>Регион и спорт</h2>
+    </div>
+    <span class="block-note">Свежие материалы по двум направлениям</span>
+  </div>
   <div class="dual-news-grid">
 
     <section class="dual-news-card regional-news-card">
