@@ -27,4 +27,22 @@ if (APP_INSTALLED) {
     ensure_newspapers_schema();
     ensure_documents_schema();
     ensure_main_menu_schema();
+
+    $scriptName = str_replace('\\', '/', (string)($_SERVER['SCRIPT_NAME'] ?? ''));
+    $scriptBase = basename($scriptName);
+    $isAdminRequest = str_contains($scriptName, '/admin/');
+
+    if (
+        maintenance_mode_enabled()
+        && !$isAdminRequest
+        && $scriptBase !== 'maintenance.php'
+        && $scriptBase !== 'install.php'
+        && !admin_user()
+    ) {
+        http_response_code(503);
+        header('Retry-After: 3600');
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        require ROOT_PATH . '/maintenance.php';
+        exit;
+    }
 }
