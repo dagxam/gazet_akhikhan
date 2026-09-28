@@ -1,6 +1,10 @@
 <?php
 return [
     'db' => [
+        'driver' => 'sqlite',
+        'path' => 'storage/akhikhan.sqlite',
+
+        // MySQL settings are kept for an easy future migration.
         'host' => 'localhost',
         'port' => '3306',
         'name' => '',
