@@ -39,7 +39,7 @@ require __DIR__ . '/partials/header.php';
 <div class="wrap home-shell">
 
 <section class="home-lead-grid">
-  <article class="hero-story hero-clean" data-interactive-hero>
+  <article class="hero-story <?=!empty($hero['cover_image'])?'hero-has-cover':'hero-clean'?>" data-interactive-hero<?php if(!empty($hero['cover_image'])):?> style="background-image:linear-gradient(90deg,rgba(19,21,18,.88) 0%,rgba(19,21,18,.57) 45%,rgba(19,21,18,.14) 82%),url('<?=e(base_url($hero['cover_image']))?>')"<?php endif;?>>
     <div class="hero-story-copy">
       <span class="kicker" data-hero-kicker>Главные новости</span>
       <?php if($hero):?>
