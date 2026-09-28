@@ -33,12 +33,12 @@ require __DIR__ . '/partials/header.php';
 <div class="wrap home-shell">
 
 <section class="home-lead-grid">
-  <article class="hero-story <?=empty($hero['cover_image'])?'hero-reference':''?>"<?php if(!empty($hero['cover_image'])): ?> style="background-image:linear-gradient(90deg,rgba(19,21,18,.86) 0%,rgba(19,21,18,.54) 44%,rgba(19,21,18,.08) 78%),url('<?=e(base_url($hero['cover_image']))?>')"<?php endif; ?>>
+  <article class="hero-story <?=empty($hero['cover_image'])?'hero-reference':''?>" data-interactive-hero><?php if(!empty($hero['cover_image'])): ?> style="background-image:linear-gradient(90deg,rgba(19,21,18,.86) 0%,rgba(19,21,18,.54) 44%,rgba(19,21,18,.08) 78%),url('<?=e(base_url($hero['cover_image']))?>')"<?php endif; ?>>
     <div class="hero-story-copy">
-      <span class="kicker"><?=e($hero ? setting('hero_kicker','Главная тема') : 'Главная тема')?></span>
-      <h1><?=e($hero['title'] ?? 'Унцукульский район: традиции, люди и движение вперёд')?></h1>
-      <p><?=e($hero['excerpt'] ?? 'АХИХЪАН рассказывает о событиях района, людях, которые его создают, и наследии, которое объединяет поколения.')?></p>
-      <a class="story-button" href="<?=e($hero ? article_url($hero) : base_url('news.php'))?>">Читать материал <span>→</span></a>
+      <span class="kicker" data-hero-kicker><?=e($hero ? setting('hero_kicker','Главная тема') : 'Главная тема')?></span>
+      <h1 data-hero-title><?=e($hero['title'] ?? 'Унцукульский район: традиции, люди и движение вперёд')?></h1>
+      <p data-hero-excerpt><?=e($hero['excerpt'] ?? 'АХИХЪАН рассказывает о событиях района, людях, которые его создают, и наследии, которое объединяет поколения.')?></p>
+      <a class="story-button" data-hero-link href="<?=e($hero ? article_url($hero) : base_url('news.php'))?>">Читать материал <span>→</span></a>
     </div>
     <div class="hero-location">
       <span>Унцукульский район</span>
@@ -56,16 +56,28 @@ require __DIR__ . '/partials/header.php';
     </div>
     <div class="latest-list">
       <?php if($latest): ?>
-        <?php foreach(array_slice($latest,0,5) as $item): ?>
-          <article>
+        <?php foreach(array_slice($latest,0,5) as $i=>$item): ?>
+          <article class="latest-item<?=$i===0?' is-active':''?>"
+                   tabindex="0"
+                   data-hero-title="<?=e($item['title'])?>"
+                   data-hero-excerpt="<?=e($item['excerpt'] ?: 'Читайте подробности события в материале «АХИХЪАН».')?>"
+                   data-hero-kicker="<?=e($item['category_name'] ?: 'Новости района')?>"
+                   data-hero-url="<?=e(article_url($item))?>"
+                   data-hero-cover="<?=e(!empty($item['cover_image']) ? base_url($item['cover_image']) : '')?>">
             <time><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></time>
             <h3><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h3>
             <div class="tiny-meta"><?=e($item['category_name'] ?: 'Новости')?> · ◉ <?=number_format((int)$item['views'],0,'.',' ')?></div>
           </article>
         <?php endforeach; ?>
       <?php else: ?>
-        <?php foreach($demoNews as $item): ?>
-          <article>
+        <?php foreach($demoNews as $i=>$item): ?>
+          <article class="latest-item<?=$i===0?' is-active':''?>"
+                   tabindex="0"
+                   data-hero-title="<?=e($item['title'])?>"
+                   data-hero-excerpt="<?=e($item['excerpt'])?>"
+                   data-hero-kicker="Новости района"
+                   data-hero-url="<?=e(base_url('news.php'))?>"
+                   data-hero-cover="">
             <time><?=e($item['date'])?></time>
             <h3><a href="<?=e(base_url('news.php'))?>"><?=e($item['title'])?></a></h3>
             <div class="tiny-meta">Новости района · ◉ <?=e($item['views'])?></div>

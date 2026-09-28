@@ -53,3 +53,68 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
     window.scrollTo({top:0,behavior:'smooth'});
   });
 });
+
+
+(function(){
+  const hero=document.querySelector('[data-interactive-hero]');
+  const items=Array.from(document.querySelectorAll('.latest-item'));
+  if(!hero||!items.length) return;
+
+  const title=hero.querySelector('[data-hero-title]');
+  const excerpt=hero.querySelector('[data-hero-excerpt]');
+  const kicker=hero.querySelector('[data-hero-kicker]');
+  const link=hero.querySelector('[data-hero-link]');
+  let current=null;
+  let switchTimer=null;
+
+  const gradient='linear-gradient(90deg,rgba(19,21,18,.86) 0%,rgba(19,21,18,.54) 44%,rgba(19,21,18,.08) 78%)';
+
+  items.forEach(function(item){
+    const cover=item.dataset.heroCover;
+    if(cover){
+      const preload=new Image();
+      preload.src=cover;
+    }
+  });
+
+  function selectItem(item){
+    if(!item||current===item) return;
+    current=item;
+
+    items.forEach(function(other){
+      other.classList.toggle('is-active',other===item);
+    });
+
+    hero.classList.add('is-switching');
+    window.clearTimeout(switchTimer);
+
+    switchTimer=window.setTimeout(function(){
+      if(title) title.textContent=item.dataset.heroTitle||'';
+      if(excerpt) excerpt.textContent=item.dataset.heroExcerpt||'';
+      if(kicker) kicker.textContent=item.dataset.heroKicker||'Новости района';
+      if(link) link.href=item.dataset.heroUrl||'#';
+
+      const cover=item.dataset.heroCover||'';
+      if(cover){
+        hero.classList.remove('hero-reference');
+        hero.style.backgroundImage=gradient+',url("'+cover.replace(/"/g,'%22')+'")';
+      }else{
+        hero.style.backgroundImage='';
+        hero.classList.add('hero-reference');
+      }
+
+      requestAnimationFrame(function(){
+        hero.classList.remove('is-switching');
+      });
+    },110);
+  }
+
+  items.forEach(function(item){
+    item.addEventListener('mouseenter',function(){
+      if(window.matchMedia('(hover:hover) and (pointer:fine)').matches) selectItem(item);
+    });
+    item.addEventListener('focusin',function(){
+      selectItem(item);
+    });
+  });
+})();
