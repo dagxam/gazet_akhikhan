@@ -57,3 +57,17 @@ CREATE TABLE IF NOT EXISTS settings (
   setting_value TEXT,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+
+CREATE TABLE IF NOT EXISTS newspapers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  issue_number TEXT,
+  issue_date TEXT NOT NULL,
+  pdf_file TEXT NOT NULL,
+  cover_image TEXT,
+  status TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('draft','published')),
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_newspapers_status_date ON newspapers(status,issue_date);
