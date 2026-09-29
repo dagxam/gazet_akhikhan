@@ -2,6 +2,7 @@
 require dirname(__DIR__) . '/app/bootstrap.php';
 if (!APP_INSTALLED) { header('Location: ../install.php'); exit; }
 if(admin_user()){ header('Location: ' . base_url('admin/')); exit; }
+
 $error='';
 if($_SERVER['REQUEST_METHOD']==='POST'){
   verify_csrf();
@@ -19,4 +20,69 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
   }
   $error='Неверный e-mail или пароль.';
 }
-?><!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Вход — AKHIKHAN</title><link rel="stylesheet" href="<?=e(base_url('assets/css/admin.css'))?>"></head><body class="login-page"><form class="login-card" method="post"><div class="login-mark">AKHIKHAN.RU<span>Редакционная система</span></div><?php if(isset($_GET['installed'])):?><div class="ok">Сайт установлен. Войдите в админ-панель.</div><?php endif;?><?php if($error):?><div class="error"><?=e($error)?></div><?php endif;?><input type="hidden" name="csrf" value="<?=e(csrf_token())?>"><label>E-mail<input type="email" name="email" required autofocus></label><label>Пароль<input type="password" name="password" required></label><button>Войти</button><a class="back" href="<?=e(base_url())?>">← На сайт</a></form></body></html>
+?><!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#efe8dd">
+<title>Вход в редакцию — АХИХЪАН</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="<?=e(base_url('assets/css/admin.css?v=20260929-login2'))?>">
+</head>
+<body class="login-page login-page-premium">
+  <div class="login-page-ornament login-page-ornament-left" aria-hidden="true"></div>
+  <div class="login-page-ornament login-page-ornament-right" aria-hidden="true"></div>
+
+  <main class="login-shell">
+    <section class="login-card login-card-premium">
+      <a class="login-brand" href="<?=e(base_url())?>" aria-label="АХИХЪАН — на сайт">
+        <img src="<?=e(base_url('assets/img/akhikhan-logo-transparent.webp?v=20260928-transparent-logo1'))?>" alt="АХИХЪАН — сетевое издание Унцукульского района">
+      </a>
+
+      <div class="login-divider" aria-hidden="true"><span></span><i></i><span></span></div>
+
+      <div class="login-heading">
+        <span>Редакционная система</span>
+        <h1>Вход в редакцию</h1>
+        <p>Введите данные вашей учётной записи.</p>
+      </div>
+
+      <?php if(isset($_GET['installed'])):?><div class="ok">Сайт установлен. Войдите в админ-панель.</div><?php endif;?>
+      <?php if($error):?><div class="error"><?=e($error)?></div><?php endif;?>
+
+      <form class="login-form" method="post">
+        <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
+
+        <label class="login-field">
+          <span>E-mail</span>
+          <span class="login-input-wrap">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z"></path><path d="M4 7l8 6 8-6"></path></svg>
+            <input type="email" name="email" required autofocus autocomplete="username" placeholder="name@example.ru">
+          </span>
+        </label>
+
+        <label class="login-field">
+          <span>Пароль</span>
+          <span class="login-input-wrap">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+            <input type="password" name="password" required autocomplete="current-password" placeholder="Введите пароль">
+          </span>
+        </label>
+
+        <button class="login-submit" type="submit">
+          <span>Войти</span>
+          <b>→</b>
+        </button>
+      </form>
+
+      <div class="login-card-footer">
+        <a class="back" href="<?=e(base_url())?>">← Вернуться на сайт</a>
+        <span>АХИХЪАН · Унцукульский район</span>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
