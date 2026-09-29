@@ -18,7 +18,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
   try{
     foreach($textKeys as $k) save_setting($k,trim($_POST[$k]??''));
 
-    $theme=in_array($_POST['admin_color_scheme']??'walnut',['walnut','graphite','forest','burgundy','navy'],true)
+    $theme=in_array($_POST['admin_color_scheme']??'walnut',['walnut','light','graphite','forest','burgundy','navy'],true)
       ? $_POST['admin_color_scheme']
       : 'walnut';
     save_setting('admin_color_scheme',$theme);
@@ -148,6 +148,7 @@ require __DIR__.'/_top.php';
           <?php
           $themes=[
             'walnut'=>['Орех','Тёплая фирменная схема',['#211b17','#b78951','#f4f2ee']],
+            'light'=>['Светлая','Светлая панель с тёплыми акцентами',['#f7f3ed','#a97843','#ffffff']],
             'graphite'=>['Графит','Строгая нейтральная схема',['#202225','#9299a1','#f2f3f4']],
             'forest'=>['Лес','Спокойные зелёные акценты',['#17231d','#65876e','#f1f4f1']],
             'burgundy'=>['Бордо','Глубокая редакционная палитра',['#28171a','#a65d68','#f6f1f2']],
@@ -155,7 +156,7 @@ require __DIR__.'/_top.php';
           ];
           foreach($themes as $key=>$meta):
           ?>
-            <label class="theme-option <?=$theme===$key?'is-selected':''?>">
+            <label class="theme-option <?=$theme===$key?'is-selected':''?>" data-admin-theme-option="<?=e($key)?>">
               <input type="radio" name="admin_color_scheme" value="<?=e($key)?>" <?=$theme===$key?'checked':''?>>
               <span class="theme-swatches">
                 <?php foreach($meta[2] as $color):?><i style="background:<?=e($color)?>"></i><?php endforeach;?>
@@ -192,5 +193,29 @@ require __DIR__.'/_top.php';
     <button class="primary" type="submit">Сохранить все изменения</button>
   </div>
 </form>
+
+<script>
+(function(){
+  const options=[...document.querySelectorAll('[data-admin-theme-option]')];
+  if(!options.length) return;
+  const themeClasses=['admin-theme-walnut','admin-theme-light','admin-theme-graphite','admin-theme-forest','admin-theme-burgundy','admin-theme-navy'];
+
+  function previewAdminTheme(theme){
+    document.body.classList.remove(...themeClasses);
+    document.body.classList.add('admin-theme-'+theme);
+    options.forEach(option=>{
+      option.classList.toggle('is-selected', option.dataset.adminThemeOption===theme);
+    });
+  }
+
+  options.forEach(option=>{
+    const input=option.querySelector('input[type="radio"]');
+    if(!input) return;
+    input.addEventListener('change',()=>{
+      if(input.checked) previewAdminTheme(input.value);
+    });
+  });
+})();
+</script>
 
 <?php require __DIR__.'/_bottom.php'; ?>
