@@ -154,3 +154,21 @@ CREATE TABLE IF NOT EXISTS social_links (
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_social_links_active_sort ON social_links(is_active,sort_order,id);
+
+
+CREATE TABLE IF NOT EXISTS video_gallery (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  description TEXT,
+  video_date TEXT NOT NULL,
+  source_type TEXT NOT NULL DEFAULT 'external' CHECK (source_type IN ('external','local')),
+  provider TEXT CHECK (provider IN ('vk','rutube','ok','local')),
+  source_url TEXT,
+  video_file TEXT,
+  cover_image TEXT,
+  status TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('draft','published')),
+  sort_order INTEGER NOT NULL DEFAULT 100,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_video_gallery_status_date ON video_gallery(status,video_date,sort_order,id);
