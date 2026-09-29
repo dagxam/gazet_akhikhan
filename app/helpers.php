@@ -311,6 +311,94 @@ function featured_article(): ?array
 function article_url(array $a): string { return base_url('article/' . $a['slug']); }
 function category_url(array $c): string { return base_url('category/' . $c['slug']); }
 
+function security_client_ip(): string
+{
+    $ip=trim((string)($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+    if($ip==='') $ip='unknown';
+    return substr($ip,0,80);
+}
+
+function security_login_bucket_path(): string
+{
+    $dir=ROOT_PATH.'/storage/security';
+    if(!is_dir($dir)){
+        @mkdir($dir,0775,true);
+    }
+    return $dir.'/login-'.hash('sha256',security_client_ip()).'.json';
+}
+
+function security_login_bucket(bool $recordFailure = false): array
+{
+    $now=time();
+    $window=15*60;
+    $limit=8;
+    $lockFor=15*60;
+    $file=security_login_bucket_path();
+
+    $state=['failures'=>[],'blocked_until'=>0];
+    $fp=@fopen($file,'c+');
+    if(!$fp){
+        return ['blocked'=>false,'remaining'=>0,'count'=>0];
+    }
+
+    if(!@flock($fp,LOCK_EX)){
+        fclose($fp);
+        return ['blocked'=>false,'remaining'=>0,'count'=>0];
+    }
+
+    rewind($fp);
+    $raw=stream_get_contents($fp);
+    if(is_string($raw) && trim($raw)!==''){
+        $decoded=json_decode($raw,true);
+        if(is_array($decoded)) $state=array_merge($state,$decoded);
+    }
+
+    $failures=[];
+    foreach((array)($state['failures']??[]) as $ts){
+        $ts=(int)$ts;
+        if($ts>=$now-$window && $ts<=$now+60) $failures[]=$ts;
+    }
+    $blockedUntil=(int)($state['blocked_until']??0);
+    if($blockedUntil<=$now) $blockedUntil=0;
+
+    if($recordFailure && $blockedUntil===0){
+        $failures[]=$now;
+        if(count($failures)>=$limit){
+            $blockedUntil=$now+$lockFor;
+        }
+    }
+
+    $state=['failures'=>$failures,'blocked_until'=>$blockedUntil];
+    rewind($fp);
+    ftruncate($fp,0);
+    fwrite($fp,json_encode($state,JSON_UNESCAPED_SLASHES));
+    fflush($fp);
+    flock($fp,LOCK_UN);
+    fclose($fp);
+
+    return [
+        'blocked'=>$blockedUntil>$now,
+        'remaining'=>max(0,$blockedUntil-$now),
+        'count'=>count($failures),
+    ];
+}
+
+function login_rate_limit_status(): array
+{
+    return security_login_bucket(false);
+}
+
+function login_rate_limit_failure(): array
+{
+    return security_login_bucket(true);
+}
+
+function login_rate_limit_clear(): void
+{
+    $file=security_login_bucket_path();
+    if(is_file($file)) @unlink($file);
+}
+
 function csrf_token(): string
 {
     if (empty($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_bytes(32));
@@ -329,6 +417,33 @@ function verify_csrf(): void
 function admin_user(): ?array
 {
     if (empty($_SESSION['admin_user']['id']) || !APP_INSTALLED) return null;
+
+    $now=time();
+    $loginAt=(int)($_SESSION['admin_login_at'] ?? $now);
+    $lastActivity=(int)($_SESSION['admin_last_activity'] ?? $now);
+
+    // Close abandoned admin sessions: 4 hours idle or 24 hours absolute lifetime.
+    if(($now-$lastActivity)>4*3600 || ($now-$loginAt)>24*3600){
+        unset(
+            $_SESSION['admin_user'],
+            $_SESSION['admin_login_at'],
+            $_SESSION['admin_last_activity'],
+            $_SESSION['admin_last_regen']
+        );
+        if(session_status()===PHP_SESSION_ACTIVE) @session_regenerate_id(true);
+        return null;
+    }
+
+    $_SESSION['admin_login_at']=$loginAt;
+    $_SESSION['admin_last_activity']=$now;
+
+    $lastRegen=(int)($_SESSION['admin_last_regen'] ?? 0);
+    if($lastRegen===0 || ($now-$lastRegen)>30*60){
+        if(session_status()===PHP_SESSION_ACTIVE && !headers_sent()){
+            @session_regenerate_id(true);
+        }
+        $_SESSION['admin_last_regen']=$now;
+    }
 
     static $loaded = false;
     static $cached = null;
@@ -363,6 +478,10 @@ function is_site_admin(): bool
 
 function require_admin(): void
 {
+    header('Cache-Control: no-store, no-cache, must-revalidate, private');
+    header('Pragma: no-cache');
+    header('X-Robots-Tag: noindex, nofollow, noarchive');
+
     if (!admin_user()) {
         header('Location: ' . base_url('admin/login.php'));
         exit;
