@@ -27,7 +27,7 @@ if($videoId && !$current){
 $videos=video_gallery_items(true);
 $pageTitle=$current ? $current['title'] : 'Видеогалерея';
 $pageDescription=$current
-  ? ($current['description'] ?: 'Видео «'.$current['title'].'» — АХИХЪАН.')
+  ? (rich_text_excerpt($current['description'],260) ?: 'Видео «'.$current['title'].'» — АХИХЪАН.')
   : 'Видеогалерея сетевого издания АХИХЪАН: события, интервью, репортажи и жизнь Унцукульского района.';
 
 require __DIR__.'/partials/header.php';
@@ -68,7 +68,7 @@ require __DIR__.'/partials/header.php';
           <span class="video-provider-pill"><?=e(video_provider_label($current['provider']))?></span>
           <h1><?=e($current['title'])?></h1>
           <time datetime="<?=e($current['video_date'])?>"><?=e(ru_date($current['video_date']))?></time>
-          <?php if(!empty($current['description'])):?><p><?=nl2br(e($current['description']))?></p><?php endif;?>
+          <?php if(!empty($current['description'])):?><div class="video-description rich-text"><?=rich_text_html($current['description'])?></div><?php endif;?>
           <?php if(($current['source_type']??'')==='external' && !empty($current['source_url'])):?>
             <a class="video-source-link" href="<?=e($current['source_url'])?>" target="_blank" rel="noopener">
               Открыть на <?=e(video_provider_label($current['provider']))?> <i class="fa-solid fa-arrow-up-right-from-square"></i>
@@ -138,7 +138,7 @@ require __DIR__.'/partials/header.php';
             <span class="video-gallery-copy">
               <small><?=e(ru_date($video['video_date']))?></small>
               <strong><?=e($video['title'])?></strong>
-              <?php if(!empty($video['description'])):?><span><?=e($video['description'])?></span><?php endif;?>
+              <?php if(!empty($video['description'])):?><span><?=e(rich_text_excerpt($video['description'],180))?></span><?php endif;?>
               <b>Смотреть видео →</b>
             </span>
           </a>
