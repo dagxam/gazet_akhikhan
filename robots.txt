@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin/
+Disallow: /app/
+Disallow: /partials/
+Disallow: /setup/
+Disallow: /storage/
+Disallow: /install.php
+Disallow: /maintenance.php
+
+Sitemap: https://akhikhan.ru/sitemap.xml
+Sitemap: https://akhikhan.ru/news-sitemap.xml
