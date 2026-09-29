@@ -29,7 +29,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     $old=$saveId ? video_gallery_item($saveId,false) : null;
 
     $title=trim($_POST['title']??'');
-    $description=trim($_POST['description']??'');
+    $description=sanitize_rich_text($_POST['description']??'');
     $videoDate=trim($_POST['video_date']??'') ?: date('Y-m-d');
     $sourceType=in_array($_POST['source_type']??'external',['external','local'],true)?$_POST['source_type']:'external';
     $status=in_array($_POST['status']??'published',['draft','published'],true)?$_POST['status']:'published';
@@ -151,7 +151,7 @@ require __DIR__.'/_top.php';
 
       <label class="field-modern">
         <span>Описание</span>
-        <textarea name="description" rows="4" maxlength="3000" placeholder="Краткое описание видеоматериала"><?=e($editing['description']??'')?></textarea>
+        <textarea name="description" rows="4" data-rich-text placeholder="Краткое описание видеоматериала"><?=e($editing['description']??'')?></textarea>
       </label>
 
       <div class="video-source-switch">
