@@ -4,7 +4,9 @@ require_admin();
 ensure_right_blocks_area_schema();
 
 $error='';
-$area=in_array($_GET['area']??'home',['home','pages'],true)?$_GET['area']:'home';
+$requestedArea=(string)($_GET['area']??'');
+$areaSelected=in_array($requestedArea,['home','pages'],true);
+$area=$areaSelected ? $requestedArea : '';
 $id=(int)($_GET['id']??0);
 $editing=null;
 
@@ -14,6 +16,7 @@ if($id){
   $editing=$q->fetch();
   if($editing){
     $area=in_array($editing['area']??'home',['home','pages'],true)?$editing['area']:'home';
+    $areaSelected=true;
   }else{
     $id=0;
   }
@@ -106,6 +109,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     exit;
   }catch(Throwable $e){
     $error=$e->getMessage();
+    $area=in_array($_POST['area']??'home',['home','pages'],true)?$_POST['area']:'home';
+    $areaSelected=true;
   }
 }
 
@@ -113,176 +118,251 @@ if($id){
   $q=db()->prepare('SELECT * FROM homepage_right_blocks WHERE id=? LIMIT 1');
   $q->execute([$id]);
   $editing=$q->fetch();
-  if($editing) $area=in_array($editing['area']??'home',['home','pages'],true)?$editing['area']:'home';
+  if($editing){
+    $area=in_array($editing['area']??'home',['home','pages'],true)?$editing['area']:'home';
+    $areaSelected=true;
+  }
 }
 
+$homeBlocks=[];
+$pageBlocks=[];
 try{
-  $blocks=right_blocks($area,false);
+  $homeBlocks=right_blocks('home',false);
+  $pageBlocks=right_blocks('pages',false);
 }catch(Throwable $e){
-  error_log('[right blocks admin list] '.$e->getMessage());
-  $blocks=[];
-  if($error==='') $error='Не удалось загрузить правые блоки. Структура базы была перепроверена; обновите страницу и повторите.';
+  error_log('[right blocks admin counts] '.$e->getMessage());
 }
-$areaTitle=$area==='home'?'Главная страница':'Статичные страницы';
-$areaDescription=$area==='home'
-  ? 'Эти карточки выводятся в правой колонке главной страницы рядом с региональными и спортивными новостями.'
-  : 'Эти карточки выводятся в правой колонке всех созданных статичных страниц.';
+
+$blocks=[];
+if($areaSelected){
+  $blocks=$area==='pages' ? $pageBlocks : $homeBlocks;
+}
+
+$areaTitle=$area==='pages'?'На страницах':'На главной';
+$areaSubtitle=$area==='pages'?'Статичные страницы':'Главная страница';
+$areaDescription=$area==='pages'
+  ? 'Здесь находятся блоки, которые показываются в правой колонке статичных страниц.'
+  : 'Здесь находятся блоки правой колонки главной страницы рядом с новостными разделами.';
+
 $adminTitle='Правые блоки';
 require __DIR__.'/_top.php';
 ?>
 
 <?php if($error):?><div class="error"><?=e($error)?></div><?php endif;?>
-<?php if(isset($_GET['saved'])):?><div class="ok">Блок сохранён в разделе «<?=e($areaTitle)?>».</div><?php endif;?>
-<?php if(isset($_GET['deleted'])):?><div class="ok">Блок удалён.</div><?php endif;?>
+<?php if(isset($_GET['saved']) && $areaSelected):?><div class="ok">Блок сохранён в разделе «<?=e($areaTitle)?>».</div><?php endif;?>
+<?php if(isset($_GET['deleted']) && $areaSelected):?><div class="ok">Блок удалён.</div><?php endif;?>
 
 <div class="right-blocks-admin-head">
   <div>
     <span class="editor-eyebrow">Оформление сайта</span>
-    <h2>Правые блоки</h2>
-    <p>Управляйте правой колонкой отдельно для главной страницы и для статичных страниц сайта.</p>
+    <h2><?=$areaSelected?e($areaTitle):'Правые блоки'?></h2>
+    <p><?=$areaSelected?e($areaDescription):'Сначала выберите, где будут размещаться блоки. Каждый раздел настраивается отдельно.'?></p>
   </div>
-  <?php if($editing):?><a class="editor-back" href="<?=e(base_url('admin/right-block.php?area='.$area))?>">＋ Новый блок</a><?php endif;?>
-</div>
 
-<nav class="right-block-area-tabs" aria-label="Расположение правых блоков">
-  <a class="<?=$area==='home'?'is-active':''?>" href="<?=e(base_url('admin/right-block.php?area=home'))?>">
-    <i class="fa-solid fa-house"></i>
-    <span><b>На главной</b><small>Правая колонка главной страницы</small></span>
-  </a>
-  <a class="<?=$area==='pages'?'is-active':''?>" href="<?=e(base_url('admin/right-block.php?area=pages'))?>">
-    <i class="fa-regular fa-file-lines"></i>
-    <span><b>На страницах</b><small>Правая колонка статичных страниц</small></span>
-  </a>
-</nav>
-
-<div class="right-block-area-note">
-  <i class="<?=$area==='home'?'fa-solid fa-house':'fa-regular fa-file-lines'?>"></i>
-  <div><b><?=e($areaTitle)?></b><span><?=e($areaDescription)?></span></div>
-</div>
-
-<div class="right-blocks-admin-layout">
-  <section class="editor-card right-block-editor">
-    <div class="side-card-title">
-      <span class="side-icon">＋</span>
-      <div>
-        <h3><?=$editing?'Редактировать блок':'Добавить блок справа'?></h3>
-        <p><?=e($areaTitle)?></p>
-      </div>
-    </div>
-
-    <form method="post" enctype="multipart/form-data">
-      <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
-      <input type="hidden" name="action" value="save">
-      <input type="hidden" name="id" value="<?=e((string)($editing['id']??0))?>">
-      <input type="hidden" name="area" value="<?=e($area)?>">
-
-      <div class="right-block-switch">
-        <span class="right-block-switch-copy">
-          <b>Показывать блок</b>
-          <small>Выключенный блок останется в админке, но исчезнет с сайта.</small>
-        </span>
-        <input type="checkbox" name="is_active" value="1" <?=!$editing || !empty($editing['is_active'])?'checked':''?>>
-      </div>
-
-      <div class="right-block-form-row">
-        <label class="field-modern compact">
-          <span>Подпись</span>
-          <input name="kicker" maxlength="100" value="<?=e($editing['kicker']??'')?>" placeholder="Например: От редакции">
-        </label>
-        <label class="field-modern compact">
-          <span>Стиль</span>
-          <select name="style">
-            <option value="light" <?=($editing['style']??'light')==='light'?'selected':''?>>Светлый</option>
-            <option value="accent" <?=($editing['style']??'')==='accent'?'selected':''?>>Акцентный</option>
-            <option value="dark" <?=($editing['style']??'')==='dark'?'selected':''?>>Тёмный</option>
-          </select>
-        </label>
-      </div>
-
-      <label class="field-modern compact">
-        <span>Заголовок</span>
-        <input name="title" required maxlength="255" value="<?=e($editing['title']??'')?>" placeholder="Заголовок блока">
-      </label>
-
-      <label class="field-modern">
-        <span>Текст</span>
-        <textarea name="body" rows="5" data-rich-text placeholder="Текст блока"><?=e($editing['body']??'')?></textarea>
-      </label>
-
-      <div class="right-block-form-row">
-        <label class="field-modern compact">
-          <span>Текст кнопки</span>
-          <input name="link_text" maxlength="100" value="<?=e($editing['link_text']??'')?>" placeholder="Подробнее">
-        </label>
-        <label class="field-modern compact">
-          <span>Ссылка</span>
-          <input name="link_url" maxlength="500" value="<?=e($editing['link_url']??'')?>" placeholder="page/o-redakcii или https://...">
-        </label>
-      </div>
-
-      <label class="field-modern compact">
-        <span>Порядок</span>
-        <input type="number" name="sort_order" min="-9999" max="9999" value="<?=e((string)($editing['sort_order']??100))?>">
-        <small>Чем меньше число, тем выше карточка.</small>
-      </label>
-
-      <label class="field-modern">
-        <span>Фоновое изображение</span>
-        <input type="file" name="image" accept="image/jpeg,image/png,image/webp">
-        <small>JPG, PNG или WEBP · до 8 МБ.</small>
-      </label>
-
-      <?php if($editing && !empty($editing['image'])):?>
-        <div class="right-block-image-preview"><img src="<?=e(base_url($editing['image']))?>" alt=""></div>
-        <label class="menu-check"><input type="checkbox" name="remove_image" value="1"><span>Удалить изображение</span></label>
+  <?php if($areaSelected):?>
+    <div class="right-block-head-actions">
+      <a class="editor-back right-block-back" href="<?=e(base_url('admin/right-block.php'))?>">
+        <i class="fa-solid fa-arrow-left"></i> Выбор раздела
+      </a>
+      <?php if($editing):?>
+        <a class="secondary" href="<?=e(base_url('admin/right-block.php?area='.$area))?>">＋ Новый блок</a>
       <?php endif;?>
-
-      <button class="primary wide" type="submit"><?=$editing?'Сохранить изменения':'Добавить блок'?></button>
-    </form>
-  </section>
-
-  <section class="editor-card right-blocks-library">
-    <div class="card-head">
-      <div>
-        <h2><?=e($areaTitle)?></h2>
-        <p class="admin-intro">Блоки выводятся сверху вниз по значению «Порядок».</p>
-      </div>
     </div>
-
-    <?php if($blocks):?>
-      <div class="right-blocks-list">
-        <?php foreach($blocks as $block):?>
-          <article class="right-block-admin-item <?=empty($block['is_active'])?'is-disabled':''?>">
-            <div class="right-block-admin-preview <?=e($block['style'])?> <?=!empty($block['image'])?'has-image':''?>" <?php if(!empty($block['image'])):?>style="background-image:url('<?=e(base_url($block['image']))?>')"<?php endif;?>>
-              <span><?=e($block['kicker'] ?: 'Блок')?></span>
-              <strong><?=e($block['title'])?></strong>
-            </div>
-            <div class="right-block-admin-meta">
-              <div>
-                <span class="status <?=!empty($block['is_active'])?'green':'gray'?>"><?=!empty($block['is_active'])?'Показывается':'Скрыт'?></span>
-                <small>Порядок: <?=e((string)$block['sort_order'])?> · <?=e($block['style'])?></small>
-              </div>
-              <div class="row-actions">
-                <a class="edit-action" href="<?=e(base_url('admin/right-block.php?area='.$area.'&id='.$block['id']))?>">Редактировать</a>
-                <form method="post" onsubmit="return confirm('Удалить этот блок?')">
-                  <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
-                  <input type="hidden" name="action" value="delete">
-                  <input type="hidden" name="area" value="<?=e($area)?>">
-                  <input type="hidden" name="id" value="<?=$block['id']?>">
-                  <button class="danger" type="submit">Удалить</button>
-                </form>
-              </div>
-            </div>
-          </article>
-        <?php endforeach;?>
-      </div>
-    <?php else:?>
-      <div class="right-blocks-empty">
-        <b>В этом разделе блоков пока нет</b>
-        <p><?=$area==='home'?'Добавьте карточку для правой колонки главной страницы.':'Добавьте карточку — она появится справа на статичных страницах.'?></p>
-      </div>
-    <?php endif;?>
-  </section>
+  <?php endif;?>
 </div>
+
+<?php if(!$areaSelected):?>
+  <section class="right-block-hub" aria-label="Выбор расположения правых блоков">
+    <a class="right-block-destination is-home" href="<?=e(base_url('admin/right-block.php?area=home'))?>">
+      <span class="right-block-destination-art">
+        <i class="fa-solid fa-house"></i>
+        <span class="right-block-destination-lines"><i></i><i></i><i></i></span>
+        <b class="right-block-destination-sidebar"></b>
+      </span>
+      <span class="right-block-destination-copy">
+        <small>01 · Главная страница</small>
+        <strong>На главной</strong>
+        <span>Добавление и управление блоками в правой колонке главной страницы.</span>
+      </span>
+      <span class="right-block-destination-foot">
+        <b><?=count($homeBlocks)?> <?=count($homeBlocks)===1?'блок':'блоков'?></b>
+        <i class="fa-solid fa-arrow-right"></i>
+      </span>
+    </a>
+
+    <a class="right-block-destination is-pages" href="<?=e(base_url('admin/right-block.php?area=pages'))?>">
+      <span class="right-block-destination-art">
+        <i class="fa-regular fa-file-lines"></i>
+        <span class="right-block-destination-lines"><i></i><i></i><i></i></span>
+        <b class="right-block-destination-sidebar"></b>
+      </span>
+      <span class="right-block-destination-copy">
+        <small>02 · Статичные страницы</small>
+        <strong>На страницах</strong>
+        <span>Отдельные блоки, которые выводятся справа на созданных статичных страницах.</span>
+      </span>
+      <span class="right-block-destination-foot">
+        <b><?=count($pageBlocks)?> <?=count($pageBlocks)===1?'блок':'блоков'?></b>
+        <i class="fa-solid fa-arrow-right"></i>
+      </span>
+    </a>
+  </section>
+
+  <div class="right-block-hub-note">
+    <i class="fa-solid fa-circle-info"></i>
+    <div>
+      <b>Разделы независимы</b>
+      <span>Блоки из «На главной» не попадут на статичные страницы, а блоки из «На страницах» не появятся на главной.</span>
+    </div>
+  </div>
+
+<?php else:?>
+
+  <nav class="right-block-inner-switch" aria-label="Переключить расположение">
+    <a class="<?=$area==='home'?'is-active':''?>" href="<?=e(base_url('admin/right-block.php?area=home'))?>">
+      <i class="fa-solid fa-house"></i><span>На главной</span><b><?=count($homeBlocks)?></b>
+    </a>
+    <a class="<?=$area==='pages'?'is-active':''?>" href="<?=e(base_url('admin/right-block.php?area=pages'))?>">
+      <i class="fa-regular fa-file-lines"></i><span>На страницах</span><b><?=count($pageBlocks)?></b>
+    </a>
+  </nav>
+
+  <section class="right-block-section-banner <?=$area==='pages'?'is-pages':'is-home'?>">
+    <span class="right-block-section-icon">
+      <i class="<?=$area==='pages'?'fa-regular fa-file-lines':'fa-solid fa-house'?>"></i>
+    </span>
+    <div>
+      <small><?=e($areaSubtitle)?></small>
+      <strong><?=e($areaTitle)?></strong>
+      <p><?=e($areaDescription)?></p>
+    </div>
+    <span class="right-block-section-count"><b><?=count($blocks)?></b><small>всего</small></span>
+  </section>
+
+  <div class="right-blocks-admin-layout">
+    <section class="editor-card right-block-editor">
+      <div class="side-card-title">
+        <span class="side-icon">＋</span>
+        <div>
+          <h3><?=$editing?'Редактировать блок':'Добавить новый блок'?></h3>
+          <p><?=e($areaTitle)?> · все настройки этого блока</p>
+        </div>
+      </div>
+
+      <form method="post" enctype="multipart/form-data">
+        <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
+        <input type="hidden" name="action" value="save">
+        <input type="hidden" name="id" value="<?=e((string)($editing['id']??0))?>">
+        <input type="hidden" name="area" value="<?=e($area)?>">
+
+        <div class="right-block-switch">
+          <span class="right-block-switch-copy">
+            <b>Показывать блок</b>
+            <small>Выключенный блок сохранится в админке, но исчезнет с сайта.</small>
+          </span>
+          <input type="checkbox" name="is_active" value="1" <?=!$editing || !empty($editing['is_active'])?'checked':''?>>
+        </div>
+
+        <div class="right-block-form-row">
+          <label class="field-modern compact">
+            <span>Подпись</span>
+            <input name="kicker" maxlength="100" value="<?=e($editing['kicker']??'')?>" placeholder="Например: От редакции">
+          </label>
+          <label class="field-modern compact">
+            <span>Стиль</span>
+            <select name="style">
+              <option value="light" <?=($editing['style']??'light')==='light'?'selected':''?>>Светлый</option>
+              <option value="accent" <?=($editing['style']??'')==='accent'?'selected':''?>>Акцентный</option>
+              <option value="dark" <?=($editing['style']??'')==='dark'?'selected':''?>>Тёмный</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field-modern compact">
+          <span>Заголовок</span>
+          <input name="title" required maxlength="255" value="<?=e($editing['title']??'')?>" placeholder="Заголовок блока">
+        </label>
+
+        <label class="field-modern">
+          <span>Текст</span>
+          <textarea name="body" rows="5" data-rich-text placeholder="Текст блока"><?=e($editing['body']??'')?></textarea>
+        </label>
+
+        <div class="right-block-form-row">
+          <label class="field-modern compact">
+            <span>Текст кнопки</span>
+            <input name="link_text" maxlength="100" value="<?=e($editing['link_text']??'')?>" placeholder="Подробнее">
+          </label>
+          <label class="field-modern compact">
+            <span>Ссылка</span>
+            <input name="link_url" maxlength="500" value="<?=e($editing['link_url']??'')?>" placeholder="page/o-redakcii или https://...">
+          </label>
+        </div>
+
+        <label class="field-modern compact">
+          <span>Порядок</span>
+          <input type="number" name="sort_order" min="-9999" max="9999" value="<?=e((string)($editing['sort_order']??100))?>">
+          <small>Чем меньше число, тем выше карточка.</small>
+        </label>
+
+        <label class="field-modern">
+          <span>Фоновое изображение</span>
+          <input type="file" name="image" accept="image/jpeg,image/png,image/webp">
+          <small>JPG, PNG или WEBP · до 8 МБ.</small>
+        </label>
+
+        <?php if($editing && !empty($editing['image'])):?>
+          <div class="right-block-image-preview"><img src="<?=e(base_url($editing['image']))?>" alt=""></div>
+          <label class="menu-check"><input type="checkbox" name="remove_image" value="1"><span>Удалить изображение</span></label>
+        <?php endif;?>
+
+        <button class="primary wide" type="submit"><?=$editing?'Сохранить изменения':'Добавить блок'?></button>
+      </form>
+    </section>
+
+    <section class="editor-card right-blocks-library">
+      <div class="card-head">
+        <div>
+          <h2>Созданные блоки</h2>
+          <p class="admin-intro"><?=e($areaTitle)?> · выводятся сверху вниз по значению «Порядок».</p>
+        </div>
+      </div>
+
+      <?php if($blocks):?>
+        <div class="right-blocks-list">
+          <?php foreach($blocks as $block):?>
+            <article class="right-block-admin-item <?=empty($block['is_active'])?'is-disabled':''?>">
+              <div class="right-block-admin-preview <?=e($block['style'])?> <?=!empty($block['image'])?'has-image':''?>" <?php if(!empty($block['image'])):?>style="background-image:url('<?=e(base_url($block['image']))?>')"<?php endif;?>>
+                <span><?=e($block['kicker'] ?: 'Блок')?></span>
+                <strong><?=e($block['title'])?></strong>
+              </div>
+              <div class="right-block-admin-meta">
+                <div>
+                  <span class="status <?=!empty($block['is_active'])?'green':'gray'?>"><?=!empty($block['is_active'])?'Показывается':'Скрыт'?></span>
+                  <small>Порядок: <?=e((string)$block['sort_order'])?> · <?=e($block['style'])?></small>
+                </div>
+                <div class="row-actions">
+                  <a class="edit-action" href="<?=e(base_url('admin/right-block.php?area='.$area.'&id='.$block['id']))?>">Редактировать</a>
+                  <form method="post" onsubmit="return confirm('Удалить этот блок?')">
+                    <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="area" value="<?=e($area)?>">
+                    <input type="hidden" name="id" value="<?=$block['id']?>">
+                    <button class="danger" type="submit">Удалить</button>
+                  </form>
+                </div>
+              </div>
+            </article>
+          <?php endforeach;?>
+        </div>
+      <?php else:?>
+        <div class="right-blocks-empty">
+          <b>Здесь пока нет блоков</b>
+          <p><?=$area==='home'?'Создайте первый блок для правой колонки главной страницы.':'Создайте первый блок для правой колонки статичных страниц.'?></p>
+        </div>
+      <?php endif;?>
+    </section>
+  </div>
+<?php endif;?>
 
 <?php require __DIR__.'/_bottom.php'; ?>
