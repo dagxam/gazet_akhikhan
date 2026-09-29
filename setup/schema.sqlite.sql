@@ -141,3 +141,16 @@ CREATE TABLE IF NOT EXISTS photo_gallery_images (
   FOREIGN KEY (album_id) REFERENCES photo_albums(id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_photo_gallery_images_album_sort ON photo_gallery_images(album_id,sort_order,id);
+
+
+CREATE TABLE IF NOT EXISTS social_links (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  service TEXT NOT NULL,
+  label TEXT,
+  url TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 100,
+  is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0,1)),
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_social_links_active_sort ON social_links(is_active,sort_order,id);
