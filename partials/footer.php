@@ -32,6 +32,7 @@ $footerSocialLinks = social_links(true);
       <a href="<?=e(base_url('about.php'))?>">О редакции</a>
       <a href="<?=e(base_url('news.php'))?>">Все новости</a>
       <a href="<?=e(base_url('gallery.php'))?>">Фото</a>
+      <a href="<?=e(base_url('videos.php'))?>">Видео</a>
       <a href="<?=e(base_url('advertising.php'))?>">Реклама</a>
       <a href="<?=e(base_url('contacts.php'))?>">Контакты</a>
     </div>
