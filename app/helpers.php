@@ -1556,12 +1556,28 @@ function safe_delete_video_cover(?string $relativePath): void
 function ensure_right_blocks_area_schema(): void
 {
     if (!APP_INSTALLED) return;
-    if (setting('schema_right_blocks_area_v1','') === '1') return;
 
     $pdo=db();
     $driver=(string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
 
+    // Do not trust only the migration flag: verify the real database schema.
+    // This makes the manager self-healing after interrupted/partial deployments.
     if($driver==='sqlite'){
+        $pdo->exec("CREATE TABLE IF NOT EXISTS homepage_right_blocks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            kicker TEXT,
+            title TEXT NOT NULL,
+            body TEXT,
+            image TEXT,
+            link_text TEXT,
+            link_url TEXT,
+            style TEXT NOT NULL DEFAULT 'light',
+            sort_order INTEGER NOT NULL DEFAULT 100,
+            is_active INTEGER NOT NULL DEFAULT 1,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )");
+
         $cols=$pdo->query("PRAGMA table_info(homepage_right_blocks)")->fetchAll();
         $hasArea=false;
         foreach($cols as $col){
@@ -1572,14 +1588,41 @@ function ensure_right_blocks_area_schema(): void
         }
         $pdo->exec("CREATE INDEX IF NOT EXISTS idx_homepage_right_blocks_area_active_sort ON homepage_right_blocks(area,is_active,sort_order,id)");
     }else{
+        $pdo->exec("CREATE TABLE IF NOT EXISTS homepage_right_blocks (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            kicker VARCHAR(100) NULL,
+            title VARCHAR(255) NOT NULL,
+            body TEXT NULL,
+            image VARCHAR(500) NULL,
+            link_text VARCHAR(100) NULL,
+            link_url VARCHAR(500) NULL,
+            style ENUM('light','accent','dark') NOT NULL DEFAULT 'light',
+            sort_order INT NOT NULL DEFAULT 100,
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_homepage_right_blocks_active_sort (is_active,sort_order)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
         $q=$pdo->query("SHOW COLUMNS FROM homepage_right_blocks LIKE 'area'");
         if(!$q->fetch()){
             $pdo->exec("ALTER TABLE homepage_right_blocks ADD COLUMN area ENUM('home','pages') NOT NULL DEFAULT 'home' AFTER id");
         }
+
         try{
-            $pdo->exec("CREATE INDEX idx_homepage_right_blocks_area_active_sort ON homepage_right_blocks(area,is_active,sort_order,id)");
-        }catch(Throwable $e){}
+            $idx=$pdo->query("SHOW INDEX FROM homepage_right_blocks WHERE Key_name='idx_homepage_right_blocks_area_active_sort'");
+            if(!$idx->fetch()){
+                $pdo->exec("CREATE INDEX idx_homepage_right_blocks_area_active_sort ON homepage_right_blocks(area,is_active,sort_order,id)");
+            }
+        }catch(Throwable $e){
+            error_log('[right blocks index] '.$e->getMessage());
+        }
     }
+
+    // Old blocks always belong to the home page.
+    try{
+        $pdo->exec("UPDATE homepage_right_blocks SET area='home' WHERE area IS NULL OR area=''");
+    }catch(Throwable $e){}
 
     save_setting('schema_right_blocks_area_v1','1');
 }
@@ -1588,12 +1631,30 @@ function right_blocks(string $area = 'home', bool $activeOnly = true): array
 {
     if (!APP_INSTALLED) return [];
     $area=in_array($area,['home','pages'],true)?$area:'home';
-    $sql='SELECT * FROM homepage_right_blocks WHERE area=?';
-    if($activeOnly) $sql .= ' AND is_active=1';
-    $sql .= ' ORDER BY sort_order,id';
-    $q=db()->prepare($sql);
-    $q->execute([$area]);
-    return $q->fetchAll();
+
+    try{
+        ensure_right_blocks_area_schema();
+        $sql='SELECT * FROM homepage_right_blocks WHERE area=?';
+        if($activeOnly) $sql .= ' AND is_active=1';
+        $sql .= ' ORDER BY sort_order,id';
+        $q=db()->prepare($sql);
+        $q->execute([$area]);
+        return $q->fetchAll();
+    }catch(Throwable $e){
+        error_log('[right blocks read] '.$e->getMessage());
+
+        // Backward-compatible fallback for an old table without the area column.
+        if($area!=='home') return [];
+        try{
+            $sql='SELECT * FROM homepage_right_blocks';
+            if($activeOnly) $sql .= ' WHERE is_active=1';
+            $sql .= ' ORDER BY sort_order,id';
+            return db()->query($sql)->fetchAll();
+        }catch(Throwable $fallback){
+            error_log('[right blocks fallback] '.$fallback->getMessage());
+            return [];
+        }
+    }
 }
 
 function page_right_blocks(bool $activeOnly = true): array
