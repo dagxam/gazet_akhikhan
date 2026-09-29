@@ -80,7 +80,7 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#231d18">
 <link rel="icon" href="<?=e(base_url($siteFavicon))?>">
 <title><?=e($seoFullTitle)?></title>
@@ -109,7 +109,7 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@400;500;600;700;800&family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Noto+Serif:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20260929-photo-gallery-style2'))?>">
+<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20260929-responsive-public1'))?>">
 </head>
 <body>
 <a id="top"></a>
