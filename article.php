@@ -14,6 +14,8 @@ $article = $q->fetch();
 if(!$article){
   http_response_code(404);
   $pageTitle='Материал не найден';
+  $pageDescription='Запрошенный материал не найден.';
+  $seoRobots='noindex,nofollow,noarchive';
   require __DIR__.'/partials/header.php';
   echo '<div class="wrap page-shell"><div class="page-head"><div><span class="heading-kicker">404</span><h1>Материал не найден</h1><p>Возможно, публикация была перемещена или ещё не опубликована.</p></div><div class="page-head-mark"></div></div><div class="empty"><a href="'.e(base_url('news.php')).'">← Вернуться к новостям</a></div></div>';
   require __DIR__.'/partials/footer.php';
@@ -24,7 +26,73 @@ db()->prepare('UPDATE articles SET views=views+1 WHERE id=?')->execute([$article
 $related = latest_articles(5, (int)$article['id']);
 
 $pageTitle = $article['title'];
-$pageDescription = rich_text_excerpt($article['excerpt'],260);
+$pageDescription = rich_text_excerpt($article['excerpt'],260)
+    ?: rich_text_excerpt($article['content'],260)
+    ?: 'Материал сетевого издания «АХИХЪАН» об Унцукульском районе.';
+$seoCanonical = article_url($article);
+$seoType = 'article';
+$seoImage = !empty($article['cover_image']) ? (string)$article['cover_image'] : 'assets/img/akhikhan-logo-hq.webp';
+$seoAuthor = trim((string)($article['author_name'] ?: 'Редакция «АХИХЪАН»'));
+$publishedRaw = (string)($article['published_at'] ?: $article['created_at']);
+$modifiedRaw = (string)($article['updated_at'] ?: $publishedRaw);
+$seoPublishedTime = strtotime($publishedRaw) ? date('c', strtotime($publishedRaw)) : '';
+$seoModifiedTime = strtotime($modifiedRaw) ? date('c', strtotime($modifiedRaw)) : $seoPublishedTime;
+$seoImageAbsolute = preg_match('~^https?://~i',$seoImage) ? $seoImage : base_url(ltrim($seoImage,'/'));
+
+$articleJsonLd = [
+  '@context' => 'https://schema.org',
+  '@type' => 'NewsArticle',
+  'mainEntityOfPage' => ['@type'=>'WebPage','@id'=>$seoCanonical],
+  'headline' => (string)$article['title'],
+  'description' => $pageDescription,
+  'image' => [$seoImageAbsolute],
+  'datePublished' => $seoPublishedTime,
+  'dateModified' => $seoModifiedTime,
+  'author' => [[
+    '@type' => !empty($article['author_name']) ? 'Person' : 'Organization',
+    'name' => $seoAuthor,
+  ]],
+  'publisher' => [
+    '@type' => 'NewsMediaOrganization',
+    'name' => 'АХИХЪАН',
+    'url' => base_url(),
+    'logo' => [
+      '@type' => 'ImageObject',
+      'url' => base_url('assets/img/akhikhan-logo-transparent.webp'),
+    ],
+  ],
+  'articleSection' => (string)($article['category_name'] ?: 'Новости'),
+  'inLanguage' => 'ru-RU',
+  'isAccessibleForFree' => true,
+];
+
+$breadcrumbItems = [
+  ['@type'=>'ListItem','position'=>1,'name'=>'Главная','item'=>base_url()],
+  ['@type'=>'ListItem','position'=>2,'name'=>'Новости','item'=>base_url('news.php')],
+];
+if(!empty($article['category_name']) && !empty($article['category_slug'])){
+  $breadcrumbItems[]=[
+    '@type'=>'ListItem',
+    'position'=>3,
+    'name'=>(string)$article['category_name'],
+    'item'=>base_url('category/'.rawurlencode((string)$article['category_slug'])),
+  ];
+}
+$breadcrumbItems[]=[
+  '@type'=>'ListItem',
+  'position'=>count($breadcrumbItems)+1,
+  'name'=>(string)$article['title'],
+  'item'=>$seoCanonical,
+];
+
+$seoJsonLd = [
+  $articleJsonLd,
+  [
+    '@context'=>'https://schema.org',
+    '@type'=>'BreadcrumbList',
+    'itemListElement'=>$breadcrumbItems,
+  ],
+];
 require __DIR__ . '/partials/header.php';
 ?>
 <div class="wrap page-shell">
