@@ -25,7 +25,7 @@ if(!$page){
 
 $pageBlocks=page_right_blocks(true);
 $pageTitle=$page['title'];
-$pageDescription=$page['excerpt']??'';
+$pageDescription=rich_text_excerpt($page['excerpt']??'',260);
 require __DIR__.'/partials/header.php';
 ?>
 
@@ -38,9 +38,9 @@ require __DIR__.'/partials/header.php';
 
       <span class="heading-kicker">АХИХЪАН</span>
       <h1><?=e($page['title'])?></h1>
-      <?php if(!empty($page['excerpt'])):?><p class="static-page-lead"><?=e($page['excerpt'])?></p><?php endif;?>
+      <?php if(!empty($page['excerpt'])):?><div class="static-page-lead rich-text"><?=rich_text_html($page['excerpt'])?></div><?php endif;?>
       <?php if(!empty($page['cover_image'])):?><img class="static-page-cover" src="<?=e(base_url($page['cover_image']))?>" alt="<?=e($page['title'])?>"><?php endif;?>
-      <div class="static-page-content"><?=nl2br(e($page['content']))?></div>
+      <div class="static-page-content rich-text"><?=rich_text_html($page['content'])?></div>
     </article>
 
     <?php if($pageBlocks):?>
@@ -54,7 +54,7 @@ require __DIR__.'/partials/header.php';
             <div class="right-feature-content">
               <?php if(!empty($block['kicker'])):?><span class="heading-kicker"><?=e($block['kicker'])?></span><?php endif;?>
               <h3><?=e($block['title'])?></h3>
-              <?php if(!empty($block['body'])):?><p><?=nl2br(e($block['body']))?></p><?php endif;?>
+              <?php if(!empty($block['body'])):?><div class="right-feature-body rich-text"><?=rich_text_html($block['body'])?></div><?php endif;?>
               <?php if($blockHref!=='' && !empty($block['link_text'])):?><a href="<?=e($blockHref)?>"><?=e($block['link_text'])?> <b>→</b></a><?php endif;?>
             </div>
           </section>
