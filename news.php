@@ -30,7 +30,7 @@ require __DIR__.'/partials/header.php';
         <div class="list-card-body">
           <div class="article-label"><?=e($a['category_name'] ?: 'Новости')?></div>
           <h2><a href="<?=e(article_url($a))?>"><?=e($a['title'])?></a></h2>
-          <p><?=e($a['excerpt'])?></p>
+          <p><?=e(rich_text_excerpt($a['excerpt'],220))?></p>
           <div class="article-meta"><span><?=e(ru_date($a['published_at'] ?: $a['created_at']))?></span><span>◉ <?=number_format((int)$a['views'],0,'.',' ')?></span></div>
         </div>
       </article>
