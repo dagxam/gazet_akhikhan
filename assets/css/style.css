@@ -5470,3 +5470,91 @@ h1,h2,h3,h4{
   .static-page-content{font-size:15px;line-height:1.72}
   .static-page-sidebar{grid-template-columns:1fr}
 }
+
+
+/* homepage latest video showcase v1 */
+.home-video-showcase .block-heading{
+  margin-bottom:18px;
+}
+.home-video-all{
+  color:var(--walnut);
+  font:800 9px/1 var(--sans);
+  text-transform:uppercase;
+  letter-spacing:.055em;
+}
+.home-video-section-card{
+  position:relative;
+}
+.home-video-section-image{
+  position:relative;
+  background-size:cover!important;
+  background-position:center!important;
+}
+.home-video-section-image:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,rgba(20,15,11,.02),rgba(20,15,11,.20));
+  pointer-events:none;
+}
+.home-video-play{
+  position:absolute;
+  z-index:2;
+  left:50%;
+  top:50%;
+  width:46px;
+  height:46px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  background:rgba(255,255,255,.93);
+  color:#79512e;
+  box-shadow:0 9px 24px rgba(26,18,12,.18);
+  transition:transform .18s ease,background .18s ease;
+}
+.home-video-section-card:hover .home-video-play{
+  transform:translate(-50%,-50%) scale(1.07);
+  background:#fff;
+}
+.home-video-play i{
+  margin-left:2px;
+  font-size:12px;
+}
+.home-video-fallback{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  background:
+    radial-gradient(circle at 35% 30%,rgba(199,167,124,.18),transparent 26%),
+    linear-gradient(145deg,#34271e,#6b4b31);
+  color:#e2c39a;
+  font-size:35px;
+}
+.home-video-section-body{
+  min-width:0;
+}
+.home-video-section-body .home-video-provider{
+  display:block;
+  margin-bottom:8px;
+  color:#9b7448;
+  font:700 8px/1.2 var(--sans);
+  text-transform:uppercase;
+  letter-spacing:.055em;
+}
+.home-video-section-body strong{
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:3;
+  overflow:hidden;
+}
+.home-video-empty{
+  border-radius:var(--radius);
+}
+@media(max-width:680px){
+  .home-video-play{
+    width:40px;
+    height:40px;
+  }
+}
