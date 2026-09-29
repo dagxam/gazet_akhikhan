@@ -1,4 +1,4 @@
-<?php require_admin(); $me=admin_user(); $maintenanceOn=maintenance_mode_enabled(); $adminTheme=admin_theme_name(); $adminLogo=branding_asset('admin_logo','assets/img/akhikhan-logo-transparent.webp'); $siteFavicon=branding_asset('site_favicon','assets/img/seal.svg'); ?><!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title><?=e($adminTitle ?? 'Админ-панель')?> — АХИХЪАН</title><link rel="icon" href="<?=e(base_url($siteFavicon))?>"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"><link rel="stylesheet" href="<?=e(base_url('assets/css/admin.css?v=20260929-socials3'))?>"></head><body class="admin-theme-<?=e($adminTheme)?>">
+<?php require_admin(); $me=admin_user(); $maintenanceOn=maintenance_mode_enabled(); $adminTheme=admin_theme_name(); $adminLogo=branding_asset('admin_logo','assets/img/akhikhan-logo-transparent.webp'); $siteFavicon=branding_asset('site_favicon','assets/img/seal.svg'); ?><!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title><?=e($adminTitle ?? 'Админ-панель')?> — АХИХЪАН</title><link rel="icon" href="<?=e(base_url($siteFavicon))?>"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"><link rel="stylesheet" href="<?=e(base_url('assets/css/admin.css?v=20260929-video-gallery1'))?>"></head><body class="admin-theme-<?=e($adminTheme)?>">
 <aside class="admin-side">
   <?php
     $adminPage=basename((string)($_SERVER['PHP_SELF']??''));
@@ -41,6 +41,10 @@
     <a class="admin-nav-link<?=$adminNavActive(['photo-gallery.php'])?>" href="<?=e(base_url('admin/photo-gallery.php'))?>">
       <span class="admin-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"></path><path d="M7 15l3-3 2 2 3-4 3 5"></path><circle cx="8" cy="9" r="1.2"></circle></svg></span>
       <span>Фотогалерея</span>
+    </a>
+    <a class="admin-nav-link<?=$adminNavActive(['video-gallery.php'])?>" href="<?=e(base_url('admin/video-gallery.php'))?>">
+      <span class="admin-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M10 9l5 3-5 3z"></path></svg></span>
+      <span>Видеогалерея</span>
     </a>
     <a class="admin-nav-link<?=$adminNavActive(['social-links.php'])?>" href="<?=e(base_url('admin/social-links.php'))?>">
       <span class="admin-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="3"></circle><circle cx="17" cy="7" r="2.5"></circle><circle cx="17" cy="17" r="2.5"></circle><path d="M10.5 10.5l4.2-2.2M10.5 13.5l4.2 2.2"></path></svg></span>
