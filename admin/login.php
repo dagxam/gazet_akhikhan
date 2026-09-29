@@ -3,6 +3,10 @@ require dirname(__DIR__) . '/app/bootstrap.php';
 if (!APP_INSTALLED) { header('Location: ../install.php'); exit; }
 if(admin_user()){ header('Location: ' . base_url('admin/')); exit; }
 
+header('Cache-Control: no-store, no-cache, must-revalidate, private');
+header('Pragma: no-cache');
+header('X-Robots-Tag: noindex, nofollow, noarchive');
+
 $error='';
 $adminTheme=admin_theme_name();
 $adminLoginLogo=branding_asset('admin_logo','assets/img/akhikhan-logo-transparent.webp');
@@ -11,17 +15,40 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
   verify_csrf();
   $email=trim($_POST['email']??'');
   $pass=(string)($_POST['password']??'');
-  $q=db()->prepare("SELECT id,name,email,password_hash,role FROM users WHERE email=? AND status='active' LIMIT 1");
-  $q->execute([$email]);
-  $u=$q->fetch();
-  if($u && password_verify($pass,$u['password_hash'])){
-    unset($u['password_hash']);
-    session_regenerate_id(true);
-    $_SESSION['admin_user']=$u;
-    header('Location: '.base_url('admin/'));
-    exit;
+
+  $limitState=login_rate_limit_status();
+  if(!empty($limitState['blocked'])){
+    $retry=max(60,(int)$limitState['remaining']);
+    http_response_code(429);
+    header('Retry-After: '.$retry);
+    $error='Слишком много попыток входа. Повторите позже.';
+  }else{
+    $q=db()->prepare("SELECT id,name,email,password_hash,role FROM users WHERE email=? AND status='active' LIMIT 1");
+    $q->execute([$email]);
+    $u=$q->fetch();
+
+    if($u && password_verify($pass,$u['password_hash'])){
+      unset($u['password_hash']);
+      session_regenerate_id(true);
+      $_SESSION['admin_user']=$u;
+      $_SESSION['admin_login_at']=time();
+      $_SESSION['admin_last_activity']=time();
+      $_SESSION['admin_last_regen']=time();
+      login_rate_limit_clear();
+      header('Location: '.base_url('admin/'));
+      exit;
+    }
+
+    $limitState=login_rate_limit_failure();
+    usleep(random_int(250000,450000));
+    if(!empty($limitState['blocked'])){
+      http_response_code(429);
+      header('Retry-After: '.max(60,(int)$limitState['remaining']));
+      $error='Слишком много попыток входа. Повторите позже.';
+    }else{
+      $error='Неверный e-mail или пароль.';
+    }
   }
-  $error='Неверный e-mail или пароль.';
 }
 ?><!doctype html>
 <html lang="ru">
@@ -34,7 +61,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="<?=e(base_url('assets/css/admin.css?v=20260929-themes2'))?>">
+<link rel="stylesheet" href="<?=e(base_url('assets/css/admin.css?v=20260929-security1'))?>">
 </head>
 <body class="login-page login-page-premium admin-theme-<?=e($adminTheme)?>">
   <div class="login-page-ornament login-page-ornament-left" aria-hidden="true"></div>
