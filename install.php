@@ -177,8 +177,7 @@ $sqliteAvailable = in_array('sqlite', PDO::getAvailableDrivers(), true);
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Установка AKHIKHAN.RU</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">\n<meta name="robots" content="noindex,nofollow,noarchive">\n<title>Установка AKHIKHAN.RU</title>
 <style>
 body{font-family:Arial,sans-serif;background:#f3efe6;color:#2e261d;margin:0}
 .box{max-width:760px;margin:40px auto;background:#fffdf8;border:1px solid #d7c9b2;padding:30px;border-radius:14px}
