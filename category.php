@@ -10,6 +10,8 @@ $category=$q->fetch();
 if(!$category){
   http_response_code(404);
   $pageTitle='Рубрика не найдена';
+  $pageDescription='Запрошенная рубрика не найдена.';
+  $seoRobots='noindex,nofollow,noarchive';
   require __DIR__.'/partials/header.php';
   echo '<div class="wrap page-shell"><div class="page-head"><div><span class="heading-kicker">404</span><h1>Рубрика не найдена</h1></div><div class="page-head-mark"></div></div></div>';
   require __DIR__.'/partials/footer.php';
@@ -27,6 +29,15 @@ $articles=$q->fetchAll();
 
 $pageTitle=$category['name'];
 $pageDescription=rich_text_excerpt($category['description']??'',260) ?: 'Публикации рубрики «'.$category['name'].'» сетевого издания «АХИХЪАН».';
+$seoCanonical=category_url($category);
+$seoJsonLd=[[
+  '@context'=>'https://schema.org',
+  '@type'=>'BreadcrumbList',
+  'itemListElement'=>[
+    ['@type'=>'ListItem','position'=>1,'name'=>'Главная','item'=>base_url()],
+    ['@type'=>'ListItem','position'=>2,'name'=>(string)$category['name'],'item'=>$seoCanonical],
+  ],
+]];
 require __DIR__.'/partials/header.php';
 ?>
 <div class="wrap page-shell">
