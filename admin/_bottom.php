@@ -34,4 +34,18 @@ if(coverInput&&coverPreview&&coverShell){
     coverShell.classList.remove('is-empty');
   });
 }
+
+const locationRegion=document.querySelector('[data-location-region]');
+const locationCity=document.querySelector('[data-location-city]');
+const locationPreviewRegion=document.querySelector('[data-location-preview-region]');
+const locationPreviewCity=document.querySelector('[data-location-preview-city]');
+if(locationRegion&&locationCity&&locationPreviewRegion&&locationPreviewCity){
+  const syncLocationPreview=()=>{
+    locationPreviewRegion.textContent=locationRegion.value.trim()||'Дагестан';
+    locationPreviewCity.textContent=locationCity.value.trim()||'Унцукульский район';
+  };
+  locationRegion.addEventListener('input',syncLocationPreview);
+  locationCity.addEventListener('input',syncLocationPreview);
+  syncLocationPreview();
+}
 </script></body></html>
