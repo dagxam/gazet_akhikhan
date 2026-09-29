@@ -16,7 +16,10 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
   verify_csrf();
 
   try{
-    foreach($textKeys as $k) save_setting($k,trim($_POST[$k]??''));
+    foreach($textKeys as $k){
+      $value=($k==='editor_note') ? sanitize_rich_text($_POST[$k]??'') : trim($_POST[$k]??'');
+      save_setting($k,$value);
+    }
 
     $theme=in_array($_POST['admin_color_scheme']??'walnut',['walnut','light','graphite','forest','burgundy','navy'],true)
       ? $_POST['admin_color_scheme']
@@ -91,7 +94,7 @@ require __DIR__.'/_top.php';
         </div>
 
         <label class="field-modern compact"><span>Подпись над главной новостью</span><input name="hero_kicker" value="<?=e(setting('hero_kicker'))?>"></label>
-        <label class="field-modern"><span>Слово редактора</span><textarea name="editor_note" rows="6"><?=e(setting('editor_note'))?></textarea></label>
+        <label class="field-modern"><span>Слово редактора</span><textarea name="editor_note" rows="6" data-rich-text><?=e(setting('editor_note'))?></textarea></label>
         <label class="field-modern compact"><span>Цитата внизу сайта</span><input name="footer_quote" value="<?=e(setting('footer_quote'))?>"></label>
       </section>
 
