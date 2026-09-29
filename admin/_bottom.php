@@ -212,10 +212,22 @@ function initRichEditor(textarea){
   help.innerHTML='<span>Форматирование сохраняется на сайте</span><span>Кириллица поддерживается</span>';
 
   shell.append(toolbar,surface,help);
+
+  // A contenteditable placed inside <label> makes the browser activate the
+  // hidden source textarea after a click. That steals focus and removes the
+  // caret from the visual editor. Replace only the direct label wrapper with
+  // a neutral div while preserving its classes/attributes and exact layout.
+  const labelHost=textarea.parentElement?.tagName==='LABEL' ? textarea.parentElement : null;
+  if(labelHost){
+    const neutralHost=document.createElement('div');
+    [...labelHost.attributes].forEach(attr=>{
+      if(attr.name!=='for') neutralHost.setAttribute(attr.name,attr.value);
+    });
+    while(labelHost.firstChild) neutralHost.appendChild(labelHost.firstChild);
+    labelHost.replaceWith(neutralHost);
+  }
+
   textarea.insertAdjacentElement('afterend',shell);
-  // Rich editor can live inside an existing <label>; stop its clicks from
-  // activating the hidden source textarea.
-  shell.addEventListener('click',e=>e.stopPropagation());
 
   ['keyup','mouseup','input','focus'].forEach(ev=>surface.addEventListener(ev,()=>{
     saveSelection();
