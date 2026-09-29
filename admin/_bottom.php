@@ -213,6 +213,9 @@ function initRichEditor(textarea){
 
   shell.append(toolbar,surface,help);
   textarea.insertAdjacentElement('afterend',shell);
+  // Rich editor can live inside an existing <label>; stop its clicks from
+  // activating the hidden source textarea.
+  shell.addEventListener('click',e=>e.stopPropagation());
 
   ['keyup','mouseup','input','focus'].forEach(ev=>surface.addEventListener(ev,()=>{
     saveSelection();
