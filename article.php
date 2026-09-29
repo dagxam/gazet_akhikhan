@@ -24,6 +24,7 @@ if(!$article){
 
 db()->prepare('UPDATE articles SET views=views+1 WHERE id=?')->execute([$article['id']]);
 $related = latest_articles(5, (int)$article['id']);
+$pageBlocks = page_right_blocks(true);
 
 $pageTitle = $article['title'];
 $pageDescription = rich_text_excerpt($article['excerpt'],260)
@@ -139,6 +140,21 @@ require __DIR__ . '/partials/header.php';
           <a href="<?=e(nav_link_for_slug('istoriya','История'))?>">История района</a>
         </div>
       </section>
+
+      <?php foreach($pageBlocks as $block):
+        $blockHref=homepage_right_block_href($block['link_url']??'');
+        $blockStyle=in_array($block['style'],['light','accent','dark'],true)?$block['style']:'light';
+      ?>
+        <section class="right-feature-card right-feature-<?=e($blockStyle)?> <?=!empty($block['image'])?'has-image':''?>" <?php if(!empty($block['image'])):?>style="--right-block-image:url('<?=e(base_url($block['image']))?>')"<?php endif;?>>
+          <div class="right-feature-overlay"></div>
+          <div class="right-feature-content">
+            <?php if(!empty($block['kicker'])):?><span class="heading-kicker"><?=e($block['kicker'])?></span><?php endif;?>
+            <h3><?=e($block['title'])?></h3>
+            <?php if(!empty($block['body'])):?><div class="right-feature-body rich-text"><?=rich_text_html($block['body'])?></div><?php endif;?>
+            <?php if($blockHref!=='' && !empty($block['link_text'])):?><a href="<?=e($blockHref)?>"><?=e($block['link_text'])?> <b>→</b></a><?php endif;?>
+          </div>
+        </section>
+      <?php endforeach;?>
     </aside>
   </div>
 </div>
