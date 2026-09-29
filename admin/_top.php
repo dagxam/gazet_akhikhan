@@ -1,4 +1,4 @@
-<?php require_admin(); $me=admin_user(); $maintenanceOn=maintenance_mode_enabled(); ?><!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title><?=e($adminTitle ?? 'Админ-панель')?> — АХИХЪАН</title><link rel="stylesheet" href="<?=e(base_url('assets/css/admin.css?v=20260929-rightblock1'))?>"></head><body>
+<?php require_admin(); $me=admin_user(); $maintenanceOn=maintenance_mode_enabled(); $adminTheme=admin_theme_name(); $adminLogo=branding_asset('admin_logo','assets/img/akhikhan-logo-transparent.webp'); $siteFavicon=branding_asset('site_favicon','assets/img/seal.svg'); ?><!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title><?=e($adminTitle ?? 'Админ-панель')?> — АХИХЪАН</title><link rel="icon" href="<?=e(base_url($siteFavicon))?>"><link rel="stylesheet" href="<?=e(base_url('assets/css/admin.css?v=20260929-branding1'))?>"></head><body class="admin-theme-<?=e($adminTheme)?>">
 <aside class="admin-side">
   <?php
     $adminPage=basename((string)($_SERVER['PHP_SELF']??''));
@@ -9,7 +9,7 @@
 
   <a class="admin-brand" href="<?=e(base_url('admin/'))?>" aria-label="АХИХЪАН — редакционная панель">
     <span class="admin-brand-logo">
-      <img src="<?=e(base_url('assets/img/akhikhan-logo-transparent.webp?v=20260928-transparent-logo1'))?>" alt="АХИХЪАН">
+      <img src="<?=e(base_url($adminLogo))?>" alt="АХИХЪАН">
     </span>
     <span class="admin-brand-caption">
       <b>Редакционная система</b>
