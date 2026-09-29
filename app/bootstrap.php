@@ -5,7 +5,21 @@ define('ROOT_PATH', dirname(__DIR__));
 define('CONFIG_FILE', ROOT_PATH . '/config.php');
 define('APP_INSTALLED', is_file(CONFIG_FILE));
 
+// Production-safe PHP/session defaults. Errors are logged server-side and never shown to visitors.
+@ini_set('display_errors','0');
+@ini_set('log_errors','1');
+if (is_dir(ROOT_PATH . '/storage')) {
+    @ini_set('error_log', ROOT_PATH . '/storage/php-error.log');
+}
+@ini_set('session.use_strict_mode','1');
+@ini_set('session.use_only_cookies','1');
+@ini_set('session.cookie_httponly','1');
+@ini_set('session.cookie_samesite','Lax');
+
 $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+if ($https) {
+    @ini_set('session.cookie_secure','1');
+}
 session_set_cookie_params([
     'httponly' => true,
     'secure' => $https,
