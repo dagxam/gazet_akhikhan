@@ -916,6 +916,7 @@ function ensure_homepage_right_blocks_schema(): void
 
 function homepage_right_blocks(bool $activeOnly = true): array
 {
+    if (function_exists('right_blocks')) return right_blocks('home',$activeOnly);
     if (!APP_INSTALLED) return [];
     $sql='SELECT * FROM homepage_right_blocks';
     if($activeOnly) $sql .= ' WHERE is_active=1';
@@ -1430,4 +1431,177 @@ function safe_delete_video_cover(?string $relativePath): void
     if(!$relativePath || !str_starts_with($relativePath,'uploads/')) return;
     $full=ROOT_PATH.'/'.ltrim($relativePath,'/');
     if(is_file($full)) @unlink($full);
+}
+
+
+function ensure_right_blocks_area_schema(): void
+{
+    if (!APP_INSTALLED) return;
+    if (setting('schema_right_blocks_area_v1','') === '1') return;
+
+    $pdo=db();
+    $driver=(string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+    if($driver==='sqlite'){
+        $cols=$pdo->query("PRAGMA table_info(homepage_right_blocks)")->fetchAll();
+        $hasArea=false;
+        foreach($cols as $col){
+            if(($col['name']??'')==='area'){ $hasArea=true; break; }
+        }
+        if(!$hasArea){
+            $pdo->exec("ALTER TABLE homepage_right_blocks ADD COLUMN area TEXT NOT NULL DEFAULT 'home'");
+        }
+        $pdo->exec("CREATE INDEX IF NOT EXISTS idx_homepage_right_blocks_area_active_sort ON homepage_right_blocks(area,is_active,sort_order,id)");
+    }else{
+        $q=$pdo->query("SHOW COLUMNS FROM homepage_right_blocks LIKE 'area'");
+        if(!$q->fetch()){
+            $pdo->exec("ALTER TABLE homepage_right_blocks ADD COLUMN area ENUM('home','pages') NOT NULL DEFAULT 'home' AFTER id");
+        }
+        try{
+            $pdo->exec("CREATE INDEX idx_homepage_right_blocks_area_active_sort ON homepage_right_blocks(area,is_active,sort_order,id)");
+        }catch(Throwable $e){}
+    }
+
+    save_setting('schema_right_blocks_area_v1','1');
+}
+
+function right_blocks(string $area = 'home', bool $activeOnly = true): array
+{
+    if (!APP_INSTALLED) return [];
+    $area=in_array($area,['home','pages'],true)?$area:'home';
+    $sql='SELECT * FROM homepage_right_blocks WHERE area=?';
+    if($activeOnly) $sql .= ' AND is_active=1';
+    $sql .= ' ORDER BY sort_order,id';
+    $q=db()->prepare($sql);
+    $q->execute([$area]);
+    return $q->fetchAll();
+}
+
+function page_right_blocks(bool $activeOnly = true): array
+{
+    return right_blocks('pages',$activeOnly);
+}
+
+function ensure_static_pages_schema(): void
+{
+    if (!APP_INSTALLED) return;
+    if (setting('schema_static_pages_v1','') === '1') return;
+
+    $pdo=db();
+    $driver=(string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+    if($driver==='sqlite'){
+        $pdo->exec("CREATE TABLE IF NOT EXISTS static_pages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            slug TEXT NOT NULL UNIQUE,
+            excerpt TEXT,
+            content TEXT NOT NULL,
+            cover_image TEXT,
+            status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','published')),
+            menu_item_id INTEGER,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )");
+        $pdo->exec("CREATE INDEX IF NOT EXISTS idx_static_pages_status_title ON static_pages(status,title)");
+    }else{
+        $pdo->exec("CREATE TABLE IF NOT EXISTS static_pages (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            slug VARCHAR(255) NOT NULL UNIQUE,
+            excerpt TEXT NULL,
+            content LONGTEXT NOT NULL,
+            cover_image VARCHAR(500) NULL,
+            status ENUM('draft','published') NOT NULL DEFAULT 'draft',
+            menu_item_id INT UNSIGNED NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_static_pages_status_title (status,title)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    }
+
+    save_setting('schema_static_pages_v1','1');
+}
+
+function static_pages(bool $publishedOnly = false): array
+{
+    if(!APP_INSTALLED) return [];
+    $sql='SELECT * FROM static_pages';
+    if($publishedOnly) $sql .= " WHERE status='published'";
+    $sql .= ' ORDER BY title,id';
+    return db()->query($sql)->fetchAll();
+}
+
+function static_page(int $id, bool $publishedOnly = false): ?array
+{
+    if(!APP_INSTALLED || $id<1) return null;
+    $sql='SELECT * FROM static_pages WHERE id=?';
+    if($publishedOnly) $sql .= " AND status='published'";
+    $sql .= ' LIMIT 1';
+    $q=db()->prepare($sql);
+    $q->execute([$id]);
+    $row=$q->fetch();
+    return $row ?: null;
+}
+
+function static_page_by_slug(string $slug, bool $publishedOnly = true): ?array
+{
+    if(!APP_INSTALLED) return null;
+    $sql='SELECT * FROM static_pages WHERE slug=?';
+    if($publishedOnly) $sql .= " AND status='published'";
+    $sql .= ' LIMIT 1';
+    $q=db()->prepare($sql);
+    $q->execute([$slug]);
+    $row=$q->fetch();
+    return $row ?: null;
+}
+
+function static_page_url(array $page): string
+{
+    return base_url('page/'.rawurlencode((string)$page['slug']));
+}
+
+function safe_delete_static_page_cover(?string $relativePath): void
+{
+    if(!$relativePath || !str_starts_with($relativePath,'uploads/')) return;
+    $full=ROOT_PATH.'/'.ltrim($relativePath,'/');
+    if(is_file($full)) @unlink($full);
+}
+
+function sync_static_page_menu(int $pageId, string $title, string $slug, bool $addToMenu, string $menuLabel = '', int $menuOrder = 100): ?int
+{
+    $page=static_page($pageId,false);
+    if(!$page) return null;
+
+    $menuId=(int)($page['menu_item_id']??0);
+    $url='page/'.$slug;
+    $label=trim($menuLabel)!=='' ? trim($menuLabel) : $title;
+    $menuOrder=max(-9999,min(9999,$menuOrder));
+
+    if(!$addToMenu){
+        if($menuId>0){
+            db()->prepare('DELETE FROM main_menu_items WHERE id=?')->execute([$menuId]);
+        }
+        db()->prepare('UPDATE static_pages SET menu_item_id=NULL WHERE id=?')->execute([$pageId]);
+        return null;
+    }
+
+    $exists=false;
+    if($menuId>0){
+        $q=db()->prepare('SELECT id FROM main_menu_items WHERE id=? LIMIT 1');
+        $q->execute([$menuId]);
+        $exists=(bool)$q->fetchColumn();
+    }
+
+    if($exists){
+        db()->prepare('UPDATE main_menu_items SET label=?,url=?,sort_order=?,is_active=1,open_new_tab=0,updated_at=CURRENT_TIMESTAMP WHERE id=?')
+            ->execute([$label,$url,$menuOrder,$menuId]);
+    }else{
+        $q=db()->prepare('INSERT INTO main_menu_items(label,url,sort_order,is_active,open_new_tab) VALUES(?,?,?,1,0)');
+        $q->execute([$label,$url,$menuOrder]);
+        $menuId=(int)db()->lastInsertId();
+        db()->prepare('UPDATE static_pages SET menu_item_id=? WHERE id=?')->execute([$menuId,$pageId]);
+    }
+
+    return $menuId;
 }
