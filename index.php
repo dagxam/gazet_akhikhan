@@ -18,6 +18,9 @@ $cats = categories();
 $catBySlug = [];
 foreach ($cats as $cat) $catBySlug[$cat['slug']] = $cat;
 
+$heroLocationCity = $hero && trim((string)($hero['location_city']??''))!=='' ? trim((string)$hero['location_city']) : 'Унцукульский район';
+$heroLocationRegion = $hero && trim((string)($hero['location_region']??''))!=='' ? trim((string)$hero['location_region']) : 'Дагестан';
+
 $demoNews = [
   ['title'=>'В Унцукульском районе продолжается обновление дорожной инфраструктуры','excerpt'=>'Работы направлены на повышение безопасности и доступности населённых пунктов района.','date'=>'28 сентября 2026','views'=>'1 245','class'=>'road'],
   ['title'=>'В школах района проходит новый учебный год','excerpt'=>'Ученики и педагоги начали новый учебный сезон.','date'=>'27 сентября 2026','views'=>'892','class'=>'school'],
@@ -46,9 +49,9 @@ require __DIR__ . '/partials/header.php';
         <p data-hero-excerpt>Опубликуйте материал в рубрике «Главные новости», и он появится в этом блоке.</p>
       <?php endif;?>
     </div>
-    <div class="hero-location">
-      <span>Унцукульский район</span>
-      <b>Дагестан</b>
+    <div class="hero-location" aria-label="География новости">
+      <span data-hero-location-city><?=e($heroLocationCity)?></span>
+      <b data-hero-location-region><?=e($heroLocationRegion)?></b>
     </div>
   </article>
 
@@ -69,7 +72,9 @@ require __DIR__ . '/partials/header.php';
                    data-hero-excerpt="<?=e($item['excerpt'] ?: 'Читайте подробности события в материале «АХИХЪАН».')?>"
                    data-hero-kicker="Главные новости"
                    data-hero-url="<?=e(article_url($item))?>"
-                   data-hero-cover="<?=e(!empty($item['cover_image']) ? base_url($item['cover_image']) : '')?>">
+                   data-hero-cover="<?=e(!empty($item['cover_image']) ? base_url($item['cover_image']) : '')?>"
+                   data-hero-location-city="<?=e(trim((string)($item['location_city']??'')) ?: 'Унцукульский район')?>"
+                   data-hero-location-region="<?=e(trim((string)($item['location_region']??'')) ?: 'Дагестан')?>">
             <time><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></time>
             <h3><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h3>
             <div class="tiny-meta">Главные новости · ◉ <?=number_format((int)$item['views'],0,'.',' ')?></div>
