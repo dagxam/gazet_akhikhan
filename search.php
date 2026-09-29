@@ -16,6 +16,8 @@ if($term!==''){
 
 $pageTitle='Поиск';
 $pageDescription='Поиск по публикациям сетевого издания «АХИХЪАН».';
+$seoCanonical=base_url('search.php');
+$seoRobots='noindex,follow,noarchive';
 require __DIR__.'/partials/header.php';
 ?>
 <div class="wrap page-shell">
