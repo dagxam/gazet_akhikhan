@@ -3,7 +3,7 @@ require dirname(__DIR__) . '/app/bootstrap.php';
 require_admin();
 
 $error='';
-$textKeys=['site_name','site_subtitle','hero_kicker','editor_note','footer_quote','topbar_region_label','topbar_vk_url','topbar_ok_url','topbar_email'];
+$textKeys=['site_name','site_subtitle','hero_kicker','editor_note','footer_quote','topbar_region_label'];
 
 $brandDefaults=[
   'site_favicon'=>'',
@@ -109,22 +109,13 @@ require __DIR__.'/_top.php';
           <input name="topbar_region_label" maxlength="120" value="<?=e(setting('topbar_region_label','Унцукульский район'))?>">
         </label>
 
-        <div class="settings-two-col">
-          <label class="field-modern compact">
-            <span>VK</span>
-            <input type="url" name="topbar_vk_url" maxlength="500" value="<?=e(setting('topbar_vk_url',''))?>" placeholder="https://vk.com/...">
-          </label>
-          <label class="field-modern compact">
-            <span>Одноклассники</span>
-            <input type="url" name="topbar_ok_url" maxlength="500" value="<?=e(setting('topbar_ok_url',''))?>" placeholder="https://ok.ru/...">
-          </label>
+        <div class="settings-socials-link">
+          <div>
+            <b>Социальные сети и почта</b>
+            <span>VK, Одноклассники, MAX, Дзен, Rutube, Telegram и другие ссылки теперь управляются отдельно.</span>
+          </div>
+          <a href="<?=e(base_url('admin/social-links.php'))?>">Открыть «Мы в соцсетях» →</a>
         </div>
-
-        <label class="field-modern compact">
-          <span>Публичная почта редакции</span>
-          <input type="email" name="topbar_email" maxlength="190" value="<?=e(setting('topbar_email',''))?>" placeholder="mail@example.ru">
-          <small>Эта почта показывается посетителям сайта. Не обязательно использовать e-mail входа в админку.</small>
-        </label>
       </section>
 
       <section class="editor-card settings-section-card">
