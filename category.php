@@ -26,7 +26,7 @@ $q->execute([$category['name'],$category['slug'],$category['id']]);
 $articles=$q->fetchAll();
 
 $pageTitle=$category['name'];
-$pageDescription=$category['description'] ?: 'Публикации рубрики «'.$category['name'].'» сетевого издания «АХИХЪАН».';
+$pageDescription=rich_text_excerpt($category['description']??'',260) ?: 'Публикации рубрики «'.$category['name'].'» сетевого издания «АХИХЪАН».';
 require __DIR__.'/partials/header.php';
 ?>
 <div class="wrap page-shell">
@@ -34,7 +34,7 @@ require __DIR__.'/partials/header.php';
     <div>
       <span class="heading-kicker">Рубрика</span>
       <h1><?=e($category['name'])?></h1>
-      <p><?=e($category['description'] ?: 'Материалы сетевого издания «АХИХЪАН» о жизни Унцукульского района.')?></p>
+      <p><?=e(rich_text_excerpt($category['description'] ?: 'Материалы сетевого издания «АХИХЪАН» о жизни Унцукульского района.',300))?></p>
     </div>
     <div class="page-head-mark" aria-hidden="true"></div>
   </div>
@@ -47,7 +47,7 @@ require __DIR__.'/partials/header.php';
         <div class="list-card-body">
           <div class="article-label"><?=e($a['category_name'] ?: $category['name'])?></div>
           <h2><a href="<?=e(article_url($a))?>"><?=e($a['title'])?></a></h2>
-          <p><?=e($a['excerpt'])?></p>
+          <p><?=e(rich_text_excerpt($a['excerpt'],220))?></p>
           <div class="article-meta">
             <span><?=e(ru_date($a['published_at'] ?: $a['created_at']))?></span>
             <span>◉ <?=number_format((int)$a['views'],0,'.',' ')?></span>
