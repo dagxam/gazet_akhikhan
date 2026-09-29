@@ -27,6 +27,15 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     $newCategoryDescription=trim($_POST['new_category_description']??'');
 
     $excerpt=trim($_POST['excerpt']??'');
+    $locationRegion=trim($_POST['location_region']??'');
+    $locationCity=trim($_POST['location_city']??'');
+    if(function_exists('mb_substr')){
+      $locationRegion=mb_substr($locationRegion,0,160,'UTF-8');
+      $locationCity=mb_substr($locationCity,0,160,'UTF-8');
+    }else{
+      $locationRegion=substr($locationRegion,0,160);
+      $locationCity=substr($locationCity,0,160);
+    }
     $content=trim($_POST['content']??'');
     $status=in_array($_POST['status']??'draft',['draft','published'],true)?$_POST['status']:'draft';
     $featured=isset($_POST['is_featured'])?1:0;
@@ -48,11 +57,11 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
       }
 
       if($id){
-        $q=$pdo->prepare('UPDATE articles SET title=?,slug=?,excerpt=?,content=?,cover_image=?,status=?,is_featured=?,published_at=?,updated_at=CURRENT_TIMESTAMP WHERE id=?');
-        $q->execute([$title,$slug,$excerpt,$content,$cover,$status,$featured,$publishedAt,$id]);
+        $q=$pdo->prepare('UPDATE articles SET title=?,slug=?,excerpt=?,location_region=?,location_city=?,content=?,cover_image=?,status=?,is_featured=?,published_at=?,updated_at=CURRENT_TIMESTAMP WHERE id=?');
+        $q->execute([$title,$slug,$excerpt,$locationRegion!==''?$locationRegion:null,$locationCity!==''?$locationCity:null,$content,$cover,$status,$featured,$publishedAt,$id]);
       } else {
-        $q=$pdo->prepare('INSERT INTO articles(category_id,author_id,title,slug,excerpt,content,cover_image,status,is_featured,published_at) VALUES(NULL,?,?,?,?,?,?,?,?,?)');
-        $q->execute([admin_user()['id'],$title,$slug,$excerpt,$content,$cover,$status,$featured,$publishedAt]);
+        $q=$pdo->prepare('INSERT INTO articles(category_id,author_id,title,slug,excerpt,location_region,location_city,content,cover_image,status,is_featured,published_at) VALUES(NULL,?,?,?,?,?,?,?,?,?,?,?)');
+        $q->execute([admin_user()['id'],$title,$slug,$excerpt,$locationRegion!==''?$locationRegion:null,$locationCity!==''?$locationCity:null,$content,$cover,$status,$featured,$publishedAt]);
         $id=(int)$pdo->lastInsertId();
       }
 
@@ -92,6 +101,8 @@ require __DIR__.'/_top.php';
 $currentStatus=$article['status']??'draft';
 $currentTitle=$article['title']??'';
 $currentExcerpt=$article['excerpt']??'';
+$currentLocationRegion=$_SERVER['REQUEST_METHOD']==='POST' ? trim($_POST['location_region']??'') : ($article['location_region']??'');
+$currentLocationCity=$_SERVER['REQUEST_METHOD']==='POST' ? trim($_POST['location_city']??'') : ($article['location_city']??'');
 $currentContent=$article['content']??'';
 $currentSlug=$article['slug']??'';
 $currentPublished=!empty($article['published_at'])?date('Y-m-d\\TH:i',strtotime($article['published_at'])):'';
@@ -183,6 +194,36 @@ $currentPublished=!empty($article['published_at'])?date('Y-m-d\\TH:i',strtotime(
 
       <button class="primary wide editor-save-main" type="submit"><span>Сохранить новость</span><b>→</b></button>
       <?php if($id):?><a class="editor-public-link" href="<?=e(article_url($article))?>" target="_blank">Открыть на сайте ↗</a><?php endif;?>
+    </section>
+
+    <section class="editor-card editor-location-card">
+      <div class="side-card-title">
+        <span class="side-icon"><i class="fa-solid fa-location-dot" aria-hidden="true"></i></span>
+        <div>
+          <h3>Регион и город</h3>
+          <p>Для отметки на главной новости</p>
+        </div>
+      </div>
+
+      <div class="editor-location-preview">
+        <span><i class="fa-solid fa-location-crosshairs"></i> География материала</span>
+        <b data-location-preview-city><?=e($currentLocationCity ?: 'Унцукульский район')?></b>
+        <small data-location-preview-region><?=e($currentLocationRegion ?: 'Дагестан')?></small>
+      </div>
+
+      <label class="field-modern compact">
+        <span>Регион</span>
+        <input name="location_region" maxlength="160" value="<?=e($currentLocationRegion)?>" placeholder="Например: Республика Дагестан" data-location-region>
+        <small>Если не заполнить, на главной останется «Дагестан».</small>
+      </label>
+
+      <label class="field-modern compact">
+        <span>Город / район / населённый пункт</span>
+        <input name="location_city" maxlength="160" value="<?=e($currentLocationCity)?>" placeholder="Например: Унцукульский район" data-location-city>
+        <small>Можно указать город, район или село.</small>
+      </label>
+
+      <p class="field-hint location-note"><i class="fa-solid fa-circle-info"></i> Поля необязательные и не влияют на рубрики новости.</p>
     </section>
 
     <section class="editor-card editor-category-card">
