@@ -776,3 +776,79 @@ function main_menu_url(string $value): string
 
     return base_url(ltrim($value,'/'));
 }
+
+
+function branding_asset(string $key, string $default): string
+{
+    $value = trim(setting($key, ''));
+    return $value !== '' ? $value : $default;
+}
+
+function admin_theme_name(): string
+{
+    $theme = setting('admin_color_scheme', 'walnut');
+    return in_array($theme, ['walnut','graphite','forest','burgundy','navy'], true) ? $theme : 'walnut';
+}
+
+function safe_delete_branding_asset(?string $relativePath): void
+{
+    if (!$relativePath || !str_starts_with($relativePath, 'uploads/branding/')) return;
+    $full = ROOT_PATH . '/' . ltrim($relativePath, '/');
+    if (is_file($full)) @unlink($full);
+}
+
+function handle_branding_asset_upload(array $file, string $kind, ?string $old = null): ?string
+{
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) return $old;
+    if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+        throw new RuntimeException('Ошибка загрузки файла оформления.');
+    }
+
+    $size=(int)($file['size']??0);
+    $max=$kind==='favicon' ? 2 * 1024 * 1024 : 10 * 1024 * 1024;
+    if($size<=0 || $size>$max){
+        throw new RuntimeException($kind==='favicon' ? 'Favicon должен быть не более 2 МБ.' : 'Логотип должен быть не более 10 МБ.');
+    }
+
+    $tmp=(string)($file['tmp_name']??'');
+    $original=(string)($file['name']??'asset');
+    $originalExt=strtolower(pathinfo($original, PATHINFO_EXTENSION));
+    $finfo=new finfo(FILEINFO_MIME_TYPE);
+    $mime=(string)$finfo->file($tmp);
+
+    $allowed=[
+        'image/png'=>'png',
+        'image/jpeg'=>'jpg',
+        'image/webp'=>'webp',
+    ];
+
+    if($kind==='favicon'){
+        $allowed['image/x-icon']='ico';
+        $allowed['image/vnd.microsoft.icon']='ico';
+        if($originalExt==='ico' && $mime==='application/octet-stream'){
+            $head=file_get_contents($tmp,false,null,0,4);
+            if($head==="\x00\x00\x01\x00") $allowed['application/octet-stream']='ico';
+        }
+    }
+
+    if(!isset($allowed[$mime])){
+        throw new RuntimeException($kind==='favicon'
+            ? 'Для favicon разрешены ICO, PNG, JPG и WEBP.'
+            : 'Для логотипа разрешены PNG, JPG и WEBP.');
+    }
+
+    $folder='uploads/branding/'.date('Y/m');
+    $dir=ROOT_PATH.'/'.$folder;
+    if(!is_dir($dir) && !mkdir($dir,0775,true) && !is_dir($dir)){
+        throw new RuntimeException('Не удалось создать папку для файлов оформления.');
+    }
+
+    $name=$kind.'-'.bin2hex(random_bytes(10)).'.'.$allowed[$mime];
+    $relative=$folder.'/'.$name;
+    if(!move_uploaded_file($tmp,ROOT_PATH.'/'.$relative)){
+        throw new RuntimeException('Не удалось сохранить файл оформления.');
+    }
+
+    if($old && $old!==$relative) safe_delete_branding_asset($old);
+    return $relative;
+}
