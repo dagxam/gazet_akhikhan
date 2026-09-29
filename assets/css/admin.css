@@ -2300,3 +2300,11 @@ body.admin-theme-light .rich-editor-help{
   .rich-editor-toolbar select{min-width:88px}
   .rich-editor-surface{padding:14px;min-height:150px}
 }
+
+.document-admin-description.rich-text{
+  margin:7px 0 0;
+  color:#7e746a;
+  font-size:10px;
+  line-height:1.5;
+}
+.document-admin-description.rich-text p{margin:0 0 .6em}
