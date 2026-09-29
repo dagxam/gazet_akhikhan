@@ -3,6 +3,8 @@ $navCategories = categories();
 $bySlug = [];
 foreach ($navCategories as $cat) $bySlug[$cat['slug']] = $cat;
 $mainMenuItems = main_menu_items();
+$siteFavicon = branding_asset('site_favicon','assets/img/seal.svg');
+$siteHeaderLogo = branding_asset('site_header_logo','assets/img/akhikhan-logo-transparent.webp');
 
 function nav_link_for_slug(string $slug, string $fallbackLabel): string {
     global $bySlug;
@@ -15,12 +17,13 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#231d18">
+<link rel="icon" href="<?=e(base_url($siteFavicon))?>">
 <title><?=e(($pageTitle ?? '') ? $pageTitle . ' — АХИХЪАН' : 'АХИХЪАН — сетевое издание Унцукульского района')?></title>
 <meta name="description" content="<?=e($pageDescription ?? 'Сетевое издание Унцукульского района Республики Дагестан: новости, общество, культура, спорт, люди и история.')?>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20260929-rightblock1'))?>">
+<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20260929-branding1'))?>">
 </head>
 <body>
 <a id="top"></a>
@@ -49,7 +52,7 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
       <div class="masthead-brand-stage">
         <span class="masthead-brand-line" aria-hidden="true"></span>
         <a class="masthead-logo" href="<?=e(base_url())?>" aria-label="АХИХЪАН — главная">
-          <img src="<?=e(base_url('assets/img/akhikhan-logo-transparent.webp?v=20260928-transparent-logo1'))?>" alt="АХИХЪАН — сетевое издание Унцукульского района" width="900" height="386">
+          <img src="<?=e(base_url($siteHeaderLogo))?>" alt="АХИХЪАН — сетевое издание Унцукульского района">
         </a>
         <div class="masthead-brand-trim" aria-hidden="true"><span></span><i></i><span></span></div>
       </div>
