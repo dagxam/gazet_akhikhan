@@ -5631,3 +5631,42 @@ h1,h2,h3,h4{
 @media(prefers-reduced-transparency:reduce){
   .reference-header:before{opacity:.035}
 }
+
+
+/* dynamic hero location v1 */
+.hero-location{
+  max-width:min(260px,42%);
+  padding:10px 12px 11px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:13px;
+  background:linear-gradient(135deg,rgba(27,22,18,.22),rgba(27,22,18,.08));
+  backdrop-filter:blur(2px);
+}
+.hero-location span,
+.hero-location b{
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.hero-location span{
+  white-space:nowrap;
+}
+.hero-location b{
+  max-width:100%;
+  line-height:1.08;
+}
+@media(max-width:680px){
+  .hero-location{
+    right:15px;
+    top:15px;
+    max-width:52%;
+    padding:8px 9px 9px;
+    border-radius:11px;
+  }
+  .hero-location span{
+    font-size:7px;
+    letter-spacing:.11em;
+  }
+  .hero-location b{
+    font-size:15px;
+  }
+}
