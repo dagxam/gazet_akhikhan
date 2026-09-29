@@ -1,6 +1,7 @@
 <?php
 require dirname(__DIR__) . '/app/bootstrap.php';
 require_admin();
+ensure_right_blocks_area_schema();
 
 $error='';
 $area=in_array($_GET['area']??'home',['home','pages'],true)?$_GET['area']:'home';
@@ -115,7 +116,13 @@ if($id){
   if($editing) $area=in_array($editing['area']??'home',['home','pages'],true)?$editing['area']:'home';
 }
 
-$blocks=right_blocks($area,false);
+try{
+  $blocks=right_blocks($area,false);
+}catch(Throwable $e){
+  error_log('[right blocks admin list] '.$e->getMessage());
+  $blocks=[];
+  if($error==='') $error='Не удалось загрузить правые блоки. Структура базы была перепроверена; обновите страницу и повторите.';
+}
 $areaTitle=$area==='home'?'Главная страница':'Статичные страницы';
 $areaDescription=$area==='home'
   ? 'Эти карточки выводятся в правой колонке главной страницы рядом с региональными и спортивными новостями.'
