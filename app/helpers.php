@@ -787,7 +787,7 @@ function branding_asset(string $key, string $default): string
 function admin_theme_name(): string
 {
     $theme = setting('admin_color_scheme', 'walnut');
-    return in_array($theme, ['walnut','graphite','forest','burgundy','navy'], true) ? $theme : 'walnut';
+    return in_array($theme, ['walnut','light','graphite','forest','burgundy','navy'], true) ? $theme : 'walnut';
 }
 
 function safe_delete_branding_asset(?string $relativePath): void
