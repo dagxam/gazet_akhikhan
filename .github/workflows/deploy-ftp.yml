@@ -116,3 +116,24 @@ jobs:
           echo "$security_headers" | grep -qi '^X-Frame-Options: SAMEORIGIN'
           echo "$security_headers" | grep -qi '^Content-Security-Policy:'
           echo "Homepage content, admin login and security headers verified."
+
+          robots_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-robots.txt --write-out '%{http_code}' https://akhikhan.ru/robots.txt)"
+          test "$robots_code" = "200"
+          grep -q '^Sitemap: https://akhikhan.ru/sitemap.xml' /tmp/akhikhan-robots.txt
+          grep -q '^Sitemap: https://akhikhan.ru/news-sitemap.xml' /tmp/akhikhan-robots.txt
+
+          if [ "$code" = "200" ]; then
+            grep -q '<link rel="canonical" href="https://akhikhan.ru/' /tmp/akhikhan.html
+            grep -q '<meta property="og:site_name" content="АХИХЪАН">' /tmp/akhikhan.html
+            grep -q 'application/ld+json' /tmp/akhikhan.html
+
+            sitemap_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-sitemap.xml --write-out '%{http_code}' https://akhikhan.ru/sitemap.xml)"
+            test "$sitemap_code" = "200"
+            grep -q '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' /tmp/akhikhan-sitemap.xml
+            grep -q '<loc>https://akhikhan.ru/</loc>' /tmp/akhikhan-sitemap.xml
+
+            news_sitemap_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-news-sitemap.xml --write-out '%{http_code}' https://akhikhan.ru/news-sitemap.xml)"
+            test "$news_sitemap_code" = "200"
+            grep -q 'xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"' /tmp/akhikhan-news-sitemap.xml
+            echo "SEO metadata, robots.txt and XML sitemaps verified."
+          fi
