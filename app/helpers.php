@@ -6,6 +6,171 @@ function e(?string $value): string
     return htmlspecialchars((string)$value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+
+
+function sanitize_rich_text(?string $html): string
+{
+    $html=trim((string)$html);
+    if($html==='') return '';
+
+    // Legacy plain text stays plain; rendering helper will preserve its line breaks.
+    if(!preg_match('~<\/?[a-z][^>]*>~i',$html)){
+        return $html;
+    }
+
+    if(!class_exists('DOMDocument')){
+        return strip_tags($html,'<p><br><strong><b><em><i><u><s><strike><ul><ol><li><blockquote><h2><h3><h4><a><span><font><div>');
+    }
+
+    $allowedTags=['p','br','strong','b','em','i','u','s','strike','ul','ol','li','blockquote','h2','h3','h4','a','span','font','div'];
+    $allowedFonts=['Manrope','Montserrat','PT Serif','Rubik','Noto Sans','Noto Serif','Georgia','Arial','sans-serif','serif'];
+    $fontSizes=['1','2','3','4','5','6','7'];
+
+    $doc=new DOMDocument('1.0','UTF-8');
+    libxml_use_internal_errors(true);
+    $wrapped='<!doctype html><html><body><div id="rich-root">'.mb_convert_encoding($html,'HTML-ENTITIES','UTF-8').'</div></body></html>';
+    $doc->loadHTML($wrapped,LIBXML_HTML_NOIMPLIED|LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+
+    $root=$doc->getElementById('rich-root');
+    if(!$root) return e(rich_text_plain($html));
+
+    $cleanStyle=function(string $style) use ($allowedFonts): string {
+        $out=[];
+        foreach(explode(';',$style) as $rule){
+            if(!str_contains($rule,':')) continue;
+            [$prop,$value]=array_map('trim',explode(':',$rule,2));
+            $prop=strtolower($prop);
+            if($prop==='color' || $prop==='background-color'){
+                if(preg_match('~^#[0-9a-f]{3,8}$~i',$value) || preg_match('~^rgba?\([0-9., %]+\)$~i',$value)){
+                    $out[]=$prop.':'.$value;
+                }
+                continue;
+            }
+            if($prop==='text-align' && in_array(strtolower($value),['left','center','right','justify'],true)){
+                $out[]='text-align:'.strtolower($value);
+                continue;
+            }
+            if($prop==='font-size' && preg_match('~^(?:0\.[6-9]|1(?:\.\d)?|2(?:\.0)?)rem$~',$value)){
+                $out[]='font-size:'.$value;
+                continue;
+            }
+            if($prop==='font-family'){
+                $font=trim($value," \t\n\r\0\x0B\"'");
+                if(in_array($font,$allowedFonts,true)){
+                    $out[]='font-family:\''.$font.'\'';
+                }
+            }
+        }
+        return implode(';',$out);
+    };
+
+    $walk=function(DOMNode $node) use (&$walk,$allowedTags,$allowedFonts,$fontSizes,$cleanStyle): void {
+        for($child=$node->firstChild;$child;){
+            $next=$child->nextSibling;
+            if($child instanceof DOMElement){
+                $tag=strtolower($child->tagName);
+                if(!in_array($tag,$allowedTags,true)){
+                    while($child->firstChild){
+                        $node->insertBefore($child->firstChild,$child);
+                    }
+                    $node->removeChild($child);
+                    $child=$next;
+                    continue;
+                }
+
+                $attrs=[];
+                foreach(iterator_to_array($child->attributes) as $attr){
+                    $attrs[]=$attr->name;
+                }
+                foreach($attrs as $name){
+                    $value=$child->getAttribute($name);
+                    $keep=false;
+
+                    if($tag==='a' && $name==='href'){
+                        $v=trim($value);
+                        $keep=(bool)preg_match('~^(https?://|mailto:|tel:|/|#)~i',$v);
+                    }elseif($tag==='a' && in_array($name,['target','rel'],true)){
+                        $keep=true;
+                    }elseif(in_array($tag,['span','p','div','h2','h3','h4','blockquote','li'],true) && $name==='style'){
+                        $safe=$cleanStyle($value);
+                        if($safe!==''){
+                            $child->setAttribute('style',$safe);
+                            $keep=true;
+                        }
+                    }elseif($tag==='font' && $name==='face'){
+                        $keep=in_array(trim($value),$allowedFonts,true);
+                    }elseif($tag==='font' && $name==='color'){
+                        $keep=(bool)preg_match('~^#[0-9a-f]{3,8}$~i',trim($value));
+                    }elseif($tag==='font' && $name==='size'){
+                        $keep=in_array(trim($value),$fontSizes,true);
+                    }
+
+                    if(!$keep) $child->removeAttribute($name);
+                }
+
+                if($tag==='a'){
+                    $child->setAttribute('rel','noopener noreferrer');
+                    if(preg_match('~^https?://~i',$child->getAttribute('href'))){
+                        $child->setAttribute('target','_blank');
+                    }
+                }
+
+                $walk($child);
+            }elseif($child->nodeType===XML_COMMENT_NODE){
+                $node->removeChild($child);
+            }
+            $child=$next;
+        }
+    };
+
+    $walk($root);
+
+    $out='';
+    foreach(iterator_to_array($root->childNodes) as $child){
+        $out.=$doc->saveHTML($child);
+    }
+    return trim($out);
+}
+
+function rich_text_plain(?string $value): string
+{
+    $value=(string)$value;
+    if($value==='') return '';
+
+    $value=preg_replace('~<\s*br\s*/?\s*>~i',"\n",$value) ?? $value;
+    $value=preg_replace('~</\s*(p|div|h[1-6]|li|blockquote)\s*>~i',"\n",$value) ?? $value;
+    $value=strip_tags($value);
+    $value=html_entity_decode($value,ENT_QUOTES|ENT_HTML5,'UTF-8');
+    $value=preg_replace("~[ \t]+~u",' ',$value) ?? $value;
+    $value=preg_replace("~\n{3,}~u","\n\n",$value) ?? $value;
+    return trim($value);
+}
+
+function rich_text_html(?string $value): string
+{
+    $value=trim((string)$value);
+    if($value==='') return '';
+
+    if(!preg_match('~<\/?[a-z][^>]*>~i',$value)){
+        return nl2br(e($value));
+    }
+    return sanitize_rich_text($value);
+}
+
+function rich_text_excerpt(?string $value, int $limit = 220): string
+{
+    $plain=rich_text_plain($value);
+    if($plain==='') return '';
+    if(function_exists('mb_strlen') && mb_strlen($plain,'UTF-8')>$limit){
+        return rtrim(mb_substr($plain,0,$limit,'UTF-8')).'…';
+    }
+    if(!function_exists('mb_strlen') && strlen($plain)>$limit){
+        return rtrim(substr($plain,0,$limit)).'…';
+    }
+    return $plain;
+}
+
 function base_url(string $path = ''): string
 {
     global $config;
