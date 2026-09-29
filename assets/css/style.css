@@ -3877,3 +3877,291 @@ h1,h2,h3,h4{
   .gallery-lightbox-nav.prev{left:calc(50% - 55px)}
   .gallery-lightbox-nav.next{right:calc(50% - 55px)}
 }
+
+
+/* reference white header v1 */
+.reference-header{
+  position:sticky;
+  top:0;
+  z-index:120;
+  width:100%;
+  background:rgba(255,255,255,.985);
+  border-bottom:1px solid #ece9e5;
+  box-shadow:0 5px 20px rgba(32,26,21,.025);
+  backdrop-filter:blur(12px);
+}
+.reference-header-inner{
+  min-height:102px;
+  display:flex;
+  align-items:center;
+  gap:38px;
+}
+.reference-logo{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  width:220px;
+  height:72px;
+  overflow:hidden;
+}
+.reference-logo img{
+  display:block;
+  width:100%;
+  max-width:220px;
+  max-height:68px;
+  object-fit:contain;
+  object-position:left center;
+}
+.reference-menu-shell{
+  position:relative;
+  flex:1 1 auto;
+  min-width:0;
+  height:102px;
+  display:flex;
+  align-items:stretch;
+}
+.reference-site-menu{
+  flex:1 1 auto;
+  min-width:0;
+  height:102px;
+  display:flex;
+  align-items:stretch;
+  overflow:hidden;
+  white-space:nowrap;
+}
+.reference-site-menu>a{
+  position:relative;
+  flex:0 0 auto!important;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  height:102px;
+  padding:0 16px!important;
+  color:#171717!important;
+  background:transparent!important;
+  font:700 13px/1 var(--sans)!important;
+  text-transform:none!important;
+  letter-spacing:0!important;
+  white-space:nowrap;
+  transition:color .16s ease;
+}
+.reference-site-menu>a:after{
+  content:"";
+  position:absolute;
+  left:16px!important;
+  right:16px!important;
+  bottom:0!important;
+  height:3px!important;
+  background:#a93d36!important;
+  transform:scaleX(0);
+  transform-origin:center;
+  transition:transform .18s ease;
+}
+.reference-site-menu>a:hover{
+  color:#9c352f!important;
+}
+.reference-site-menu>a:hover:after{
+  transform:scaleX(1);
+}
+.reference-overflow-toggle{
+  flex:0 0 46px;
+  width:46px;
+  height:102px;
+  padding:0;
+  border:0;
+  border-left:1px solid #eeeae6;
+  background:#fff;
+  color:#1c1c1c;
+  display:grid;
+  place-items:center;
+  transition:background .16s ease,color .16s ease;
+}
+.reference-overflow-toggle[hidden]{
+  display:none!important;
+}
+.reference-overflow-toggle:hover,
+.reference-menu-shell.is-open .reference-overflow-toggle{
+  background:#faf8f6;
+  color:#9c352f;
+}
+.reference-overflow-toggle svg{
+  width:17px;
+  height:17px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.6;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  transition:transform .18s ease;
+}
+.reference-menu-shell.is-open .reference-overflow-toggle svg{
+  transform:rotate(180deg);
+}
+.reference-overflow-panel{
+  position:absolute;
+  z-index:150;
+  top:calc(100% + 10px);
+  right:0;
+  left:auto;
+  width:min(340px,calc(100vw - 32px));
+  max-height:min(520px,70vh);
+  overflow:auto;
+  display:none;
+  padding:8px;
+  border:1px solid #e6e1dc;
+  border-radius:13px;
+  background:#fff;
+  box-shadow:0 18px 48px rgba(35,28,22,.14);
+}
+.reference-menu-shell.is-open .reference-overflow-panel{
+  display:grid;
+}
+.reference-overflow-panel>a{
+  position:relative;
+  display:flex;
+  align-items:center;
+  min-height:44px;
+  padding:0 38px 0 14px;
+  border-radius:9px;
+  color:#1c1c1c;
+  font:700 12px/1.2 var(--sans);
+  text-transform:none;
+  letter-spacing:0;
+  white-space:normal;
+  transition:background .15s ease,color .15s ease;
+}
+.reference-overflow-panel>a:after{
+  content:"›";
+  position:absolute;
+  right:14px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#aaa19a;
+  font-size:18px;
+  font-weight:400;
+}
+.reference-overflow-panel>a:hover{
+  color:#963a34;
+  background:#f8f5f2;
+}
+.reference-mobile-toggle{
+  display:none;
+}
+
+/* disable legacy decorative header layers because the reference header replaces them */
+.reference-header + main{
+  border-top:0;
+}
+
+@media(max-width:1180px) and (min-width:901px){
+  .reference-header-inner{gap:24px}
+  .reference-logo{width:190px}
+  .reference-logo img{max-width:190px}
+  .reference-site-menu>a{
+    padding-left:12px!important;
+    padding-right:12px!important;
+    font-size:12px!important;
+  }
+}
+@media(max-width:900px){
+  .reference-header{
+    position:sticky;
+  }
+  .reference-header-inner{
+    min-height:76px;
+    gap:14px;
+    justify-content:space-between;
+  }
+  .reference-logo{
+    width:min(230px,68vw);
+    height:62px;
+  }
+  .reference-logo img{
+    max-width:100%;
+    max-height:58px;
+  }
+  .reference-mobile-toggle{
+    flex:0 0 auto;
+    width:48px;
+    height:44px;
+    border:1px solid #e5dfd9;
+    border-radius:10px;
+    background:#fff;
+    display:grid;
+    grid-template-columns:16px auto;
+    grid-template-rows:repeat(3,3px);
+    align-content:center;
+    justify-content:center;
+    column-gap:7px;
+    row-gap:3px;
+    color:#29231f;
+  }
+  .reference-mobile-toggle span{
+    width:16px;
+    height:1.5px;
+    background:#29231f;
+    grid-column:1;
+  }
+  .reference-mobile-toggle b{
+    grid-column:2;
+    grid-row:1/4;
+    align-self:center;
+    font:700 9px/1 var(--sans);
+    text-transform:uppercase;
+    letter-spacing:.04em;
+  }
+  .reference-menu-shell{
+    position:absolute;
+    left:0;
+    right:0;
+    top:100%;
+    height:auto;
+    display:block;
+    pointer-events:none;
+  }
+  .reference-site-menu{
+    position:absolute;
+    left:24px;
+    right:24px;
+    top:8px;
+    height:auto;
+    max-height:calc(100vh - 105px);
+    overflow:auto;
+    display:none;
+    padding:8px;
+    border:1px solid #e5dfd8;
+    border-radius:13px;
+    background:#fff;
+    box-shadow:0 18px 45px rgba(35,28,22,.15);
+    pointer-events:auto;
+  }
+  .reference-site-menu.open{
+    display:grid;
+  }
+  .reference-site-menu>a{
+    width:100%;
+    height:auto;
+    min-height:46px;
+    justify-content:flex-start;
+    padding:0 14px!important;
+    border-radius:9px;
+    font-size:12px!important;
+  }
+  .reference-site-menu>a:after{display:none}
+  .reference-site-menu>a:hover{
+    background:#f8f5f2!important;
+  }
+  .reference-overflow-toggle,
+  .reference-overflow-panel{
+    display:none!important;
+  }
+}
+@media(max-width:520px){
+  .wrap.reference-header-inner{
+    width:min(100% - 28px,1280px);
+  }
+  .reference-logo{
+    width:min(210px,65vw);
+  }
+}
