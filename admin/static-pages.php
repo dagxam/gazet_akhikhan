@@ -31,8 +31,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
     $title=trim($_POST['title']??'');
     $slug=trim($_POST['slug']??'');
-    $excerpt=trim($_POST['excerpt']??'');
-    $content=trim($_POST['content']??'');
+    $excerpt=sanitize_rich_text($_POST['excerpt']??'');
+    $content=sanitize_rich_text($_POST['content']??'');
     $status=in_array($_POST['status']??'draft',['draft','published'],true)?$_POST['status']:'draft';
     $addToMenu=isset($_POST['add_to_menu']);
     $menuLabel=trim($_POST['menu_label']??'');
@@ -138,7 +138,7 @@ $menuOrder=$menuItem['sort_order']??100;
 
           <label class="field-modern">
             <span>Краткое описание</span>
-            <textarea name="excerpt" rows="3" maxlength="500" placeholder="Короткое описание для страницы и поисковых систем" data-excerpt-input><?=e($currentExcerpt)?></textarea>
+            <textarea name="excerpt" rows="3" data-rich-text placeholder="Короткое описание для страницы и поисковых систем" data-excerpt-input><?=e($currentExcerpt)?></textarea>
             <small><b data-excerpt-count><?=function_exists('mb_strlen')?mb_strlen($currentExcerpt,'UTF-8'):strlen($currentExcerpt)?></b>/500</small>
           </label>
         </section>
@@ -148,7 +148,7 @@ $menuOrder=$menuItem['sort_order']??100;
             <div><span class="section-number">02</span><h3>Содержимое страницы</h3></div>
             <span class="section-help">Основной текст</span>
           </div>
-          <textarea class="content-editor modern-content-editor" name="content" rows="24" placeholder="Введите текст статичной страницы..."><?=e($currentContent)?></textarea>
+          <textarea class="content-editor modern-content-editor" name="content" data-rich-text rows="24" placeholder="Введите текст статичной страницы..."><?=e($currentContent)?></textarea>
         </section>
 
         <section class="editor-card editor-card-link">
