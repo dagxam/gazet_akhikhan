@@ -2217,6 +2217,10 @@ body.admin-theme-light .editor-location-preview{
   overflow:auto;
   padding:16px 17px;
   outline:none;
+  cursor:text;
+  caret-color:#76502d;
+  user-select:text;
+  -webkit-user-select:text;
   color:#322c27;
   background:#fff;
   font-family:Manrope,Arial,sans-serif;
