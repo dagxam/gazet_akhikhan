@@ -42,7 +42,7 @@ require __DIR__ . '/partials/header.php';
       <span class="kicker" data-hero-kicker>Главные новости</span>
       <?php if($hero):?>
         <h1 data-hero-title><?=e($hero['title'])?></h1>
-        <p data-hero-excerpt><?=e($hero['excerpt'] ?: 'Читайте подробности события в материале «АХИХЪАН».')?></p>
+        <p data-hero-excerpt><?=e(rich_text_excerpt($hero['excerpt'] ?: 'Читайте подробности события в материале «АХИХЪАН».',260))?></p>
         <a class="story-button" data-hero-link href="<?=e(article_url($hero))?>">Читать материал <span>→</span></a>
       <?php else:?>
         <h1 data-hero-title>Главных новостей пока нет</h1>
@@ -69,7 +69,7 @@ require __DIR__ . '/partials/header.php';
           <article class="latest-item<?=$i===0?' is-active':''?>"
                    tabindex="0"
                    data-hero-title="<?=e($item['title'])?>"
-                   data-hero-excerpt="<?=e($item['excerpt'] ?: 'Читайте подробности события в материале «АХИХЪАН».')?>"
+                   data-hero-excerpt="<?=e(rich_text_excerpt($item['excerpt'] ?: 'Читайте подробности события в материале «АХИХЪАН».',260))?>"
                    data-hero-kicker="Главные новости"
                    data-hero-url="<?=e(article_url($item))?>"
                    data-hero-cover="<?=e(!empty($item['cover_image']) ? base_url($item['cover_image']) : '')?>"
@@ -128,7 +128,7 @@ require __DIR__ . '/partials/header.php';
           <span class="district-magazine-category">Новости района</span>
           <h3><a href="<?=e(article_url($lead))?>"><?=e($lead['title'])?></a></h3>
           <time datetime="<?=e(date('Y-m-d',strtotime($lead['published_at'] ?: $lead['created_at'])))?>"><?=e(ru_date($lead['published_at'] ?: $lead['created_at']))?></time>
-          <?php if(!empty($lead['excerpt'])):?><p><?=e($lead['excerpt'])?></p><?php endif;?>
+          <?php if(!empty($lead['excerpt'])):?><p><?=e(rich_text_excerpt($lead['excerpt'],260))?></p><?php endif;?>
         </div>
       </article>
 
@@ -290,7 +290,7 @@ require __DIR__ . '/partials/header.php';
           <div class="right-feature-content">
             <?php if(!empty($block['kicker'])):?><span class="heading-kicker"><?=e($block['kicker'])?></span><?php endif;?>
             <h3><?=e($block['title'])?></h3>
-            <?php if(!empty($block['body'])):?><p><?=nl2br(e($block['body']))?></p><?php endif;?>
+            <?php if(!empty($block['body'])):?><div class="right-feature-body rich-text"><?=rich_text_html($block['body'])?></div><?php endif;?>
             <?php if($blockHref!=='' && !empty($block['link_text'])):?>
               <a href="<?=e($blockHref)?>"><?=e($block['link_text'])?> <b>→</b></a>
             <?php endif;?>
@@ -369,7 +369,7 @@ require __DIR__ . '/partials/header.php';
           <span class="document-card-copy">
             <small class="document-date"><?=e(ru_date($doc['document_date']))?></small>
             <strong><?=e($doc['title'])?></strong>
-            <?php if(!empty($doc['description'])):?><span><?=e($doc['description'])?></span><?php endif;?>
+            <?php if(!empty($doc['description'])):?><span><?=e(rich_text_excerpt($doc['description'],180))?></span><?php endif;?>
             <i><?=e(human_file_size((int)$doc['file_size']))?> · Открыть →</i>
           </span>
         </a>
