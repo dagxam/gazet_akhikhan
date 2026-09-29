@@ -4,25 +4,42 @@ require_admin();
 
 $adminTitle='Обзор';
 
+$dashboardCount=function(string $sql): int {
+  try{
+    return (int)db()->query($sql)->fetchColumn();
+  }catch(Throwable $e){
+    error_log('[admin overview count] '.$e->getMessage());
+    return 0;
+  }
+};
+$dashboardRows=function(string $sql): array {
+  try{
+    return db()->query($sql)->fetchAll();
+  }catch(Throwable $e){
+    error_log('[admin overview rows] '.$e->getMessage());
+    return [];
+  }
+};
+
 $stats=[
-  ['key'=>'published','value'=>(int)db()->query("SELECT COUNT(*) FROM articles WHERE status='published'")->fetchColumn(),'label'=>'Опубликовано','icon'=>'fa-solid fa-newspaper','href'=>'admin/articles.php'],
-  ['key'=>'drafts','value'=>(int)db()->query("SELECT COUNT(*) FROM articles WHERE status='draft'")->fetchColumn(),'label'=>'Черновики','icon'=>'fa-regular fa-file','href'=>'admin/articles.php'],
-  ['key'=>'views','value'=>(int)db()->query("SELECT COALESCE(SUM(views),0) FROM articles")->fetchColumn(),'label'=>'Просмотры новостей','icon'=>'fa-regular fa-eye','href'=>'admin/articles.php'],
-  ['key'=>'categories','value'=>(int)db()->query("SELECT COUNT(*) FROM categories")->fetchColumn(),'label'=>'Рубрики','icon'=>'fa-solid fa-layer-group','href'=>'admin/categories.php'],
-  ['key'=>'newspapers','value'=>(int)db()->query("SELECT COUNT(*) FROM newspapers")->fetchColumn(),'label'=>'Выпуски газеты','icon'=>'fa-solid fa-book-open','href'=>'admin/newspapers.php'],
-  ['key'=>'documents','value'=>(int)db()->query("SELECT COUNT(*) FROM documents")->fetchColumn(),'label'=>'Документы','icon'=>'fa-regular fa-file-lines','href'=>'admin/documents.php'],
-  ['key'=>'albums','value'=>(int)db()->query("SELECT COUNT(*) FROM photo_albums")->fetchColumn(),'label'=>'Фотоальбомы','icon'=>'fa-regular fa-images','href'=>'admin/photo-gallery.php'],
-  ['key'=>'photos','value'=>(int)db()->query("SELECT COUNT(*) FROM photo_gallery_images")->fetchColumn(),'label'=>'Фотографии','icon'=>'fa-regular fa-image','href'=>'admin/photo-gallery.php'],
-  ['key'=>'videos','value'=>(int)db()->query("SELECT COUNT(*) FROM video_gallery")->fetchColumn(),'label'=>'Видео','icon'=>'fa-solid fa-video','href'=>'admin/video-gallery.php'],
-  ['key'=>'pages','value'=>(int)db()->query("SELECT COUNT(*) FROM static_pages")->fetchColumn(),'label'=>'Статичные страницы','icon'=>'fa-regular fa-file-lines','href'=>'admin/static-pages.php'],
-  ['key'=>'menu','value'=>(int)db()->query("SELECT COUNT(*) FROM main_menu_items WHERE is_active=1")->fetchColumn(),'label'=>'Пунктов меню','icon'=>'fa-solid fa-bars','href'=>'admin/main-menu.php'],
-  ['key'=>'social','value'=>(int)db()->query("SELECT COUNT(*) FROM social_links WHERE is_active=1")->fetchColumn(),'label'=>'Соцсети','icon'=>'fa-solid fa-share-nodes','href'=>'admin/social-links.php'],
-  ['key'=>'home_blocks','value'=>(int)db()->query("SELECT COUNT(*) FROM homepage_right_blocks WHERE area='home' AND is_active=1")->fetchColumn(),'label'=>'Блоки на главной','icon'=>'fa-solid fa-table-columns','href'=>'admin/right-block.php?area=home'],
-  ['key'=>'page_blocks','value'=>(int)db()->query("SELECT COUNT(*) FROM homepage_right_blocks WHERE area='pages' AND is_active=1")->fetchColumn(),'label'=>'Блоки на страницах','icon'=>'fa-regular fa-rectangle-list','href'=>'admin/right-block.php?area=pages'],
+  ['key'=>'published','value'=>$dashboardCount("SELECT COUNT(*) FROM articles WHERE status='published'"),'label'=>'Опубликовано','icon'=>'fa-solid fa-newspaper','href'=>'admin/articles.php'],
+  ['key'=>'drafts','value'=>$dashboardCount("SELECT COUNT(*) FROM articles WHERE status='draft'"),'label'=>'Черновики','icon'=>'fa-regular fa-file','href'=>'admin/articles.php'],
+  ['key'=>'views','value'=>$dashboardCount("SELECT COALESCE(SUM(views),0) FROM articles"),'label'=>'Просмотры новостей','icon'=>'fa-regular fa-eye','href'=>'admin/articles.php'],
+  ['key'=>'categories','value'=>$dashboardCount("SELECT COUNT(*) FROM categories"),'label'=>'Рубрики','icon'=>'fa-solid fa-layer-group','href'=>'admin/categories.php'],
+  ['key'=>'newspapers','value'=>$dashboardCount("SELECT COUNT(*) FROM newspapers"),'label'=>'Выпуски газеты','icon'=>'fa-solid fa-book-open','href'=>'admin/newspapers.php'],
+  ['key'=>'documents','value'=>$dashboardCount("SELECT COUNT(*) FROM documents"),'label'=>'Документы','icon'=>'fa-regular fa-file-lines','href'=>'admin/documents.php'],
+  ['key'=>'albums','value'=>$dashboardCount("SELECT COUNT(*) FROM photo_albums"),'label'=>'Фотоальбомы','icon'=>'fa-regular fa-images','href'=>'admin/photo-gallery.php'],
+  ['key'=>'photos','value'=>$dashboardCount("SELECT COUNT(*) FROM photo_gallery_images"),'label'=>'Фотографии','icon'=>'fa-regular fa-image','href'=>'admin/photo-gallery.php'],
+  ['key'=>'videos','value'=>$dashboardCount("SELECT COUNT(*) FROM video_gallery"),'label'=>'Видео','icon'=>'fa-solid fa-video','href'=>'admin/video-gallery.php'],
+  ['key'=>'pages','value'=>$dashboardCount("SELECT COUNT(*) FROM static_pages"),'label'=>'Статичные страницы','icon'=>'fa-regular fa-file-lines','href'=>'admin/static-pages.php'],
+  ['key'=>'menu','value'=>$dashboardCount("SELECT COUNT(*) FROM main_menu_items WHERE is_active=1"),'label'=>'Пунктов меню','icon'=>'fa-solid fa-bars','href'=>'admin/main-menu.php'],
+  ['key'=>'social','value'=>$dashboardCount("SELECT COUNT(*) FROM social_links WHERE is_active=1"),'label'=>'Соцсети','icon'=>'fa-solid fa-share-nodes','href'=>'admin/social-links.php'],
+  ['key'=>'home_blocks','value'=>$dashboardCount("SELECT COUNT(*) FROM homepage_right_blocks WHERE area='home' AND is_active=1"),'label'=>'Блоки на главной','icon'=>'fa-solid fa-table-columns','href'=>'admin/right-block.php?area=home'],
+  ['key'=>'page_blocks','value'=>$dashboardCount("SELECT COUNT(*) FROM homepage_right_blocks WHERE area='pages' AND is_active=1"),'label'=>'Блоки на страницах','icon'=>'fa-regular fa-rectangle-list','href'=>'admin/right-block.php?area=pages'],
 ];
 
-$recent=db()->query("SELECT id,title,status,published_at,created_at,updated_at,views FROM articles ORDER BY updated_at DESC LIMIT 8")->fetchAll();
-$latestVideos=db()->query("SELECT * FROM video_gallery ORDER BY video_date DESC,updated_at DESC,id DESC LIMIT 6")->fetchAll();
+$recent=$dashboardRows("SELECT id,title,status,published_at,created_at,updated_at,views FROM articles ORDER BY updated_at DESC LIMIT 8");
+$latestVideos=$dashboardRows("SELECT * FROM video_gallery ORDER BY video_date DESC,updated_at DESC,id DESC LIMIT 6");
 
 require __DIR__.'/_top.php';
 ?>
