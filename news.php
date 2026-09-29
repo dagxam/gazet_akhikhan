@@ -8,8 +8,9 @@ WHERE a.status='published'
 ORDER BY COALESCE(a.published_at,a.created_at) DESC LIMIT 100");
 $articles=$q->fetchAll();
 
-$pageTitle='Новости';
-$pageDescription='Последние публикации сетевого издания «АХИХЪАН» об Унцукульском районе.';
+$pageTitle='Новости Унцукульского района';
+$pageDescription='Последние новости Унцукульского района Республики Дагестан: события, общество, культура, спорт и важные публикации сетевого издания «АХИХЪАН».';
+$seoCanonical=base_url('news.php');
 require __DIR__.'/partials/header.php';
 ?>
 <div class="wrap page-shell">
