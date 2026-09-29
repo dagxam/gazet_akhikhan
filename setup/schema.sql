@@ -101,6 +101,7 @@ CREATE TABLE IF NOT EXISTS main_menu_items (
 
 CREATE TABLE IF NOT EXISTS homepage_right_blocks (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  area ENUM('home','pages') NOT NULL DEFAULT 'home',
   kicker VARCHAR(100) NULL,
   title VARCHAR(255) NOT NULL,
   body TEXT NULL,
@@ -112,7 +113,8 @@ CREATE TABLE IF NOT EXISTS homepage_right_blocks (
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_homepage_right_blocks_active_sort (is_active,sort_order)
+  INDEX idx_homepage_right_blocks_active_sort (is_active,sort_order),
+  INDEX idx_homepage_right_blocks_area_active_sort (area,is_active,sort_order,id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
@@ -168,4 +170,19 @@ CREATE TABLE IF NOT EXISTS video_gallery (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_video_gallery_status_date (status,video_date,sort_order,id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+CREATE TABLE IF NOT EXISTS static_pages (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  slug VARCHAR(255) NOT NULL UNIQUE,
+  excerpt TEXT NULL,
+  content LONGTEXT NOT NULL,
+  cover_image VARCHAR(500) NULL,
+  status ENUM('draft','published') NOT NULL DEFAULT 'draft',
+  menu_item_id INT UNSIGNED NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_static_pages_status_title (status,title)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
