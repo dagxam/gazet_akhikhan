@@ -1307,6 +1307,15 @@ function normalize_video_source_url(string $url): array
         throw new RuntimeException('Разрешены только ссылки VK, Rutube и Одноклассники.');
     }
 
+    $probe=[
+        'source_type'=>'external',
+        'provider'=>$provider,
+        'source_url'=>$url,
+    ];
+    if(video_embed_url($probe)===''){
+        throw new RuntimeException('Не удалось распознать ссылку на видео. Скопируйте обычную ссылку на конкретное видео VK, Rutube или Одноклассников.');
+    }
+
     return [$provider,$url];
 }
 
