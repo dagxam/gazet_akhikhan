@@ -1092,3 +1092,112 @@ function safe_delete_gallery_image(?string $relativePath): void
     $full=ROOT_PATH.'/'.ltrim($relativePath,'/');
     if(is_file($full)) @unlink($full);
 }
+
+
+function social_service_catalog(): array
+{
+    return [
+        'vk'       => ['name'=>'ВКонтакте',      'icon'=>'fa-brands fa-vk'],
+        'ok'       => ['name'=>'Одноклассники',  'icon'=>'fa-brands fa-odnoklassniki'],
+        'max'      => ['name'=>'MAX',            'icon'=>'fa-solid fa-message'],
+        'telegram' => ['name'=>'Telegram',       'icon'=>'fa-brands fa-telegram'],
+        'dzen'     => ['name'=>'Дзен',           'icon'=>'fa-solid fa-circle-nodes'],
+        'rutube'   => ['name'=>'Rutube',         'icon'=>'fa-solid fa-play'],
+        'mail'     => ['name'=>'Электронная почта','icon'=>'fa-solid fa-envelope'],
+        'custom'   => ['name'=>'Другая ссылка',  'icon'=>'fa-solid fa-link'],
+    ];
+}
+
+function social_service_name(string $service): string
+{
+    $catalog=social_service_catalog();
+    return $catalog[$service]['name'] ?? 'Ссылка';
+}
+
+function social_service_icon(string $service): string
+{
+    $catalog=social_service_catalog();
+    return $catalog[$service]['icon'] ?? 'fa-solid fa-link';
+}
+
+function normalize_social_url(string $service, string $url): string
+{
+    $url=trim($url);
+    if($url==='') return '';
+
+    if($service==='mail'){
+        if(str_starts_with(strtolower($url),'mailto:')) return $url;
+        if(filter_var($url,FILTER_VALIDATE_EMAIL)) return 'mailto:'.$url;
+        throw new RuntimeException('Для почты укажите корректный e-mail.');
+    }
+
+    if(!preg_match('~^https?://~i',$url)){
+        $url='https://'.$url;
+    }
+    if(!filter_var($url,FILTER_VALIDATE_URL)){
+        throw new RuntimeException('Укажите корректную ссылку на социальную сеть.');
+    }
+    return $url;
+}
+
+function ensure_social_links_schema(): void
+{
+    if (!APP_INSTALLED) return;
+    if (setting('schema_social_links_v1','') === '1') return;
+
+    $pdo=db();
+    $driver=(string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+    if($driver==='sqlite'){
+        $pdo->exec("CREATE TABLE IF NOT EXISTS social_links (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            service TEXT NOT NULL,
+            label TEXT,
+            url TEXT NOT NULL,
+            sort_order INTEGER NOT NULL DEFAULT 100,
+            is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0,1)),
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )");
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_social_links_active_sort ON social_links(is_active,sort_order,id)');
+    }else{
+        $pdo->exec("CREATE TABLE IF NOT EXISTS social_links (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            service VARCHAR(40) NOT NULL,
+            label VARCHAR(120) NULL,
+            url VARCHAR(500) NOT NULL,
+            sort_order INT NOT NULL DEFAULT 100,
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_social_links_active_sort (is_active,sort_order,id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    }
+
+    $count=(int)$pdo->query('SELECT COUNT(*) FROM social_links')->fetchColumn();
+    if($count===0){
+        $seed=[];
+        $vk=trim(setting('topbar_vk_url',''));
+        $ok=trim(setting('topbar_ok_url',''));
+        $mail=trim(setting('topbar_email',''));
+        if($vk!=='') $seed[]=['vk','ВКонтакте',$vk,10];
+        if($ok!=='') $seed[]=['ok','Одноклассники',$ok,20];
+        if($mail!=='') $seed[]=['mail','Почта редакции',str_starts_with(strtolower($mail),'mailto:')?$mail:'mailto:'.$mail,30];
+
+        if($seed){
+            $q=$pdo->prepare('INSERT INTO social_links(service,label,url,sort_order,is_active) VALUES(?,?,?,?,1)');
+            foreach($seed as $row) $q->execute($row);
+        }
+    }
+
+    save_setting('schema_social_links_v1','1');
+}
+
+function social_links(bool $activeOnly = true): array
+{
+    if(!APP_INSTALLED) return [];
+    $sql='SELECT * FROM social_links';
+    if($activeOnly) $sql .= ' WHERE is_active=1';
+    $sql .= ' ORDER BY sort_order,id';
+    return db()->query($sql)->fetchAll();
+}
