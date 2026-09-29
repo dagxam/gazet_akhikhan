@@ -1,4 +1,5 @@
 </main>
+<?php $siteFooterLogo = branding_asset('site_footer_logo','assets/img/akhikhan-logo-hq.webp'); ?>
 
 <section class="heritage-band">
   <div class="wrap heritage-inner">
@@ -17,7 +18,7 @@
   <div class="wrap footer-main">
     <div class="footer-identity">
       <a href="<?=e(base_url())?>" class="footer-logo">
-        <img src="<?=e(base_url('assets/img/akhikhan-logo-hq.webp?v=20260928-logo3'))?>" alt="АХИХЪАН" width="900" height="468">
+        <img src="<?=e(base_url($siteFooterLogo))?>" alt="АХИХЪАН">
       </a>
       <p>Новости и истории Унцукульского района Республики Дагестан. Рассказываем о событиях, людях, культуре и памяти родного края.</p>
       <div class="footer-region">Унцукульский район · Дагестан</div>
