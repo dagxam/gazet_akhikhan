@@ -1,8 +1,9 @@
 <?php
 require __DIR__ . '/app/bootstrap.php';
 if (!APP_INSTALLED) { header('Location: install.php'); exit; }
-$pageTitle='Контакты';
-$pageDescription='Контакты редакции сетевого издания «АХИХЪАН».';
+$pageTitle='Контакты редакции';
+$pageDescription='Контакты редакции сетевого издания «АХИХЪАН» Унцукульского района Республики Дагестан.';
+$seoCanonical=base_url('contacts.php');
 require __DIR__.'/partials/header.php';
 ?>
 <div class="wrap page-shell">
