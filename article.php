@@ -24,7 +24,7 @@ db()->prepare('UPDATE articles SET views=views+1 WHERE id=?')->execute([$article
 $related = latest_articles(5, (int)$article['id']);
 
 $pageTitle = $article['title'];
-$pageDescription = $article['excerpt'];
+$pageDescription = rich_text_excerpt($article['excerpt'],260);
 require __DIR__ . '/partials/header.php';
 ?>
 <div class="wrap page-shell">
@@ -48,8 +48,8 @@ require __DIR__ . '/partials/header.php';
         <img class="article-cover" src="<?=e(base_url($article['cover_image']))?>" alt="<?=e($article['title'])?>">
       <?php endif; ?>
 
-      <?php if($article['excerpt']): ?><p class="article-lead"><?=e($article['excerpt'])?></p><?php endif; ?>
-      <div class="article-content"><?=nl2br(e($article['content']))?></div>
+      <?php if($article['excerpt']): ?><div class="article-lead rich-text"><?=rich_text_html($article['excerpt'])?></div><?php endif; ?>
+      <div class="article-content rich-text"><?=rich_text_html($article['content'])?></div>
     </article>
 
     <aside class="article-sidebar">
