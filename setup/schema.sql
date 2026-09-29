@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS articles (
   title VARCHAR(255) NOT NULL,
   slug VARCHAR(255) NOT NULL UNIQUE,
   excerpt TEXT NULL,
+  location_region VARCHAR(160) NULL,
+  location_city VARCHAR(160) NULL,
   content LONGTEXT NOT NULL,
   cover_image VARCHAR(500) NULL,
   status ENUM('draft','published') NOT NULL DEFAULT 'draft',
