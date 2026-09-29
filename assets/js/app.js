@@ -19,11 +19,13 @@ document.querySelectorAll('img').forEach(function(img){
 
   const closeMenu=function(){
     menu.classList.remove('open');
+    document.body.classList.remove('mobile-menu-open');
     button.setAttribute('aria-expanded','false');
   };
 
   button.addEventListener('click',function(){
     const open=menu.classList.toggle('open');
+    document.body.classList.toggle('mobile-menu-open',open && window.innerWidth<=900);
     button.setAttribute('aria-expanded',open?'true':'false');
   });
 
