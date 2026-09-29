@@ -11,6 +11,8 @@ $sportNews = latest_articles_by_category_slug('sport', 3);
 $newspaper = latest_newspaper();
 $documents = latest_documents(8);
 $rightBlocks = homepage_right_blocks();
+$homeGalleryPhotos = latest_gallery_photos(5);
+$homeGalleryAlbum = latest_gallery_album();
 $cats = categories();
 $catBySlug = [];
 foreach ($cats as $cat) $catBySlug[$cat['slug']] = $cat;
@@ -211,6 +213,46 @@ require __DIR__ . '/partials/header.php';
           <div class="dual-news-empty">
             <strong>Спортивных новостей пока нет</strong>
             <p>После публикации материалов в рубрике «Спорт» они автоматически появятся здесь.</p>
+          </div>
+        <?php endif;?>
+      </section>
+
+      <section class="home-photo-gallery">
+        <div class="home-photo-gallery-head">
+          <div>
+            <span class="heading-kicker">Фото</span>
+            <h2>Фотогалерея</h2>
+          </div>
+          <a href="<?=e(base_url('gallery.php'))?>">Все фотоальбомы →</a>
+        </div>
+
+        <?php if($homeGalleryPhotos):?>
+          <div class="home-photo-gallery-grid">
+            <?php foreach($homeGalleryPhotos as $i=>$photo):?>
+              <a class="home-photo-tile <?=$i===0?'is-featured':''?>" href="<?=e(base_url('gallery.php?album='.$photo['album_id']))?>">
+                <img src="<?=e(base_url($photo['image_path']))?>" alt="<?=e($photo['caption'] ?: $photo['album_title'])?>" loading="<?=$i<3?'eager':'lazy'?>">
+                <span class="home-photo-tile-overlay"></span>
+                <span class="home-photo-tile-copy">
+                  <?php if($i===0):?><small><?=e(ru_date($photo['album_date']))?></small><?php endif;?>
+                  <strong><?=e($photo['caption'] ?: $photo['album_title'])?></strong>
+                  <?php if($i===0):?><b><?=e($photo['album_title'])?> · Открыть альбом →</b><?php endif;?>
+                </span>
+              </a>
+            <?php endforeach;?>
+          </div>
+          <?php if($homeGalleryAlbum):?>
+            <div class="home-photo-gallery-foot">
+              <span>Последний альбом</span>
+              <a href="<?=e(base_url('gallery.php?album='.$homeGalleryAlbum['id']))?>"><?=e($homeGalleryAlbum['title'])?> <b>→</b></a>
+            </div>
+          <?php endif;?>
+        <?php else:?>
+          <div class="home-photo-gallery-empty">
+            <span class="home-photo-empty-icon">▣</span>
+            <div>
+              <strong>Фотографии скоро появятся</strong>
+              <p>После публикации фотоальбома в админке последние снимки автоматически появятся здесь.</p>
+            </div>
           </div>
         <?php endif;?>
       </section>
