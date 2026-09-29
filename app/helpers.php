@@ -1577,6 +1577,7 @@ function sync_static_page_menu(int $pageId, string $title, string $slug, bool $a
     $url='page/'.$slug;
     $label=trim($menuLabel)!=='' ? trim($menuLabel) : $title;
     $menuOrder=max(-9999,min(9999,$menuOrder));
+    $menuActive=(($page['status']??'draft')==='published') ? 1 : 0;
 
     if(!$addToMenu){
         if($menuId>0){
@@ -1594,11 +1595,11 @@ function sync_static_page_menu(int $pageId, string $title, string $slug, bool $a
     }
 
     if($exists){
-        db()->prepare('UPDATE main_menu_items SET label=?,url=?,sort_order=?,is_active=1,open_new_tab=0,updated_at=CURRENT_TIMESTAMP WHERE id=?')
-            ->execute([$label,$url,$menuOrder,$menuId]);
+        db()->prepare('UPDATE main_menu_items SET label=?,url=?,sort_order=?,is_active=?,open_new_tab=0,updated_at=CURRENT_TIMESTAMP WHERE id=?')
+            ->execute([$label,$url,$menuOrder,$menuActive,$menuId]);
     }else{
-        $q=db()->prepare('INSERT INTO main_menu_items(label,url,sort_order,is_active,open_new_tab) VALUES(?,?,?,1,0)');
-        $q->execute([$label,$url,$menuOrder]);
+        $q=db()->prepare('INSERT INTO main_menu_items(label,url,sort_order,is_active,open_new_tab) VALUES(?,?,?,?,0)');
+        $q->execute([$label,$url,$menuOrder,$menuActive]);
         $menuId=(int)db()->lastInsertId();
         db()->prepare('UPDATE static_pages SET menu_item_id=? WHERE id=?')->execute([$menuId,$pageId]);
     }
