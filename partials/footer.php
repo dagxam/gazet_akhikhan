@@ -1,9 +1,7 @@
 </main>
 <?php
 $siteFooterLogo = branding_asset('site_footer_logo','assets/img/akhikhan-logo-hq.webp');
-$footerVk = trim(setting('topbar_vk_url',''));
-$footerOk = trim(setting('topbar_ok_url',''));
-$footerEmail = trim(setting('topbar_email',''));
+$footerSocialLinks = social_links(true);
 ?>
 
 <section class="heritage-band">
@@ -49,9 +47,13 @@ $footerEmail = trim(setting('topbar_email',''));
     <div class="footer-contact">
       <span class="footer-contact-label">Мы в социальных сетях</span>
       <div class="footer-socials socials">
-        <?php if($footerVk!==''):?><a href="<?=e($footerVk)?>" target="_blank" rel="noopener" aria-label="VK">VK</a><?php endif;?>
-        <?php if($footerOk!==''):?><a href="<?=e($footerOk)?>" target="_blank" rel="noopener" aria-label="Одноклассники">OK</a><?php endif;?>
-        <?php if($footerEmail!==''):?><a href="mailto:<?=e($footerEmail)?>" aria-label="Почта">✉</a><?php endif;?>
+        <?php foreach($footerSocialLinks as $social):
+          $socialLabel=$social['label'] ?: social_service_name($social['service']);
+        ?>
+          <a href="<?=e($social['url'])?>" <?=str_starts_with(strtolower($social['url']),'mailto:')?'':'target="_blank" rel="noopener"'?> aria-label="<?=e($socialLabel)?>" title="<?=e($socialLabel)?>">
+            <i class="<?=e(social_service_icon($social['service']))?>" aria-hidden="true"></i>
+          </a>
+        <?php endforeach;?>
       </div>
       <a class="footer-contact-link" href="<?=e(base_url('contacts.php'))?>">Связаться с редакцией →</a>
     </div>
