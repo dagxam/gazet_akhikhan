@@ -4966,3 +4966,56 @@ h1,h2,h3,h4{
     font-size:15px;
   }
 }
+
+
+/* regional sport headings like district + no outer card v2 */
+.home-news-row-section{
+  min-width:0;
+  overflow:visible;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.home-news-row-heading{
+  min-height:0;
+  margin-bottom:18px;
+  padding:0 2px 15px;
+  border-bottom:1px solid var(--line-strong);
+}
+.home-news-row-heading h2{
+  margin:4px 0 0;
+  font-size:31px;
+  line-height:1.08;
+  letter-spacing:-.025em;
+}
+.home-news-row-heading>a{
+  color:var(--walnut);
+  font:800 9px/1 var(--sans);
+  text-transform:uppercase;
+  letter-spacing:.055em;
+}
+.home-news-row-section .home-news-three-grid{
+  padding:0;
+}
+.home-news-row-section + .home-news-row-section{
+  margin-top:8px;
+}
+.home-news-row-section .dual-news-empty{
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:var(--paper-white);
+  box-shadow:var(--shadow-sm);
+}
+@media(max-width:560px){
+  .home-news-row-heading{
+    align-items:flex-end;
+    gap:12px;
+  }
+  .home-news-row-heading h2{
+    font-size:26px;
+  }
+  .home-news-row-heading>a{
+    font-size:8px;
+  }
+}
