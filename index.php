@@ -178,14 +178,19 @@ require __DIR__ . '/partials/header.php';
         </div>
 
         <?php if($regionalNews):?>
-          <div class="dual-news-list dual-news-list-three">
-            <?php foreach(array_slice($regionalNews,0,3) as $i=>$item):?>
-              <article class="dual-news-row dual-news-row-full <?=$i===0?'is-first':''?>">
-                <a class="dual-news-thumb" href="<?=e(article_url($item))?>" style="<?=!empty($item['cover_image']) ? "background-image:url('".e(base_url($item['cover_image']))."')" : ''?>"></a>
-                <div class="dual-news-row-copy">
+          <div class="home-news-three-grid">
+            <?php foreach(array_slice($regionalNews,0,3) as $item):?>
+              <article class="home-news-three-card">
+                <a class="home-news-three-image" href="<?=e(article_url($item))?>">
+                  <?php if(!empty($item['cover_image'])):?>
+                    <img src="<?=e(base_url($item['cover_image']))?>" alt="<?=e($item['title'])?>" loading="lazy">
+                  <?php else:?>
+                    <span class="home-news-three-placeholder">АХИХЪАН</span>
+                  <?php endif;?>
+                </a>
+                <div class="home-news-three-copy">
                   <span class="article-label">Региональные новости</span>
                   <h4><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h4>
-                  <?php if(!empty($item['excerpt'])):?><p><?=e($item['excerpt'])?></p><?php endif;?>
                   <div class="article-meta"><span><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></span><span>◉ <?=number_format((int)$item['views'],0,'.',' ')?></span></div>
                 </div>
               </article>
@@ -209,14 +214,19 @@ require __DIR__ . '/partials/header.php';
         </div>
 
         <?php if($sportNews):?>
-          <div class="dual-news-list dual-news-list-three">
-            <?php foreach(array_slice($sportNews,0,3) as $i=>$item):?>
-              <article class="dual-news-row dual-news-row-full <?=$i===0?'is-first':''?>">
-                <a class="dual-news-thumb" href="<?=e(article_url($item))?>" style="<?=!empty($item['cover_image']) ? "background-image:url('".e(base_url($item['cover_image']))."')" : ''?>"></a>
-                <div class="dual-news-row-copy">
+          <div class="home-news-three-grid">
+            <?php foreach(array_slice($sportNews,0,3) as $item):?>
+              <article class="home-news-three-card">
+                <a class="home-news-three-image" href="<?=e(article_url($item))?>">
+                  <?php if(!empty($item['cover_image'])):?>
+                    <img src="<?=e(base_url($item['cover_image']))?>" alt="<?=e($item['title'])?>" loading="lazy">
+                  <?php else:?>
+                    <span class="home-news-three-placeholder">АХИХЪАН</span>
+                  <?php endif;?>
+                </a>
+                <div class="home-news-three-copy">
                   <span class="article-label">Спорт</span>
                   <h4><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h4>
-                  <?php if(!empty($item['excerpt'])):?><p><?=e($item['excerpt'])?></p><?php endif;?>
                   <div class="article-meta"><span><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></span><span>◉ <?=number_format((int)$item['views'],0,'.',' ')?></span></div>
                 </div>
               </article>
