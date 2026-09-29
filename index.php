@@ -13,6 +13,7 @@ $documents = latest_documents(8);
 $rightBlocks = homepage_right_blocks();
 $homeGalleryPhotos = latest_gallery_photos(5);
 $homeGalleryAlbum = latest_gallery_album();
+$homeVideos = array_slice(video_gallery_items(true),0,6);
 $cats = categories();
 $catBySlug = [];
 foreach ($cats as $cat) $catBySlug[$cat['slug']] = $cat;
@@ -23,15 +24,6 @@ $demoNews = [
   ['title'=>'Мастера Унцукуля представили традиционные изделия','excerpt'=>'Народные художественные промыслы остаются одной из визитных карточек района.','date'=>'26 сентября 2026','views'=>'1 103','class'=>'craft'],
   ['title'=>'В районе прошли спортивные соревнования среди молодёжи','excerpt'=>'Команды из разных населённых пунктов встретились на районной площадке.','date'=>'25 сентября 2026','views'=>'764','class'=>'sport'],
   ['title'=>'Истории земляков: люди, которые сохраняют связь поколений','excerpt'=>'Рассказываем о жителях района, их труде и семейных традициях.','date'=>'24 сентября 2026','views'=>'621','class'=>'people'],
-];
-
-$categoryCards = [
-  ['slug'=>'obschestvo','name'=>'Общество','subtitle'=>'Жизнь района','class'=>'society'],
-  ['slug'=>'ekonomika','name'=>'Экономика','subtitle'=>'Развитие и проекты','class'=>'economy'],
-  ['slug'=>'kultura','name'=>'Культура','subtitle'=>'Наследие и ремёсла','class'=>'culture'],
-  ['slug'=>'sport','name'=>'Спорт','subtitle'=>'События и команды','class'=>'sport'],
-  ['slug'=>'lyudi','name'=>'Люди','subtitle'=>'Истории земляков','class'=>'people'],
-  ['slug'=>'istoriya','name'=>'История','subtitle'=>'Память и места','class'=>'history'],
 ];
 
 $pageTitle = '';
@@ -389,29 +381,45 @@ require __DIR__ . '/partials/header.php';
   <?php endif;?>
 </section>
 
-<section class="content-section categories-section">
+<section class="content-section categories-section home-video-showcase">
   <div class="block-heading">
     <div>
-      <span class="heading-kicker">Навигация</span>
-      <h2>Рубрики издания</h2>
+      <span class="heading-kicker">Видеогалерея</span>
+      <h2>Последние видео</h2>
     </div>
-    <span class="block-note">Унцукульский район · Республика Дагестан</span>
+    <a class="home-video-all" href="<?=e(base_url('videos.php'))?>">Все видео →</a>
   </div>
-  <div class="section-cards">
-    <?php foreach($categoryCards as $item):
-      $href = isset($catBySlug[$item['slug']]) ? category_url($catBySlug[$item['slug']]) : base_url('search.php?q='.rawurlencode($item['name']));
-    ?>
-      <a class="section-card section-<?=e($item['class'])?>" href="<?=e($href)?>">
-        <span class="section-number">0<?=array_search($item,$categoryCards,true)+1?></span>
-        <div class="section-card-image"></div>
-        <div class="section-card-body">
-          <strong><?=e($item['name'])?></strong>
-          <small><?=e($item['subtitle'])?></small>
-          <b>Открыть рубрику →</b>
-        </div>
-      </a>
-    <?php endforeach; ?>
-  </div>
+
+  <?php if($homeVideos):?>
+    <div class="section-cards home-video-section-cards">
+      <?php foreach($homeVideos as $i=>$video):?>
+        <a class="section-card home-video-section-card" href="<?=e(base_url('videos.php?id='.$video['id']))?>">
+          <span class="section-number"><?=str_pad((string)($i+1),2,'0',STR_PAD_LEFT)?></span>
+          <div class="section-card-image home-video-section-image" <?php if(!empty($video['cover_image'])):?>style="background-image:url('<?=e(base_url($video['cover_image']))?>')"<?php endif;?>>
+            <?php if(empty($video['cover_image'])):?>
+              <span class="home-video-fallback">
+                <i class="<?=($video['provider']??'')==='vk'?'fa-brands fa-vk':(($video['provider']??'')==='ok'?'fa-brands fa-odnoklassniki':'fa-solid fa-play')?>"></i>
+              </span>
+            <?php endif;?>
+            <span class="home-video-play"><i class="fa-solid fa-play"></i></span>
+          </div>
+          <div class="section-card-body home-video-section-body">
+            <small class="home-video-provider"><?=e(video_provider_label($video['provider']??null))?> · <?=e(ru_date($video['video_date']))?></small>
+            <strong><?=e($video['title'])?></strong>
+            <b>Смотреть видео →</b>
+          </div>
+        </a>
+      <?php endforeach;?>
+    </div>
+  <?php else:?>
+    <div class="documents-empty home-video-empty">
+      <span class="document-format-icon file"><i class="fa-solid fa-video"></i></span>
+      <div>
+        <strong>Видео пока не опубликованы</strong>
+        <p>После добавления материала в видеогалерею последние шесть видео появятся здесь автоматически.</p>
+      </div>
+    </div>
+  <?php endif;?>
 </section>
 
 <section class="heritage-feature">
