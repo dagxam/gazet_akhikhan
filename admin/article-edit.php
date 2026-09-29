@@ -24,9 +24,9 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     $categoryIds=array_values(array_unique(array_filter(array_map('intval',(array)($_POST['category_ids']??[])))));
 
     $newCategoryName=trim($_POST['new_category_name']??'');
-    $newCategoryDescription=trim($_POST['new_category_description']??'');
+    $newCategoryDescription=sanitize_rich_text($_POST['new_category_description']??'');
 
-    $excerpt=trim($_POST['excerpt']??'');
+    $excerpt=sanitize_rich_text($_POST['excerpt']??'');
     $locationRegion=trim($_POST['location_region']??'');
     $locationCity=trim($_POST['location_city']??'');
     if(function_exists('mb_substr')){
@@ -36,7 +36,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
       $locationRegion=substr($locationRegion,0,160);
       $locationCity=substr($locationCity,0,160);
     }
-    $content=trim($_POST['content']??'');
+    $content=sanitize_rich_text($_POST['content']??'');
     $status=in_array($_POST['status']??'draft',['draft','published'],true)?$_POST['status']:'draft';
     $featured=isset($_POST['is_featured'])?1:0;
     $publishedAt=trim($_POST['published_at']??'');
@@ -141,7 +141,7 @@ $currentPublished=!empty($article['published_at'])?date('Y-m-d\\TH:i',strtotime(
 
       <label class="field-modern">
         <span>Краткое описание</span>
-        <textarea name="excerpt" rows="4" maxlength="500" placeholder="2–3 предложения, которые кратко объясняют суть новости" data-excerpt-input><?=e($currentExcerpt)?></textarea>
+        <textarea name="excerpt" rows="4" data-rich-text placeholder="2–3 предложения, которые кратко объясняют суть новости" data-excerpt-input><?=e($currentExcerpt)?></textarea>
         <small><b data-excerpt-count><?=function_exists('mb_strlen')?mb_strlen($currentExcerpt,'UTF-8'):strlen($currentExcerpt)?></b>/500</small>
       </label>
     </section>
@@ -151,10 +151,7 @@ $currentPublished=!empty($article['published_at'])?date('Y-m-d\\TH:i',strtotime(
         <div><span class="section-number">02</span><h3>Текст новости</h3></div>
         <span class="section-help">Основной материал публикации</span>
       </div>
-      <div class="editor-toolbar" aria-hidden="true">
-        <span><b>B</b></span><span><i>I</i></span><span>H2</span><i class="toolbar-sep"></i><span>• Список</span><span>“ Цитата</span>
-      </div>
-      <textarea class="content-editor modern-content-editor" name="content" rows="22" placeholder="Начните писать текст новости..."><?=e($currentContent)?></textarea>
+      <textarea class="content-editor modern-content-editor" name="content" data-rich-text rows="22" placeholder="Начните писать текст новости..."><?=e($currentContent)?></textarea>
     </section>
 
     <section class="editor-card editor-card-link">
@@ -238,7 +235,7 @@ $currentPublished=!empty($article['published_at'])?date('Y-m-d\\TH:i',strtotime(
             <span class="category-check">✓</span>
             <span class="category-option-copy">
               <b><?=e($c['name'])?></b>
-              <?php if(!empty($c['description'])):?><small><?=e($c['description'])?></small><?php endif;?>
+              <?php if(!empty($c['description'])):?><small><?=e(rich_text_plain($c['description']))?></small><?php endif;?>
             </span>
           </label>
         <?php endforeach;?>
@@ -247,7 +244,7 @@ $currentPublished=!empty($article['published_at'])?date('Y-m-d\\TH:i',strtotime(
       <button class="secondary category-create-toggle" type="button" data-category-toggle>＋ Новая рубрика</button>
       <div class="category-create-box modern-category-create" data-category-create hidden>
         <label class="field-modern compact"><span>Название</span><input name="new_category_name" value="<?=e($_POST['new_category_name']??'')?>" placeholder="Например: Образование"></label>
-        <label class="field-modern compact"><span>Описание</span><textarea name="new_category_description" rows="3" placeholder="Необязательно"><?=e($_POST['new_category_description']??'')?></textarea></label>
+        <label class="field-modern compact"><span>Описание</span><textarea name="new_category_description" rows="3" data-rich-text placeholder="Необязательно"><?=e($_POST['new_category_description']??'')?></textarea></label>
         <p class="field-hint">Новая рубрика создастся и автоматически добавится к этой новости.</p>
       </div>
     </section>
