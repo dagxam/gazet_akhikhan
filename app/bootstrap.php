@@ -28,9 +28,11 @@ if (APP_INSTALLED) {
     ensure_documents_schema();
     ensure_main_menu_schema();
     ensure_homepage_right_blocks_schema();
+    ensure_right_blocks_area_schema();
     ensure_photo_gallery_schema();
     ensure_social_links_schema();
     ensure_video_gallery_schema();
+    ensure_static_pages_schema();
 
     $scriptName = str_replace('\\', '/', (string)($_SERVER['SCRIPT_NAME'] ?? ''));
     $scriptBase = basename($scriptName);
