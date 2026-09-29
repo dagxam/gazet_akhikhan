@@ -114,3 +114,27 @@ CREATE TABLE IF NOT EXISTS homepage_right_blocks (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_homepage_right_blocks_active_sort (is_active,sort_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+CREATE TABLE IF NOT EXISTS photo_albums (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  description TEXT NULL,
+  album_date DATE NOT NULL,
+  status ENUM('draft','published') NOT NULL DEFAULT 'published',
+  sort_order INT NOT NULL DEFAULT 100,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_photo_albums_status_date (status,album_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS photo_gallery_images (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  album_id INT UNSIGNED NOT NULL,
+  image_path VARCHAR(500) NOT NULL,
+  caption VARCHAR(500) NULL,
+  sort_order INT NOT NULL DEFAULT 100,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_photo_gallery_images_album_sort (album_id,sort_order,id),
+  CONSTRAINT fk_photo_gallery_images_album FOREIGN KEY (album_id) REFERENCES photo_albums(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
