@@ -51,7 +51,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
     $kicker=trim($_POST['kicker']??'');
     $title=trim($_POST['title']??'');
-    $body=trim($_POST['body']??'');
+    $body=sanitize_rich_text($_POST['body']??'');
     $linkText=trim($_POST['link_text']??'');
     $linkUrl=trim($_POST['link_url']??'');
     $style=in_array($_POST['style']??'light',['light','accent','dark'],true)?$_POST['style']:'light';
@@ -206,7 +206,7 @@ require __DIR__.'/_top.php';
 
       <label class="field-modern">
         <span>Текст</span>
-        <textarea name="body" rows="5" maxlength="1800" placeholder="Текст блока"><?=e($editing['body']??'')?></textarea>
+        <textarea name="body" rows="5" data-rich-text placeholder="Текст блока"><?=e($editing['body']??'')?></textarea>
       </label>
 
       <div class="right-block-form-row">
