@@ -100,3 +100,20 @@ CREATE TABLE IF NOT EXISTS main_menu_items (
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_main_menu_active_sort ON main_menu_items(is_active,sort_order);
+
+
+CREATE TABLE IF NOT EXISTS homepage_right_blocks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  kicker TEXT,
+  title TEXT NOT NULL,
+  body TEXT,
+  image TEXT,
+  link_text TEXT,
+  link_url TEXT,
+  style TEXT NOT NULL DEFAULT 'light' CHECK (style IN ('light','accent','dark')),
+  sort_order INTEGER NOT NULL DEFAULT 100,
+  is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0,1)),
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_homepage_right_blocks_active_sort ON homepage_right_blocks(is_active,sort_order);
