@@ -150,17 +150,24 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
 
       if(window.innerWidth<=900) return;
 
-      const maxVisibleItems=10;
+      // First measure the full menu with no overflow button.
+      if(menu.scrollWidth<=menu.clientWidth+1){
+        return;
+      }
 
-      while(menu.children.length>maxVisibleItems){
+      // The arrow itself takes space, so reveal it before moving items.
+      toggle.hidden=false;
+
+      let guard=0;
+      while(menu.scrollWidth>menu.clientWidth+1 && menu.children.length>1 && guard<100){
         panel.insertBefore(menu.lastElementChild,panel.firstChild);
+        guard++;
       }
 
       if(panel.children.length===0){
         toggle.hidden=true;
       }else{
-        toggle.hidden=false;
-        toggle.title='Ещё '+panel.children.length+' пунктов меню';
+        toggle.title='Дополнительные пункты: '+panel.children.length;
       }
     });
   }
