@@ -2,7 +2,8 @@
 require __DIR__ . '/app/bootstrap.php';
 if (!APP_INSTALLED) { header('Location: install.php'); exit; }
 $pageTitle='О редакции';
-$pageDescription='О сетевом издании «АХИХЪАН» Унцукульского района.';
+$pageDescription='О сетевом издании «АХИХЪАН» Унцукульского района Республики Дагестан: тематика издания, редакционные принципы и связь с регионом.';
+$seoCanonical=base_url('about.php');
 require __DIR__.'/partials/header.php';
 ?>
 <div class="wrap page-shell">
