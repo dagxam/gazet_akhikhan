@@ -8,6 +8,8 @@ $page=static_page_by_slug($slug,true);
 if(!$page){
   http_response_code(404);
   $pageTitle='Страница не найдена';
+  $pageDescription='Запрошенная страница не найдена.';
+  $seoRobots='noindex,nofollow,noarchive';
   require __DIR__.'/partials/header.php';
   ?>
   <div class="wrap page-shell static-public-shell">
@@ -25,7 +27,19 @@ if(!$page){
 
 $pageBlocks=page_right_blocks(true);
 $pageTitle=$page['title'];
-$pageDescription=rich_text_excerpt($page['excerpt']??'',260);
+$pageDescription=rich_text_excerpt($page['excerpt']??'',260)
+  ?: rich_text_excerpt($page['content']??'',260)
+  ?: 'Страница сетевого издания «АХИХЪАН».';
+$seoCanonical=static_page_url($page);
+$seoImage=!empty($page['cover_image']) ? (string)$page['cover_image'] : 'assets/img/akhikhan-logo-hq.webp';
+$seoJsonLd=[[
+  '@context'=>'https://schema.org',
+  '@type'=>'BreadcrumbList',
+  'itemListElement'=>[
+    ['@type'=>'ListItem','position'=>1,'name'=>'Главная','item'=>base_url()],
+    ['@type'=>'ListItem','position'=>2,'name'=>(string)$page['title'],'item'=>$seoCanonical],
+  ],
+]];
 require __DIR__.'/partials/header.php';
 ?>
 
