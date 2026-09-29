@@ -5558,3 +5558,76 @@ h1,h2,h3,h4{
     height:40px;
   }
 }
+
+
+/* subtle Unzukul navigation ornament v1 */
+.reference-header{
+  position:sticky;
+  overflow:visible;
+  isolation:isolate;
+  background:#fff;
+}
+.reference-header:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background-image:url('../img/nav-ornament.webp');
+  background-repeat:repeat-x;
+  background-position:center center;
+  background-size:auto 84px;
+  opacity:.055;
+  filter:saturate(.82) contrast(.9);
+}
+.reference-header:after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  height:1px;
+  z-index:1;
+  pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(143,95,52,.23) 18%,rgba(143,95,52,.23) 82%,transparent);
+}
+.reference-header-inner{
+  position:relative;
+  z-index:2;
+}
+.reference-logo{
+  position:relative;
+}
+.reference-logo:after{
+  content:"";
+  position:absolute;
+  inset:-10px -14px;
+  z-index:-1;
+  border-radius:16px;
+  background:radial-gradient(ellipse at center,rgba(255,255,255,.98) 24%,rgba(255,255,255,.82) 62%,rgba(255,255,255,0) 78%);
+  pointer-events:none;
+}
+.reference-site-menu>a{
+  text-shadow:0 1px 0 rgba(255,255,255,.96);
+}
+.reference-site-menu>a:hover{
+  background:rgba(255,255,255,.38)!important;
+}
+.reference-overflow-toggle{
+  position:relative;
+  background:rgba(255,255,255,.74)!important;
+  backdrop-filter:blur(2px);
+}
+
+@media(max-width:900px){
+  .reference-header:before{
+    background-size:auto 66px;
+    opacity:.04;
+  }
+  .reference-logo:after{
+    inset:-8px -11px;
+  }
+}
+@media(prefers-reduced-transparency:reduce){
+  .reference-header:before{opacity:.035}
+}
