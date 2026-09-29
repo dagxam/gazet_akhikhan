@@ -11,6 +11,10 @@ RewriteRule ^(app|setup|partials|storage)/ - [F,L]
 # Uploaded media must never be executable as server-side code.
 RewriteRule ^uploads/.*\.(php[0-9]?|phtml|phar|cgi|pl|py|sh|shtml)$ - [F,L,NC]
 
+# Public machine-readable discovery endpoints.
+RewriteRule ^sitemap\.xml$ sitemap.php [L]
+RewriteRule ^news-sitemap\.xml$ news-sitemap.php [L]
+
 RewriteRule ^article/([A-Za-z0-9-]+)/?$ article.php?slug=$1 [L,QSA]
 RewriteRule ^category/([A-Za-z0-9-]+)/?$ category.php?slug=$1 [L,QSA]
 RewriteRule ^page/([A-Za-z0-9-]+)/?$ page.php?slug=$1 [L,QSA]
