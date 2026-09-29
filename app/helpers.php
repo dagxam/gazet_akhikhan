@@ -1201,3 +1201,224 @@ function social_links(bool $activeOnly = true): array
     $sql .= ' ORDER BY sort_order,id';
     return db()->query($sql)->fetchAll();
 }
+
+
+function ensure_video_gallery_schema(): void
+{
+    if (!APP_INSTALLED) return;
+    if (setting('schema_video_gallery_v1','') === '1') return;
+
+    $pdo=db();
+    $driver=(string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+    if($driver==='sqlite'){
+        $pdo->exec("CREATE TABLE IF NOT EXISTS video_gallery (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            description TEXT,
+            video_date TEXT NOT NULL,
+            source_type TEXT NOT NULL DEFAULT 'external' CHECK (source_type IN ('external','local')),
+            provider TEXT CHECK (provider IN ('vk','rutube','ok','local')),
+            source_url TEXT,
+            video_file TEXT,
+            cover_image TEXT,
+            status TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('draft','published')),
+            sort_order INTEGER NOT NULL DEFAULT 100,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )");
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_video_gallery_status_date ON video_gallery(status,video_date,sort_order,id)');
+    }else{
+        $pdo->exec("CREATE TABLE IF NOT EXISTS video_gallery (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            description TEXT NULL,
+            video_date DATE NOT NULL,
+            source_type ENUM('external','local') NOT NULL DEFAULT 'external',
+            provider ENUM('vk','rutube','ok','local') NULL,
+            source_url VARCHAR(1000) NULL,
+            video_file VARCHAR(500) NULL,
+            cover_image VARCHAR(500) NULL,
+            status ENUM('draft','published') NOT NULL DEFAULT 'published',
+            sort_order INT NOT NULL DEFAULT 100,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_video_gallery_status_date (status,video_date,sort_order,id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    }
+
+    // Existing public "Видео" menu item should open the new video gallery.
+    try{
+        $q=$pdo->prepare("UPDATE main_menu_items SET url='videos.php' WHERE label='Видео'");
+        $q->execute();
+        if($q->rowCount()===0){
+            $check=$pdo->prepare("SELECT COUNT(*) FROM main_menu_items WHERE label='Видео'");
+            $check->execute();
+            if((int)$check->fetchColumn()===0){
+                $insert=$pdo->prepare("INSERT INTO main_menu_items(label,url,sort_order,is_active,open_new_tab) VALUES('Видео','videos.php',100,1,0)");
+                $insert->execute();
+            }
+        }
+    }catch(Throwable $e){}
+
+    save_setting('schema_video_gallery_v1','1');
+}
+
+function video_gallery_items(bool $publishedOnly = true): array
+{
+    if(!APP_INSTALLED) return [];
+    $sql='SELECT * FROM video_gallery';
+    if($publishedOnly) $sql .= " WHERE status='published'";
+    $sql .= ' ORDER BY video_date DESC,sort_order,id DESC';
+    return db()->query($sql)->fetchAll();
+}
+
+function video_gallery_item(int $id, bool $publishedOnly = false): ?array
+{
+    if(!APP_INSTALLED || $id<1) return null;
+    $sql='SELECT * FROM video_gallery WHERE id=?';
+    if($publishedOnly) $sql .= " AND status='published'";
+    $sql .= ' LIMIT 1';
+    $q=db()->prepare($sql);
+    $q->execute([$id]);
+    $row=$q->fetch();
+    return $row ?: null;
+}
+
+function detect_video_provider(string $url): ?string
+{
+    $host=strtolower((string)(parse_url(trim($url),PHP_URL_HOST) ?? ''));
+    $host=preg_replace('~^www\.~','',$host) ?? $host;
+    if($host==='vk.com' || str_ends_with($host,'.vk.com') || $host==='vkvideo.ru' || str_ends_with($host,'.vkvideo.ru')) return 'vk';
+    if($host==='rutube.ru' || str_ends_with($host,'.rutube.ru')) return 'rutube';
+    if($host==='ok.ru' || str_ends_with($host,'.ok.ru')) return 'ok';
+    return null;
+}
+
+function normalize_video_source_url(string $url): array
+{
+    $url=trim($url);
+    if($url==='' || !filter_var($url,FILTER_VALIDATE_URL)){
+        throw new RuntimeException('Укажите корректную ссылку на видео.');
+    }
+
+    $provider=detect_video_provider($url);
+    if(!$provider){
+        throw new RuntimeException('Разрешены только ссылки VK, Rutube и Одноклассники.');
+    }
+
+    return [$provider,$url];
+}
+
+function video_embed_url(array $video): string
+{
+    if(($video['source_type']??'')!=='external') return '';
+
+    $url=trim((string)($video['source_url']??''));
+    $provider=(string)($video['provider']??detect_video_provider($url)??'');
+
+    if($provider==='rutube'){
+        if(preg_match('~rutube\.ru/(?:video|shorts)/([a-zA-Z0-9_-]+)~i',$url,$m)){
+            return 'https://rutube.ru/play/embed/'.$m[1];
+        }
+        if(preg_match('~rutube\.ru/play/embed/([a-zA-Z0-9_-]+)~i',$url,$m)){
+            return 'https://rutube.ru/play/embed/'.$m[1];
+        }
+    }
+
+    if($provider==='ok'){
+        if(preg_match('~ok\.ru/(?:video|videoembed)/(\d+)~i',$url,$m)){
+            return 'https://ok.ru/videoembed/'.$m[1];
+        }
+    }
+
+    if($provider==='vk'){
+        $decoded=urldecode($url);
+        if(preg_match('~video(-?\d+)_(\d+)~i',$decoded,$m)){
+            return 'https://vk.com/video_ext.php?oid='.$m[1].'&id='.$m[2].'&hd=2';
+        }
+        if(str_contains($url,'video_ext.php')){
+            return $url;
+        }
+    }
+
+    return '';
+}
+
+function video_provider_label(?string $provider): string
+{
+    return match($provider){
+        'vk'=>'VK',
+        'rutube'=>'Rutube',
+        'ok'=>'Одноклассники',
+        'local'=>'Видео',
+        default=>'Видео',
+    };
+}
+
+function handle_video_upload(array $file, ?string $oldPath = null): ?string
+{
+    if(($file['error']??UPLOAD_ERR_NO_FILE)===UPLOAD_ERR_NO_FILE) return $oldPath;
+
+    $error=(int)($file['error']??UPLOAD_ERR_OK);
+    if($error===UPLOAD_ERR_INI_SIZE || $error===UPLOAD_ERR_FORM_SIZE){
+        throw new RuntimeException('Видеофайл превышает ограничение загрузки сервера.');
+    }
+    if($error!==UPLOAD_ERR_OK){
+        throw new RuntimeException('Ошибка загрузки видеофайла.');
+    }
+
+    $size=(int)($file['size']??0);
+    if($size<=0 || $size>300*1024*1024){
+        throw new RuntimeException('Размер видео должен быть не более 300 МБ.');
+    }
+
+    $tmp=(string)($file['tmp_name']??'');
+    $original=(string)($file['name']??'video');
+    $ext=strtolower(pathinfo($original,PATHINFO_EXTENSION));
+
+    $finfo=new finfo(FILEINFO_MIME_TYPE);
+    $mime=(string)$finfo->file($tmp);
+    $allowed=[
+        'video/mp4'=>'mp4',
+        'video/webm'=>'webm',
+        'video/ogg'=>'ogv',
+        'video/quicktime'=>'mov',
+        'video/x-m4v'=>'m4v',
+    ];
+
+    if(!isset($allowed[$mime]) || !in_array($ext,['mp4','webm','ogv','ogg','mov','m4v'],true)){
+        throw new RuntimeException('Разрешены видео MP4, WEBM, OGV/OGG, MOV и M4V.');
+    }
+
+    $folder='uploads/videos/'.date('Y/m');
+    $dir=ROOT_PATH.'/'.$folder;
+    if(!is_dir($dir) && !mkdir($dir,0775,true) && !is_dir($dir)){
+        throw new RuntimeException('Не удалось создать папку для видео.');
+    }
+
+    $finalExt=$allowed[$mime];
+    $name=bin2hex(random_bytes(12)).'.'.$finalExt;
+    $relative=$folder.'/'.$name;
+
+    if(!move_uploaded_file($tmp,ROOT_PATH.'/'.$relative)){
+        throw new RuntimeException('Не удалось сохранить видеофайл.');
+    }
+
+    if($oldPath && $oldPath!==$relative) safe_delete_video_upload($oldPath);
+    return $relative;
+}
+
+function safe_delete_video_upload(?string $relativePath): void
+{
+    if(!$relativePath || !str_starts_with($relativePath,'uploads/videos/')) return;
+    $full=ROOT_PATH.'/'.ltrim($relativePath,'/');
+    if(is_file($full)) @unlink($full);
+}
+
+function safe_delete_video_cover(?string $relativePath): void
+{
+    if(!$relativePath || !str_starts_with($relativePath,'uploads/')) return;
+    $full=ROOT_PATH.'/'.ltrim($relativePath,'/');
+    if(is_file($full)) @unlink($full);
+}
