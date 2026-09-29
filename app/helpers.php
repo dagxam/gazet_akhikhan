@@ -19,7 +19,8 @@ function sanitize_rich_text(?string $html): string
     }
 
     if(!class_exists('DOMDocument')){
-        return strip_tags($html,'<p><br><strong><b><em><i><u><s><strike><ul><ol><li><blockquote><h2><h3><h4><a><span><font><div>');
+        // Safe fallback: formatting is discarded rather than trusting unsanitized attributes.
+        return rich_text_plain($html);
     }
 
     $allowedTags=['p','br','strong','b','em','i','u','s','strike','ul','ol','li','blockquote','h2','h3','h4','a','span','font','div'];
@@ -28,12 +29,12 @@ function sanitize_rich_text(?string $html): string
 
     $doc=new DOMDocument('1.0','UTF-8');
     libxml_use_internal_errors(true);
-    $wrapped='<!doctype html><html><body><div id="rich-root">'.mb_convert_encoding($html,'HTML-ENTITIES','UTF-8').'</div></body></html>';
+    $wrapped='<!doctype html><html><head><meta charset="utf-8"></head><body><div id="rich-root">'.$html.'</div></body></html>';
     $doc->loadHTML($wrapped,LIBXML_HTML_NOIMPLIED|LIBXML_HTML_NODEFDTD);
     libxml_clear_errors();
 
     $root=$doc->getElementById('rich-root');
-    if(!$root) return e(rich_text_plain($html));
+    if(!$root) return rich_text_plain($html);
 
     $cleanStyle=function(string $style) use ($allowedFonts): string {
         $out=[];
