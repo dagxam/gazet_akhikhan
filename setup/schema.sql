@@ -151,3 +151,21 @@ CREATE TABLE IF NOT EXISTS social_links (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_social_links_active_sort (is_active,sort_order,id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+CREATE TABLE IF NOT EXISTS video_gallery (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  description TEXT NULL,
+  video_date DATE NOT NULL,
+  source_type ENUM('external','local') NOT NULL DEFAULT 'external',
+  provider ENUM('vk','rutube','ok','local') NULL,
+  source_url VARCHAR(1000) NULL,
+  video_file VARCHAR(500) NULL,
+  cover_image VARCHAR(500) NULL,
+  status ENUM('draft','published') NOT NULL DEFAULT 'published',
+  sort_order INT NOT NULL DEFAULT 100,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_video_gallery_status_date (status,video_date,sort_order,id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
