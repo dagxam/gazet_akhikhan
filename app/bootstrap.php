@@ -30,6 +30,7 @@ if (APP_INSTALLED) {
     ensure_homepage_right_blocks_schema();
     ensure_photo_gallery_schema();
     ensure_social_links_schema();
+    ensure_video_gallery_schema();
 
     $scriptName = str_replace('\\', '/', (string)($_SERVER['SCRIPT_NAME'] ?? ''));
     $scriptBase = basename($scriptName);
