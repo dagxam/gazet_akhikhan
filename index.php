@@ -116,15 +116,6 @@ require __DIR__ . '/partials/header.php';
       $lead = $districtNews[0];
       $secondary = array_slice($districtNews,1,4);
     ?>
-      <article class="news-feature">
-        <a class="news-image large" href="<?=e(article_url($lead))?>" style="<?=!empty($lead['cover_image']) ? "background-image:url('".e(base_url($lead['cover_image']))."')" : ''?>"></a>
-        <div class="news-feature-body">
-          <div class="article-label">Новости района</div>
-          <h3><a href="<?=e(article_url($lead))?>"><?=e($lead['title'])?></a></h3>
-          <?php if(!empty($lead['excerpt'])):?><p><?=e($lead['excerpt'])?></p><?php endif;?>
-          <div class="article-meta"><span><?=e(ru_date($lead['published_at'] ?: $lead['created_at']))?></span><span>◉ <?=number_format((int)$lead['views'],0,'.',' ')?></span></div>
-        </div>
-      </article>
       <div class="news-stack">
         <?php foreach($secondary as $item): ?>
           <article class="news-row">
@@ -137,6 +128,15 @@ require __DIR__ . '/partials/header.php';
           </article>
         <?php endforeach; ?>
       </div>
+      <article class="news-feature">
+        <a class="news-image large" href="<?=e(article_url($lead))?>" style="<?=!empty($lead['cover_image']) ? "background-image:url('".e(base_url($lead['cover_image']))."')" : ''?>"></a>
+        <div class="news-feature-body">
+          <div class="article-label">Новости района</div>
+          <h3><a href="<?=e(article_url($lead))?>"><?=e($lead['title'])?></a></h3>
+          <?php if(!empty($lead['excerpt'])):?><p><?=e($lead['excerpt'])?></p><?php endif;?>
+          <div class="article-meta"><span><?=e(ru_date($lead['published_at'] ?: $lead['created_at']))?></span><span>◉ <?=number_format((int)$lead['views'],0,'.',' ')?></span></div>
+        </div>
+      </article>
     <?php else: ?>
       <div class="district-news-empty">
         <span class="heading-kicker">Новости района</span>
