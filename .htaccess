@@ -6,6 +6,7 @@ RewriteRule ^(app|setup|partials|storage)/ - [F,L]
 
 RewriteRule ^article/([A-Za-z0-9-]+)/?$ article.php?slug=$1 [L,QSA]
 RewriteRule ^category/([A-Za-z0-9-]+)/?$ category.php?slug=$1 [L,QSA]
+RewriteRule ^page/([A-Za-z0-9-]+)/?$ page.php?slug=$1 [L,QSA]
 
 <FilesMatch "^(config\.php|config\.example\.php|README\.md)$">
   Require all denied
