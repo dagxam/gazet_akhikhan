@@ -9,6 +9,7 @@ if($albumId && !$album){
   http_response_code(404);
   $pageTitle='Фотоальбом не найден';
   $pageDescription='Запрошенный фотоальбом не найден.';
+  $seoRobots='noindex,nofollow,noarchive';
   require __DIR__.'/partials/header.php';
   ?>
   <div class="wrap gallery-page-shell">
@@ -31,6 +32,7 @@ $pageTitle=$album ? $album['title'] : 'Фотогалерея';
 $pageDescription=$album
   ? (rich_text_excerpt($album['description'],260) ?: 'Фотоальбом «'.$album['title'].'» — АХИХЪАН.')
   : 'Фотогалерея сетевого издания АХИХЪАН: события, люди и жизнь Унцукульского района.';
+$seoCanonical=$album ? base_url('gallery.php?album='.(int)$album['id']) : base_url('gallery.php');
 
 require __DIR__.'/partials/header.php';
 ?>
