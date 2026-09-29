@@ -1725,3 +1725,37 @@ function sync_static_page_menu(int $pageId, string $title, string $slug, bool $a
 
     return $menuId;
 }
+
+
+function ensure_article_location_schema(): void
+{
+    if(!APP_INSTALLED) return;
+    if(setting('schema_article_location_v1','')==='1') return;
+
+    $pdo=db();
+    $driver=(string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+    if($driver==='sqlite'){
+        $cols=$pdo->query("PRAGMA table_info(articles)")->fetchAll();
+        $names=[];
+        foreach($cols as $col) $names[(string)($col['name']??'')]=true;
+
+        if(!isset($names['location_region'])){
+            $pdo->exec("ALTER TABLE articles ADD COLUMN location_region TEXT NULL");
+        }
+        if(!isset($names['location_city'])){
+            $pdo->exec("ALTER TABLE articles ADD COLUMN location_city TEXT NULL");
+        }
+    }else{
+        $q=$pdo->query("SHOW COLUMNS FROM articles LIKE 'location_region'");
+        if(!$q->fetch()){
+            $pdo->exec("ALTER TABLE articles ADD COLUMN location_region VARCHAR(160) NULL AFTER excerpt");
+        }
+        $q=$pdo->query("SHOW COLUMNS FROM articles LIKE 'location_city'");
+        if(!$q->fetch()){
+            $pdo->exec("ALTER TABLE articles ADD COLUMN location_city VARCHAR(160) NULL AFTER location_region");
+        }
+    }
+
+    save_setting('schema_article_location_v1','1');
+}
