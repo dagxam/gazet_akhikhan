@@ -16,7 +16,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
       $name=trim($_POST['name']??'');
       if(!$name) throw new RuntimeException('Введите название рубрики.');
       $slug=trim($_POST['slug']??'') ?: slugify($name);
-      $description=trim($_POST['description']??'');
+      $description=sanitize_rich_text($_POST['description']??'');
       $sort=(int)($_POST['sort_order']??100);
 
       $check=db()->prepare('SELECT id FROM categories WHERE name=? OR slug=? LIMIT 1');
@@ -46,7 +46,7 @@ require __DIR__.'/_top.php';
     <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
     <label>Название<input name="name" required placeholder="Например: Образование"></label>
     <label>URL-адрес<input name="slug" placeholder="создастся автоматически"></label>
-    <label>Описание<textarea name="description" rows="4" placeholder="Кратко о содержании рубрики"></textarea></label>
+    <label>Описание<textarea name="description" rows="4" data-rich-text placeholder="Кратко о содержании рубрики"></textarea></label>
     <label>Порядок<input type="number" name="sort_order" value="100"></label>
     <button class="primary">Добавить рубрику</button>
   </form>
@@ -55,7 +55,7 @@ require __DIR__.'/_top.php';
   <div class="card-head"><div><h2>Существующие рубрики</h2><p class="admin-intro">Базовые рубрики добавляются автоматически и не дублируются.</p></div></div>
   <div class="table-scroll"><table><thead><tr><th>Рубрика</th><th>Материалов</th><th></th></tr></thead><tbody>
   <?php foreach($rows as $r):?><tr>
-    <td><strong><?=e($r['name'])?></strong><small>/<?=e($r['slug'])?><?php if(!empty($r['description'])):?> · <?=e($r['description'])?><?php endif;?></small></td>
+    <td><strong><?=e($r['name'])?></strong><small>/<?=e($r['slug'])?><?php if(!empty($r['description'])):?> · <?=e(rich_text_plain($r['description']))?><?php endif;?></small></td>
     <td><?=$r['article_count']?></td>
     <td><?php if((int)$r['article_count']===0):?><form method="post" onsubmit="return confirm('Удалить рубрику?')"><input type="hidden" name="csrf" value="<?=e(csrf_token())?>"><input type="hidden" name="delete_id" value="<?=$r['id']?>"><button class="danger">Удалить</button></form><?php endif;?></td>
   </tr><?php endforeach;?>
