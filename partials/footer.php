@@ -1,5 +1,10 @@
 </main>
-<?php $siteFooterLogo = branding_asset('site_footer_logo','assets/img/akhikhan-logo-hq.webp'); ?>
+<?php
+$siteFooterLogo = branding_asset('site_footer_logo','assets/img/akhikhan-logo-hq.webp');
+$footerVk = trim(setting('topbar_vk_url',''));
+$footerOk = trim(setting('topbar_ok_url',''));
+$footerEmail = trim(setting('topbar_email',''));
+?>
 
 <section class="heritage-band">
   <div class="wrap heritage-inner">
@@ -44,10 +49,9 @@
     <div class="footer-contact">
       <span class="footer-contact-label">Мы в социальных сетях</span>
       <div class="footer-socials socials">
-        <a href="#" aria-label="Telegram">TG</a>
-        <a href="#" aria-label="VK">VK</a>
-        <a href="#" aria-label="YouTube">YT</a>
-        <a href="#" aria-label="Instagram">IG</a>
+        <?php if($footerVk!==''):?><a href="<?=e($footerVk)?>" target="_blank" rel="noopener" aria-label="VK">VK</a><?php endif;?>
+        <?php if($footerOk!==''):?><a href="<?=e($footerOk)?>" target="_blank" rel="noopener" aria-label="Одноклассники">OK</a><?php endif;?>
+        <?php if($footerEmail!==''):?><a href="mailto:<?=e($footerEmail)?>" aria-label="Почта">✉</a><?php endif;?>
       </div>
       <a class="footer-contact-link" href="<?=e(base_url('contacts.php'))?>">Связаться с редакцией →</a>
     </div>
@@ -62,7 +66,7 @@
   </div>
 </footer>
 
-<script src="<?=e(base_url('assets/js/app.js?v=20260929-reference-header1'))?>"></script>
+<script src="<?=e(base_url('assets/js/app.js?v=20260929-topbar1'))?>"></script>
 </div>
 </body>
 </html>
