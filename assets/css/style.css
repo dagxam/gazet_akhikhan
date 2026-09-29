@@ -5711,3 +5711,28 @@ h1,h2,h3,h4{
 .rich-text font[face="Rubik"],.rich-text [style*="Rubik"]{font-family:Rubik,sans-serif!important}
 .rich-text font[face="Noto Sans"],.rich-text [style*="Noto Sans"]{font-family:"Noto Sans",sans-serif!important}
 .rich-text font[face="Noto Serif"],.rich-text [style*="Noto Serif"]{font-family:"Noto Serif",serif!important}
+
+.rich-text font[size="1"]{font-size:.72em}
+.rich-text font[size="2"]{font-size:.86em}
+.rich-text font[size="3"]{font-size:1em}
+.rich-text font[size="4"]{font-size:1.18em}
+.rich-text font[size="5"]{font-size:1.42em}
+.rich-text font[size="6"]{font-size:1.72em}
+.rich-text font[size="7"]{font-size:2em}
+.right-feature-body.rich-text{
+  margin-top:10px;
+  font-size:11px;
+  line-height:1.58;
+}
+.right-feature-body.rich-text p{margin:0 0 .75em}
+.video-description.rich-text{
+  margin-top:18px;
+  color:#6f665d;
+  font:500 12px/1.65 var(--sans);
+}
+.gallery-album-description.rich-text{
+  margin-top:12px;
+  color:#746a61;
+  font-size:13px;
+  line-height:1.6;
+}
