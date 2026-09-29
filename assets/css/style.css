@@ -4366,3 +4366,50 @@ h1,h2,h3,h4{
     top:32px;
   }
 }
+
+
+/* managed Font Awesome social icons v2 */
+.topbar-region>i,
+.topbar-weather>i,
+.topbar-admin-login>i{
+  width:14px;
+  flex:0 0 auto;
+  text-align:center;
+  font-size:12px;
+  color:#9b744d;
+}
+.topbar-weather>i{color:#ad8151}
+.topbar-socials>a{
+  font-size:12px;
+}
+.topbar-socials>a i{
+  line-height:1;
+}
+.topbar-socials>a[aria-label*="ВКонтакте"]{color:#2787f5}
+.topbar-socials>a[aria-label*="Одноклассники"]{color:#ee8208}
+.topbar-socials>a[aria-label*="MAX"]{color:#6d5dfc}
+.topbar-socials>a[aria-label*="Telegram"]{color:#229ed9}
+.topbar-socials>a[aria-label*="Дзен"]{color:#111}
+.topbar-socials>a[aria-label*="Rutube"]{color:#171717}
+.footer-socials a{
+  display:grid;
+  place-items:center;
+  font-size:15px;
+}
+.footer-socials a i{line-height:1}
+.settings-socials-link{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding:14px;
+  border:1px solid #e2d8cd;
+  border-radius:12px;
+  background:#faf7f2;
+}
+.settings-socials-link b{display:block;font-size:12px}
+.settings-socials-link span{display:block;margin-top:4px;color:#897e72;font-size:10px;line-height:1.45}
+.settings-socials-link a{flex:0 0 auto;color:#755334;font-size:10px;font-weight:800}
+@media(max-width:650px){
+  .settings-socials-link{align-items:flex-start;flex-direction:column}
+}
