@@ -938,3 +938,157 @@ function homepage_right_block_href(?string $url): string
     if(str_starts_with($url,'#')) return $url;
     return base_url(ltrim($url,'/'));
 }
+
+
+function ensure_photo_gallery_schema(): void
+{
+    if (!APP_INSTALLED) return;
+    if (setting('schema_photo_gallery_v1', '') === '1') return;
+
+    $pdo = db();
+    $driver = (string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+    if ($driver === 'sqlite') {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS photo_albums (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            description TEXT,
+            album_date TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('draft','published')),
+            sort_order INTEGER NOT NULL DEFAULT 100,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )");
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_photo_albums_status_date ON photo_albums(status,album_date)');
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS photo_gallery_images (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            album_id INTEGER NOT NULL,
+            image_path TEXT NOT NULL,
+            caption TEXT,
+            sort_order INTEGER NOT NULL DEFAULT 100,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (album_id) REFERENCES photo_albums(id) ON DELETE CASCADE
+        )");
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_photo_gallery_images_album_sort ON photo_gallery_images(album_id,sort_order,id)');
+    } else {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS photo_albums (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            description TEXT NULL,
+            album_date DATE NOT NULL,
+            status ENUM('draft','published') NOT NULL DEFAULT 'published',
+            sort_order INT NOT NULL DEFAULT 100,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_photo_albums_status_date (status,album_date)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS photo_gallery_images (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            album_id INT UNSIGNED NOT NULL,
+            image_path VARCHAR(500) NOT NULL,
+            caption VARCHAR(500) NULL,
+            sort_order INT NOT NULL DEFAULT 100,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_photo_gallery_images_album_sort (album_id,sort_order,id),
+            CONSTRAINT fk_photo_gallery_images_album FOREIGN KEY (album_id) REFERENCES photo_albums(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    }
+
+    // The public "Фото" navigation item should open the gallery page.
+    try {
+        $q=$pdo->prepare("UPDATE main_menu_items SET url='gallery.php' WHERE label='Фото'");
+        $q->execute();
+        if($q->rowCount()===0){
+            $check=$pdo->prepare("SELECT COUNT(*) FROM main_menu_items WHERE label='Фото'");
+            $check->execute();
+            if((int)$check->fetchColumn()===0){
+                $insert=$pdo->prepare("INSERT INTO main_menu_items(label,url,sort_order,is_active,open_new_tab) VALUES('Фото','gallery.php',90,1,0)");
+                $insert->execute();
+            }
+        }
+    } catch (Throwable $e) {}
+
+    save_setting('schema_photo_gallery_v1', '1');
+}
+
+function photo_albums(bool $publishedOnly = true): array
+{
+    if (!APP_INSTALLED) return [];
+
+    $sql = "SELECT a.*,
+        (SELECT COUNT(*) FROM photo_gallery_images p WHERE p.album_id=a.id) AS photo_count,
+        (SELECT p.image_path FROM photo_gallery_images p WHERE p.album_id=a.id ORDER BY p.sort_order,p.id LIMIT 1) AS cover_image
+        FROM photo_albums a";
+
+    if($publishedOnly) $sql .= " WHERE a.status='published'";
+    $sql .= " ORDER BY a.album_date DESC,a.sort_order,a.id DESC";
+
+    return db()->query($sql)->fetchAll();
+}
+
+function photo_album(int $id, bool $publishedOnly = false): ?array
+{
+    if (!APP_INSTALLED || $id < 1) return null;
+
+    $sql = "SELECT a.*,
+        (SELECT COUNT(*) FROM photo_gallery_images p WHERE p.album_id=a.id) AS photo_count,
+        (SELECT p.image_path FROM photo_gallery_images p WHERE p.album_id=a.id ORDER BY p.sort_order,p.id LIMIT 1) AS cover_image
+        FROM photo_albums a WHERE a.id=?";
+    if($publishedOnly) $sql .= " AND a.status='published'";
+    $sql .= " LIMIT 1";
+
+    $q=db()->prepare($sql);
+    $q->execute([$id]);
+    $row=$q->fetch();
+    return $row ?: null;
+}
+
+function photo_album_images(int $albumId, int $limit = 0): array
+{
+    if (!APP_INSTALLED || $albumId < 1) return [];
+
+    $sql='SELECT * FROM photo_gallery_images WHERE album_id=? ORDER BY sort_order,id';
+    if($limit > 0) $sql .= ' LIMIT '.max(1,$limit);
+
+    $q=db()->prepare($sql);
+    $q->execute([$albumId]);
+    return $q->fetchAll();
+}
+
+function latest_gallery_photos(int $limit = 6): array
+{
+    if (!APP_INSTALLED) return [];
+
+    $limit=max(1,$limit);
+    $sql="SELECT p.*,a.title AS album_title,a.album_date
+          FROM photo_gallery_images p
+          INNER JOIN photo_albums a ON a.id=p.album_id
+          WHERE a.status='published'
+          ORDER BY a.album_date DESC,a.id DESC,p.sort_order,p.id
+          LIMIT ".$limit;
+
+    return db()->query($sql)->fetchAll();
+}
+
+function latest_gallery_album(): ?array
+{
+    if (!APP_INSTALLED) return null;
+    $q=db()->query("SELECT a.*,
+        (SELECT COUNT(*) FROM photo_gallery_images p WHERE p.album_id=a.id) AS photo_count,
+        (SELECT p.image_path FROM photo_gallery_images p WHERE p.album_id=a.id ORDER BY p.sort_order,p.id LIMIT 1) AS cover_image
+        FROM photo_albums a
+        WHERE a.status='published'
+        ORDER BY a.album_date DESC,a.sort_order,a.id DESC
+        LIMIT 1");
+    $row=$q->fetch();
+    return $row ?: null;
+}
+
+function safe_delete_gallery_image(?string $relativePath): void
+{
+    if (!$relativePath || !str_starts_with($relativePath, 'uploads/')) return;
+    $full=ROOT_PATH.'/'.ltrim($relativePath,'/');
+    if(is_file($full)) @unlink($full);
+}
