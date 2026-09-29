@@ -30,7 +30,9 @@ $demoNews = [
 ];
 
 $pageTitle = '';
-$pageDescription = 'АХИХЪАН — сетевое издание Унцукульского района Республики Дагестан.';
+$pageDescription = 'АХИХЪАН — сетевое издание Унцукульского района Республики Дагестан. Новости района, общество, культура, спорт, история и люди.';
+$seoCanonical = base_url();
+$seoImage = !empty($hero['cover_image']) ? (string)$hero['cover_image'] : 'assets/img/akhikhan-logo-hq.webp';
 require __DIR__ . '/partials/header.php';
 ?>
 
