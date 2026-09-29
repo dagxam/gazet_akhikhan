@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS articles (
   title TEXT NOT NULL,
   slug TEXT NOT NULL UNIQUE,
   excerpt TEXT,
+  location_region TEXT,
+  location_city TEXT,
   content TEXT NOT NULL,
   cover_image TEXT,
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','published')),
