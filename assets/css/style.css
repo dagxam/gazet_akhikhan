@@ -4413,3 +4413,195 @@ h1,h2,h3,h4{
 @media(max-width:650px){
   .settings-socials-link{align-items:flex-start;flex-direction:column}
 }
+
+
+/* district magazine reference layout v2 */
+.district-magazine-style{
+  padding-top:34px;
+  padding-bottom:8px;
+}
+.district-magazine-heading{
+  margin-bottom:22px;
+  padding-bottom:15px;
+  border-bottom:1px solid #ece8e3;
+}
+.district-magazine-heading h2{
+  font-size:31px;
+  letter-spacing:-.025em;
+}
+.district-magazine-heading>a{
+  color:#7b5a3f;
+  font:800 9px/1 var(--sans);
+  text-transform:uppercase;
+  letter-spacing:.055em;
+}
+.district-magazine-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);
+  gap:30px;
+  align-items:start;
+}
+.district-magazine-lead,
+.district-magazine-card{
+  min-width:0;
+}
+.district-magazine-lead-image,
+.district-magazine-card-image{
+  position:relative;
+  display:block;
+  overflow:hidden;
+  background:#dedbd7;
+}
+.district-magazine-lead-image{
+  aspect-ratio:1.35/1;
+}
+.district-magazine-card-image{
+  aspect-ratio:1.55/1;
+}
+.district-magazine-lead-image img,
+.district-magazine-card-image img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  transition:transform .28s ease;
+}
+.district-magazine-lead-image:hover img,
+.district-magazine-card-image:hover img{
+  transform:scale(1.025);
+}
+.district-magazine-placeholder{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  color:#a59d95;
+  background:
+    linear-gradient(135deg,#e5e2df,#d8d4d0);
+  font:800 12px/1 var(--sans);
+  letter-spacing:.12em;
+}
+.district-magazine-lead-copy{
+  padding-top:15px;
+}
+.district-magazine-card-copy{
+  padding-top:11px;
+}
+.district-magazine-category{
+  display:block;
+  margin-bottom:9px;
+  color:#c23d35;
+  font:800 9px/1.1 var(--sans);
+  text-transform:uppercase;
+  letter-spacing:.055em;
+}
+.district-magazine-lead h3,
+.district-magazine-card h3{
+  margin:0;
+  color:#151515;
+}
+.district-magazine-lead h3{
+  max-width:95%;
+  font-family:var(--sans);
+  font-size:24px;
+  line-height:1.22;
+  font-weight:800;
+  letter-spacing:-.025em;
+}
+.district-magazine-card h3{
+  font-family:var(--sans);
+  font-size:16px;
+  line-height:1.24;
+  font-weight:800;
+  letter-spacing:-.018em;
+}
+.district-magazine-lead h3 a,
+.district-magazine-card h3 a{
+  color:inherit;
+  transition:color .16s ease;
+}
+.district-magazine-lead h3 a:hover,
+.district-magazine-card h3 a:hover{
+  color:#9f3933;
+}
+.district-magazine-lead time,
+.district-magazine-card time{
+  display:block;
+  color:#918983;
+  font:500 9.5px/1.2 var(--sans);
+}
+.district-magazine-lead time{
+  margin-top:12px;
+}
+.district-magazine-card time{
+  margin-top:9px;
+}
+.district-magazine-lead p{
+  max-width:92%;
+  margin:15px 0 0;
+  color:#5e5751;
+  font:500 12.5px/1.55 var(--sans);
+}
+.district-magazine-side-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:26px 24px;
+}
+@media(max-width:1080px){
+  .district-magazine-grid{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:22px;
+  }
+  .district-magazine-lead h3{font-size:21px}
+  .district-magazine-card h3{font-size:15px}
+  .district-magazine-side-grid{gap:20px 18px}
+}
+@media(max-width:820px){
+  .district-magazine-grid{
+    grid-template-columns:1fr;
+    gap:24px;
+  }
+  .district-magazine-lead-image{
+    aspect-ratio:16/10;
+  }
+  .district-magazine-lead h3{
+    max-width:100%;
+    font-size:23px;
+  }
+  .district-magazine-lead p{max-width:100%}
+}
+@media(max-width:560px){
+  .district-magazine-style{padding-top:24px}
+  .district-magazine-heading{
+    align-items:flex-end;
+    gap:12px;
+  }
+  .district-magazine-heading h2{font-size:26px}
+  .district-magazine-heading>a{font-size:8px}
+  .district-magazine-side-grid{
+    grid-template-columns:1fr 1fr;
+    gap:20px 12px;
+  }
+  .district-magazine-card-image{
+    aspect-ratio:1.35/1;
+  }
+  .district-magazine-card h3{
+    font-size:13.5px;
+    line-height:1.26;
+  }
+  .district-magazine-category{
+    margin-bottom:7px;
+    font-size:7.5px;
+  }
+  .district-magazine-lead h3{font-size:20px}
+  .district-magazine-lead p{font-size:11.5px}
+}
+@media(max-width:390px){
+  .district-magazine-side-grid{
+    grid-template-columns:1fr;
+  }
+  .district-magazine-card-image{
+    aspect-ratio:16/10;
+  }
+  .district-magazine-card h3{font-size:15px}
+}
