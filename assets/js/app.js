@@ -64,6 +64,8 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
   const excerpt=hero.querySelector('[data-hero-excerpt]');
   const kicker=hero.querySelector('[data-hero-kicker]');
   const link=hero.querySelector('[data-hero-link]');
+  const heroLocationCity=hero.querySelector('[data-hero-location-city]');
+  const heroLocationRegion=hero.querySelector('[data-hero-location-region]');
   let current=null;
   let switchTimer=null;
 
@@ -91,6 +93,8 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
       if(excerpt) excerpt.textContent=item.dataset.heroExcerpt||'';
       if(kicker) kicker.textContent=item.dataset.heroKicker||'Новости района';
       if(link) link.href=item.dataset.heroUrl||'#';
+      if(heroLocationCity) heroLocationCity.textContent=item.dataset.heroLocationCity||'Унцукульский район';
+      if(heroLocationRegion) heroLocationRegion.textContent=item.dataset.heroLocationRegion||'Дагестан';
 
       const cover=item.dataset.heroCover||'';
       hero.classList.remove('hero-reference');
