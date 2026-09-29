@@ -852,3 +852,89 @@ function handle_branding_asset_upload(array $file, string $kind, ?string $old = 
     if($old && $old!==$relative) safe_delete_branding_asset($old);
     return $relative;
 }
+
+
+function ensure_homepage_right_blocks_schema(): void
+{
+    if (!APP_INSTALLED) return;
+    if (setting('schema_homepage_right_blocks_v1', '') === '1') return;
+
+    $pdo = db();
+    $driver = (string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+    if ($driver === 'sqlite') {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS homepage_right_blocks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            kicker TEXT,
+            title TEXT NOT NULL,
+            body TEXT,
+            image TEXT,
+            link_text TEXT,
+            link_url TEXT,
+            style TEXT NOT NULL DEFAULT 'light' CHECK (style IN ('light','accent','dark')),
+            sort_order INTEGER NOT NULL DEFAULT 100,
+            is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0,1)),
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )");
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_homepage_right_blocks_active_sort ON homepage_right_blocks(is_active,sort_order)');
+    } else {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS homepage_right_blocks (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            kicker VARCHAR(100) NULL,
+            title VARCHAR(255) NOT NULL,
+            body TEXT NULL,
+            image VARCHAR(500) NULL,
+            link_text VARCHAR(100) NULL,
+            link_url VARCHAR(500) NULL,
+            style ENUM('light','accent','dark') NOT NULL DEFAULT 'light',
+            sort_order INT NOT NULL DEFAULT 100,
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_homepage_right_blocks_active_sort (is_active,sort_order)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    }
+
+    $count=(int)$pdo->query('SELECT COUNT(*) FROM homepage_right_blocks')->fetchColumn();
+    if($count===0 && setting('right_block_enabled','1') === '1'){
+        $q=$pdo->prepare('INSERT INTO homepage_right_blocks(kicker,title,body,image,link_text,link_url,style,sort_order,is_active) VALUES(?,?,?,?,?,?,?,?,1)');
+        $q->execute([
+            setting('right_block_kicker','От редакции'),
+            setting('right_block_title','О районе — с уважением к людям и истории'),
+            setting('right_block_text',setting('editor_note','Наша задача — рассказывать о важном для жителей района, сохранять память о прошлом и показывать людей, которые сегодня меняют родной край.')),
+            setting('right_block_image','') ?: null,
+            setting('right_block_link_text','') ?: null,
+            setting('right_block_link_url','') ?: null,
+            in_array(setting('right_block_style','light'),['light','accent','dark'],true) ? setting('right_block_style','light') : 'light',
+            100
+        ]);
+    }
+
+    save_setting('schema_homepage_right_blocks_v1', '1');
+}
+
+function homepage_right_blocks(bool $activeOnly = true): array
+{
+    if (!APP_INSTALLED) return [];
+    $sql='SELECT * FROM homepage_right_blocks';
+    if($activeOnly) $sql .= ' WHERE is_active=1';
+    $sql .= ' ORDER BY sort_order,id';
+    return db()->query($sql)->fetchAll();
+}
+
+function safe_delete_homepage_right_block_image(?string $relativePath): void
+{
+    if (!$relativePath || !str_starts_with($relativePath, 'uploads/')) return;
+    $full=ROOT_PATH.'/'.ltrim($relativePath,'/');
+    if(is_file($full)) @unlink($full);
+}
+
+function homepage_right_block_href(?string $url): string
+{
+    $url=trim((string)$url);
+    if($url==='') return '';
+    if(preg_match('~^(https?://|mailto:|tel:)~i',$url)) return $url;
+    if(str_starts_with($url,'#')) return $url;
+    return base_url(ltrim($url,'/'));
+}
