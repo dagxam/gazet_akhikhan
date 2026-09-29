@@ -3,7 +3,7 @@ require dirname(__DIR__) . '/app/bootstrap.php';
 require_admin();
 
 $error='';
-$textKeys=['site_name','site_subtitle','hero_kicker','editor_note','footer_quote'];
+$textKeys=['site_name','site_subtitle','hero_kicker','editor_note','footer_quote','topbar_region_label','topbar_vk_url','topbar_ok_url','topbar_email'];
 
 $brandDefaults=[
   'site_favicon'=>'',
@@ -93,6 +93,38 @@ require __DIR__.'/_top.php';
         <label class="field-modern compact"><span>Подпись над главной новостью</span><input name="hero_kicker" value="<?=e(setting('hero_kicker'))?>"></label>
         <label class="field-modern"><span>Слово редактора</span><textarea name="editor_note" rows="6"><?=e(setting('editor_note'))?></textarea></label>
         <label class="field-modern compact"><span>Цитата внизу сайта</span><input name="footer_quote" value="<?=e(setting('footer_quote'))?>"></label>
+      </section>
+
+      <section class="editor-card settings-section-card">
+        <div class="settings-section-head">
+          <span class="settings-section-icon">⌁</span>
+          <div>
+            <h3>Верхняя панель и контакты</h3>
+            <p>Район, социальные сети и публичная почта в компактном top bar над главным меню.</p>
+          </div>
+        </div>
+
+        <label class="field-modern compact">
+          <span>Название района</span>
+          <input name="topbar_region_label" maxlength="120" value="<?=e(setting('topbar_region_label','Унцукульский район'))?>">
+        </label>
+
+        <div class="settings-two-col">
+          <label class="field-modern compact">
+            <span>VK</span>
+            <input type="url" name="topbar_vk_url" maxlength="500" value="<?=e(setting('topbar_vk_url',''))?>" placeholder="https://vk.com/...">
+          </label>
+          <label class="field-modern compact">
+            <span>Одноклассники</span>
+            <input type="url" name="topbar_ok_url" maxlength="500" value="<?=e(setting('topbar_ok_url',''))?>" placeholder="https://ok.ru/...">
+          </label>
+        </div>
+
+        <label class="field-modern compact">
+          <span>Публичная почта редакции</span>
+          <input type="email" name="topbar_email" maxlength="190" value="<?=e(setting('topbar_email',''))?>" placeholder="mail@example.ru">
+          <small>Эта почта показывается посетителям сайта. Не обязательно использовать e-mail входа в админку.</small>
+        </label>
       </section>
 
       <section class="editor-card settings-section-card">
