@@ -4,6 +4,9 @@ if (!APP_INSTALLED) { header('Location: ../install.php'); exit; }
 if(admin_user()){ header('Location: ' . base_url('admin/')); exit; }
 
 $error='';
+$adminTheme=admin_theme_name();
+$adminLoginLogo=branding_asset('admin_logo','assets/img/akhikhan-logo-transparent.webp');
+$siteFavicon=branding_asset('site_favicon','assets/img/seal.svg');
 if($_SERVER['REQUEST_METHOD']==='POST'){
   verify_csrf();
   $email=trim($_POST['email']??'');
@@ -27,19 +30,20 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#efe8dd">
 <title>Вход в редакцию — АХИХЪАН</title>
+<link rel="icon" href="<?=e(base_url($siteFavicon))?>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="<?=e(base_url('assets/css/admin.css?v=20260929-login2'))?>">
+<link rel="stylesheet" href="<?=e(base_url('assets/css/admin.css?v=20260929-branding1'))?>">
 </head>
-<body class="login-page login-page-premium">
+<body class="login-page login-page-premium admin-theme-<?=e($adminTheme)?>">
   <div class="login-page-ornament login-page-ornament-left" aria-hidden="true"></div>
   <div class="login-page-ornament login-page-ornament-right" aria-hidden="true"></div>
 
   <main class="login-shell">
     <section class="login-card login-card-premium">
       <a class="login-brand" href="<?=e(base_url())?>" aria-label="АХИХЪАН — на сайт">
-        <img src="<?=e(base_url('assets/img/akhikhan-logo-transparent.webp?v=20260928-transparent-logo1'))?>" alt="АХИХЪАН — сетевое издание Унцукульского района">
+        <img src="<?=e(base_url($adminLoginLogo))?>" alt="АХИХЪАН — редакционная система">
       </a>
 
       <div class="login-divider" aria-hidden="true"><span></span><i></i><span></span></div>
