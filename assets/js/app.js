@@ -199,3 +199,39 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
   }
   fitMenu();
 })();
+
+
+(function(){
+  const box=document.querySelector('[data-site-weather]');
+  const textNode=document.querySelector('[data-site-weather-text]');
+  if(!box||!textNode) return;
+
+  const weatherLabels={
+    0:'Ясно',1:'Преим. ясно',2:'Переменная облачность',3:'Облачно',
+    45:'Туман',48:'Туман',51:'Морось',53:'Морось',55:'Морось',
+    61:'Дождь',63:'Дождь',65:'Сильный дождь',
+    71:'Снег',73:'Снег',75:'Сильный снег',
+    80:'Ливень',81:'Ливень',82:'Сильный ливень',
+    95:'Гроза',96:'Гроза',99:'Гроза'
+  };
+
+  const url='https://api.open-meteo.com/v1/forecast?latitude=42.711488&longitude=46.786628&current=temperature_2m,weather_code&timezone=Europe%2FMoscow';
+
+  fetch(url,{headers:{'Accept':'application/json'}})
+    .then(response=>{
+      if(!response.ok) throw new Error('weather');
+      return response.json();
+    })
+    .then(data=>{
+      const current=data&&data.current?data.current:null;
+      if(!current||typeof current.temperature_2m!=='number') throw new Error('weather');
+      const temperature=Math.round(current.temperature_2m);
+      const condition=weatherLabels[current.weather_code]||'Погода';
+      textNode.textContent=condition+' · '+(temperature>0?'+':'')+temperature+'°';
+      box.title='Унцукуль · '+condition+', '+(temperature>0?'+':'')+temperature+'°C';
+    })
+    .catch(()=>{
+      textNode.textContent='Погода · Унцукуль';
+      box.title='Погода в Унцукуле';
+    });
+})();
