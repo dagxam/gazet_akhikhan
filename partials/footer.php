@@ -69,7 +69,7 @@ $footerSocialLinks = social_links(true);
   </div>
 </footer>
 
-<script src="<?=e(base_url('assets/js/app.js?v=20260929-article-location1'))?>"></script>
+<script src="<?=e(base_url('assets/js/app.js?v=20260929-responsive-public1'))?>"></script>
 </div>
 </body>
 </html>
