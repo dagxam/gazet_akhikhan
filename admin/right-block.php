@@ -3,6 +3,7 @@ require dirname(__DIR__) . '/app/bootstrap.php';
 require_admin();
 
 $error='';
+$area=in_array($_GET['area']??'home',['home','pages'],true)?$_GET['area']:'home';
 $id=(int)($_GET['id']??0);
 $editing=null;
 
@@ -10,7 +11,11 @@ if($id){
   $q=db()->prepare('SELECT * FROM homepage_right_blocks WHERE id=? LIMIT 1');
   $q->execute([$id]);
   $editing=$q->fetch();
-  if(!$editing) $id=0;
+  if($editing){
+    $area=in_array($editing['area']??'home',['home','pages'],true)?$editing['area']:'home';
+  }else{
+    $id=0;
+  }
 }
 
 if($_SERVER['REQUEST_METHOD']==='POST'){
@@ -18,17 +23,19 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
   try{
     $action=(string)($_POST['action']??'save');
+    $postArea=in_array($_POST['area']??'home',['home','pages'],true)?$_POST['area']:'home';
 
     if($action==='delete'){
       $deleteId=(int)($_POST['id']??0);
-      $q=db()->prepare('SELECT image FROM homepage_right_blocks WHERE id=? LIMIT 1');
+      $q=db()->prepare('SELECT image,area FROM homepage_right_blocks WHERE id=? LIMIT 1');
       $q->execute([$deleteId]);
-      $image=$q->fetchColumn();
-      if($image!==false){
-        safe_delete_homepage_right_block_image((string)$image);
+      $row=$q->fetch();
+      if($row){
+        safe_delete_homepage_right_block_image((string)($row['image']??''));
         db()->prepare('DELETE FROM homepage_right_blocks WHERE id=?')->execute([$deleteId]);
+        $postArea=in_array($row['area']??'home',['home','pages'],true)?$row['area']:'home';
       }
-      header('Location: '.base_url('admin/right-block.php?deleted=1'));
+      header('Location: '.base_url('admin/right-block.php?area='.$postArea.'&deleted=1'));
       exit;
     }
 
@@ -58,14 +65,13 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
       $image='';
     }else{
       $image=handle_cover_upload($_FILES['image']??[],$oldImage ?: null) ?? '';
-      if($oldImage!=='' && $image!==$oldImage){
-        safe_delete_homepage_right_block_image($oldImage);
-      }
+      if($oldImage!=='' && $image!==$oldImage) safe_delete_homepage_right_block_image($oldImage);
     }
 
     if($saveId){
-      $q=db()->prepare('UPDATE homepage_right_blocks SET kicker=?,title=?,body=?,image=?,link_text=?,link_url=?,style=?,sort_order=?,is_active=?,updated_at=CURRENT_TIMESTAMP WHERE id=?');
+      $q=db()->prepare('UPDATE homepage_right_blocks SET area=?,kicker=?,title=?,body=?,image=?,link_text=?,link_url=?,style=?,sort_order=?,is_active=?,updated_at=CURRENT_TIMESTAMP WHERE id=?');
       $q->execute([
+        $postArea,
         $kicker!==''?$kicker:null,
         $title,
         $body!==''?$body:null,
@@ -79,8 +85,9 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
       ]);
       $savedId=$saveId;
     }else{
-      $q=db()->prepare('INSERT INTO homepage_right_blocks(kicker,title,body,image,link_text,link_url,style,sort_order,is_active) VALUES(?,?,?,?,?,?,?,?,?)');
+      $q=db()->prepare('INSERT INTO homepage_right_blocks(area,kicker,title,body,image,link_text,link_url,style,sort_order,is_active) VALUES(?,?,?,?,?,?,?,?,?,?)');
       $q->execute([
+        $postArea,
         $kicker!==''?$kicker:null,
         $title,
         $body!==''?$body:null,
@@ -94,7 +101,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
       $savedId=(int)db()->lastInsertId();
     }
 
-    header('Location: '.base_url('admin/right-block.php?id='.$savedId.'&saved=1'));
+    header('Location: '.base_url('admin/right-block.php?area='.$postArea.'&id='.$savedId.'&saved=1'));
     exit;
   }catch(Throwable $e){
     $error=$e->getMessage();
@@ -105,24 +112,45 @@ if($id){
   $q=db()->prepare('SELECT * FROM homepage_right_blocks WHERE id=? LIMIT 1');
   $q->execute([$id]);
   $editing=$q->fetch();
+  if($editing) $area=in_array($editing['area']??'home',['home','pages'],true)?$editing['area']:'home';
 }
 
-$blocks=homepage_right_blocks(false);
+$blocks=right_blocks($area,false);
+$areaTitle=$area==='home'?'Главная страница':'Статичные страницы';
+$areaDescription=$area==='home'
+  ? 'Эти карточки выводятся в правой колонке главной страницы рядом с региональными и спортивными новостями.'
+  : 'Эти карточки выводятся в правой колонке всех созданных статичных страниц.';
 $adminTitle='Правые блоки';
 require __DIR__.'/_top.php';
 ?>
 
 <?php if($error):?><div class="error"><?=e($error)?></div><?php endif;?>
-<?php if(isset($_GET['saved'])):?><div class="ok">Блок сохранён. Главная страница обновлена.</div><?php endif;?>
+<?php if(isset($_GET['saved'])):?><div class="ok">Блок сохранён в разделе «<?=e($areaTitle)?>».</div><?php endif;?>
 <?php if(isset($_GET['deleted'])):?><div class="ok">Блок удалён.</div><?php endif;?>
 
 <div class="right-blocks-admin-head">
   <div>
-    <span class="editor-eyebrow">Главная страница</span>
+    <span class="editor-eyebrow">Оформление сайта</span>
     <h2>Правые блоки</h2>
-    <p>Добавляйте столько блоков, сколько нужно. Они автоматически выстраиваются в правой колонке рядом с региональными и спортивными новостями.</p>
+    <p>Управляйте правой колонкой отдельно для главной страницы и для статичных страниц сайта.</p>
   </div>
-  <?php if($editing):?><a class="editor-back" href="<?=e(base_url('admin/right-block.php'))?>">＋ Новый блок</a><?php endif;?>
+  <?php if($editing):?><a class="editor-back" href="<?=e(base_url('admin/right-block.php?area='.$area))?>">＋ Новый блок</a><?php endif;?>
+</div>
+
+<nav class="right-block-area-tabs" aria-label="Расположение правых блоков">
+  <a class="<?=$area==='home'?'is-active':''?>" href="<?=e(base_url('admin/right-block.php?area=home'))?>">
+    <i class="fa-solid fa-house"></i>
+    <span><b>На главной</b><small>Правая колонка главной страницы</small></span>
+  </a>
+  <a class="<?=$area==='pages'?'is-active':''?>" href="<?=e(base_url('admin/right-block.php?area=pages'))?>">
+    <i class="fa-regular fa-file-lines"></i>
+    <span><b>На страницах</b><small>Правая колонка статичных страниц</small></span>
+  </a>
+</nav>
+
+<div class="right-block-area-note">
+  <i class="<?=$area==='home'?'fa-solid fa-house':'fa-regular fa-file-lines'?>"></i>
+  <div><b><?=e($areaTitle)?></b><span><?=e($areaDescription)?></span></div>
 </div>
 
 <div class="right-blocks-admin-layout">
@@ -131,7 +159,7 @@ require __DIR__.'/_top.php';
       <span class="side-icon">＋</span>
       <div>
         <h3><?=$editing?'Редактировать блок':'Добавить блок справа'?></h3>
-        <p>Содержимое отдельной карточки</p>
+        <p><?=e($areaTitle)?></p>
       </div>
     </div>
 
@@ -139,11 +167,12 @@ require __DIR__.'/_top.php';
       <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
       <input type="hidden" name="action" value="save">
       <input type="hidden" name="id" value="<?=e((string)($editing['id']??0))?>">
+      <input type="hidden" name="area" value="<?=e($area)?>">
 
       <div class="right-block-switch">
         <span class="right-block-switch-copy">
           <b>Показывать блок</b>
-          <small>Выключенный блок остаётся в админке, но скрывается на сайте.</small>
+          <small>Выключенный блок останется в админке, но исчезнет с сайта.</small>
         </span>
         <input type="checkbox" name="is_active" value="1" <?=!$editing || !empty($editing['is_active'])?'checked':''?>>
       </div>
@@ -180,14 +209,14 @@ require __DIR__.'/_top.php';
         </label>
         <label class="field-modern compact">
           <span>Ссылка</span>
-          <input name="link_url" maxlength="500" value="<?=e($editing['link_url']??'')?>" placeholder="about.php или https://...">
+          <input name="link_url" maxlength="500" value="<?=e($editing['link_url']??'')?>" placeholder="page/o-redakcii или https://...">
         </label>
       </div>
 
       <label class="field-modern compact">
         <span>Порядок</span>
         <input type="number" name="sort_order" min="-9999" max="9999" value="<?=e((string)($editing['sort_order']??100))?>">
-        <small>Чем меньше число, тем выше блок в правой колонке.</small>
+        <small>Чем меньше число, тем выше карточка.</small>
       </label>
 
       <label class="field-modern">
@@ -197,9 +226,7 @@ require __DIR__.'/_top.php';
       </label>
 
       <?php if($editing && !empty($editing['image'])):?>
-        <div class="right-block-image-preview">
-          <img src="<?=e(base_url($editing['image']))?>" alt="">
-        </div>
+        <div class="right-block-image-preview"><img src="<?=e(base_url($editing['image']))?>" alt=""></div>
         <label class="menu-check"><input type="checkbox" name="remove_image" value="1"><span>Удалить изображение</span></label>
       <?php endif;?>
 
@@ -210,7 +237,7 @@ require __DIR__.'/_top.php';
   <section class="editor-card right-blocks-library">
     <div class="card-head">
       <div>
-        <h2>Блоки правой колонки</h2>
+        <h2><?=e($areaTitle)?></h2>
         <p class="admin-intro">Блоки выводятся сверху вниз по значению «Порядок».</p>
       </div>
     </div>
@@ -229,10 +256,11 @@ require __DIR__.'/_top.php';
                 <small>Порядок: <?=e((string)$block['sort_order'])?> · <?=e($block['style'])?></small>
               </div>
               <div class="row-actions">
-                <a class="edit-action" href="<?=e(base_url('admin/right-block.php?id='.$block['id']))?>">Редактировать</a>
+                <a class="edit-action" href="<?=e(base_url('admin/right-block.php?area='.$area.'&id='.$block['id']))?>">Редактировать</a>
                 <form method="post" onsubmit="return confirm('Удалить этот блок?')">
                   <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
                   <input type="hidden" name="action" value="delete">
+                  <input type="hidden" name="area" value="<?=e($area)?>">
                   <input type="hidden" name="id" value="<?=$block['id']?>">
                   <button class="danger" type="submit">Удалить</button>
                 </form>
@@ -243,8 +271,8 @@ require __DIR__.'/_top.php';
       </div>
     <?php else:?>
       <div class="right-blocks-empty">
-        <b>Правых блоков пока нет</b>
-        <p>Добавьте первый блок — он появится справа от региональных и спортивных новостей.</p>
+        <b>В этом разделе блоков пока нет</b>
+        <p><?=$area==='home'?'Добавьте карточку для правой колонки главной страницы.':'Добавьте карточку — она появится справа на статичных страницах.'?></p>
       </div>
     <?php endif;?>
   </section>
