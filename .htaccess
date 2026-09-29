@@ -1,19 +1,36 @@
 Options -Indexes
 RewriteEngine On
 
+# Deny uncommon HTTP methods that are not used by the application.
+RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK|CONNECT)$ [NC]
+RewriteRule ^ - [F,L]
+
 # Internal application files and the SQLite database must never be served directly.
 RewriteRule ^(app|setup|partials|storage)/ - [F,L]
+
+# Uploaded media must never be executable as server-side code.
+RewriteRule ^uploads/.*\.(php[0-9]?|phtml|phar|cgi|pl|py|sh|shtml)$ - [F,L,NC]
 
 RewriteRule ^article/([A-Za-z0-9-]+)/?$ article.php?slug=$1 [L,QSA]
 RewriteRule ^category/([A-Za-z0-9-]+)/?$ category.php?slug=$1 [L,QSA]
 RewriteRule ^page/([A-Za-z0-9-]+)/?$ page.php?slug=$1 [L,QSA]
+
+# Prevent accidental disclosure of configuration, backups, logs and source metadata.
+<FilesMatch "^(\.user\.ini|\.env|\.env\..*|composer\.(json|lock)|package(-lock)?\.json|.*\.(sql|sqlite|db|log|bak|old|dist|ini|yml|yaml))$">
+  Require all denied
+</FilesMatch>
 
 <FilesMatch "^(config\.php|config\.example\.php|README\.md)$">
   Require all denied
 </FilesMatch>
 
 <IfModule mod_headers.c>
+  Header always unset X-Powered-By
   Header always set X-Content-Type-Options "nosniff"
   Header always set X-Frame-Options "SAMEORIGIN"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+  Header always set Strict-Transport-Security "max-age=15552000"
+  Header always set X-Permitted-Cross-Domain-Policies "none"
+  Header always set Content-Security-Policy "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.open-meteo.com; frame-src 'self' https://vk.com https://*.vk.com https://vkvideo.ru https://*.vkvideo.ru https://rutube.ru https://*.rutube.ru https://ok.ru https://*.ok.ru; media-src 'self' blob: https:; worker-src 'self' blob: https://cdn.jsdelivr.net; upgrade-insecure-requests"
 </IfModule>
