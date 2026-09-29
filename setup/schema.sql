@@ -138,3 +138,16 @@ CREATE TABLE IF NOT EXISTS photo_gallery_images (
   INDEX idx_photo_gallery_images_album_sort (album_id,sort_order,id),
   CONSTRAINT fk_photo_gallery_images_album FOREIGN KEY (album_id) REFERENCES photo_albums(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+CREATE TABLE IF NOT EXISTS social_links (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  service VARCHAR(40) NOT NULL,
+  label VARCHAR(120) NULL,
+  url VARCHAR(500) NOT NULL,
+  sort_order INT NOT NULL DEFAULT 100,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_social_links_active_sort (is_active,sort_order,id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
