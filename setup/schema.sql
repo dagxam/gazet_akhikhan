@@ -97,3 +97,20 @@ CREATE TABLE IF NOT EXISTS main_menu_items (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_main_menu_active_sort (is_active,sort_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+CREATE TABLE IF NOT EXISTS homepage_right_blocks (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  kicker VARCHAR(100) NULL,
+  title VARCHAR(255) NOT NULL,
+  body TEXT NULL,
+  image VARCHAR(500) NULL,
+  link_text VARCHAR(100) NULL,
+  link_url VARCHAR(500) NULL,
+  style ENUM('light','accent','dark') NOT NULL DEFAULT 'light',
+  sort_order INT NOT NULL DEFAULT 100,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_homepage_right_blocks_active_sort (is_active,sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
