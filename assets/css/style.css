@@ -1154,6 +1154,16 @@ button{cursor:pointer}
   display:grid;
   gap:16px;
 }
+.article-sidebar .right-feature-card{
+  min-height:220px;
+}
+.article-sidebar .right-feature-card.has-image{
+  min-height:235px;
+}
+.article-sidebar .right-feature-content{
+  padding:21px 20px;
+}
+
 .article-side-card{
   border:1px solid var(--line);
   border-radius:16px;
