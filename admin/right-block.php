@@ -278,6 +278,12 @@ require __DIR__.'/_top.php';
           </label>
         </div>
 
+        <div class="right-block-style-guide" aria-label="Варианты оформления">
+          <div class="right-block-style-chip light"><b>Светлый</b><small>Бумага и золото</small></div>
+          <div class="right-block-style-chip accent"><b>Акцентный</b><small>Бронзовый</small></div>
+          <div class="right-block-style-chip dark"><b>Тёмный</b><small>Орех и золото</small></div>
+        </div>
+
         <label class="field-modern compact">
           <span>Заголовок</span>
           <input name="title" required maxlength="255" value="<?=e($editing['title']??'')?>" placeholder="Заголовок блока">
@@ -339,7 +345,7 @@ require __DIR__.'/_top.php';
               <div class="right-block-admin-meta">
                 <div>
                   <span class="status <?=!empty($block['is_active'])?'green':'gray'?>"><?=!empty($block['is_active'])?'Показывается':'Скрыт'?></span>
-                  <small>Порядок: <?=e((string)$block['sort_order'])?> · <?=e($block['style'])?></small>
+                  <small>Порядок: <?=e((string)$block['sort_order'])?> · <?=e(match($block['style']){'accent'=>'Акцентный','dark'=>'Тёмный',default=>'Светлый'})?></small>
                 </div>
                 <div class="row-actions">
                   <a class="edit-action" href="<?=e(base_url('admin/right-block.php?area='.$area.'&id='.$block['id']))?>">Редактировать</a>
