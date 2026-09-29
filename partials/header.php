@@ -23,104 +23,36 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20260929-gallery1'))?>">
+<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20260929-reference-header1'))?>">
 </head>
 <body>
 <a id="top"></a>
 <div class="site-shell">
 
-<div class="utility-bar">
-  <div class="wrap utility-inner">
-    <div class="utility-date"><?=e(current_date_ru())?></div>
-    <div class="utility-place"><span class="utility-dot"></span> Унцукульский район · Республика Дагестан</div>
-    <div class="utility-links">
-      <a href="<?=e(base_url('about.php'))?>">О редакции</a>
-      <a href="<?=e(base_url('advertising.php'))?>">Реклама</a>
-      <a href="<?=e(base_url('contacts.php'))?>">Контакты</a>
-      <a class="utility-login" href="<?=e(base_url('admin/login.php'))?>">Вход</a>
-    </div>
-  </div>
-</div>
+<header class="reference-header" data-reference-header>
+  <div class="wrap reference-header-inner">
+    <a class="reference-logo" href="<?=e(base_url())?>" aria-label="АХИХЪАН — главная">
+      <img src="<?=e(base_url($siteHeaderLogo))?>" alt="АХИХЪАН — сетевое издание Унцукульского района">
+    </a>
 
-<header class="masthead masthead-premium">
-  <div class="masthead-landscape" aria-hidden="true"></div>
-  <div class="masthead-corner masthead-corner-left" aria-hidden="true"></div>
-  <div class="masthead-corner masthead-corner-right" aria-hidden="true"></div>
-
-  <div class="wrap masthead-inner">
-    <div class="masthead-brand">
-      <div class="masthead-brand-stage">
-        <span class="masthead-brand-line" aria-hidden="true"></span>
-        <a class="masthead-logo" href="<?=e(base_url())?>" aria-label="АХИХЪАН — главная">
-          <img src="<?=e(base_url($siteHeaderLogo))?>" alt="АХИХЪАН — сетевое издание Унцукульского района">
-        </a>
-        <div class="masthead-brand-trim" aria-hidden="true"><span></span><i></i><span></span></div>
-      </div>
-    </div>
-
-    <div class="masthead-divider-ornament" aria-hidden="true">
-      <span></span>
-      <i></i>
-      <b></b>
-    </div>
-
-    <div class="masthead-note">
-      <span class="masthead-note-corner masthead-note-corner-a" aria-hidden="true"></span>
-      <span class="masthead-note-corner masthead-note-corner-b" aria-hidden="true"></span>
-      <div class="masthead-note-topline">
-        <span class="masthead-note-kicker">Республика Дагестан</span>
-        <i aria-hidden="true"></i>
-      </div>
-      <strong>Говорим о важном.<br>Сохраняем связь<br class="masthead-note-break"> поколений.</strong>
-      <div class="masthead-note-flourish" aria-hidden="true"><span></span><i></i><span></span></div>
-      <small>События района, общественная жизнь,<br>традиции и люди родного края.</small>
-      <span class="masthead-note-seal" aria-hidden="true">
-        <img src="<?=e(base_url('assets/img/seal.svg'))?>" alt="">
-      </span>
-    </div>
-  </div>
-
-  <div class="masthead-pattern-line" aria-hidden="true"></div>
-</header>
-
-<nav class="primary-nav" aria-label="Основная навигация">
-  <div class="nav-pattern nav-pattern-left" aria-hidden="true"></div>
-  <div class="wrap primary-nav-inner">
-    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
+    <button class="menu-toggle reference-mobile-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
       <span></span><span></span><span></span><b>Меню</b>
     </button>
 
-    <div class="desktop-menu-shell" data-menu-shell>
-      <div class="site-menu" id="site-menu">
+    <div class="desktop-menu-shell reference-menu-shell" data-menu-shell>
+      <nav class="site-menu reference-site-menu" id="site-menu" aria-label="Основная навигация">
         <?php foreach($mainMenuItems as $menuItem):?>
           <a href="<?=e(main_menu_url($menuItem['url']))?>" <?=$menuItem['open_new_tab']?'target="_blank" rel="noopener"':''?>><?=e($menuItem['label'])?></a>
         <?php endforeach;?>
-      </div>
+      </nav>
 
-      <button class="menu-overflow-toggle" type="button" data-menu-overflow-toggle aria-expanded="false" aria-controls="menu-overflow-panel" hidden>
-        <span>Ещё</span>
-        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7.5l5 5 5-5"></path></svg>
+      <button class="menu-overflow-toggle reference-overflow-toggle" type="button" data-menu-overflow-toggle aria-expanded="false" aria-controls="menu-overflow-panel" aria-label="Показать дополнительные пункты меню" hidden>
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 7.5l4.5 4.5 4.5-4.5"></path></svg>
       </button>
 
-      <div class="menu-overflow-panel" id="menu-overflow-panel" data-menu-overflow-panel></div>
+      <div class="menu-overflow-panel reference-overflow-panel" id="menu-overflow-panel" data-menu-overflow-panel></div>
     </div>
-
-    <form class="header-search" action="<?=e(base_url('search.php'))?>" method="get">
-      <input name="q" aria-label="Поиск по сайту" placeholder="Поиск">
-      <button type="submit" aria-label="Найти">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4 4"></path></svg>
-      </button>
-    </form>
   </div>
-  <div class="nav-pattern nav-pattern-right" aria-hidden="true"></div>
-</nav>
-
-<div class="edition-line">
-  <div class="wrap edition-line-inner">
-    <span class="edition-label">Сегодня в районе</span>
-    <span>Новости Унцукульского района, материалы о людях, культуре и истории родного края</span>
-    <a href="<?=e(base_url('news.php'))?>">Все материалы <b>→</b></a>
-  </div>
-</div>
+</header>
 
 <main>
