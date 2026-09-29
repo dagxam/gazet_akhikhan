@@ -168,13 +168,13 @@ require __DIR__ . '/partials/header.php';
   <div class="regional-sport-layout">
     <div class="regional-sport-main">
 
-      <section class="dual-news-card regional-news-card">
-        <div class="dual-news-head">
+      <section class="home-news-row-section regional-news-card">
+        <div class="block-heading district-magazine-heading home-news-row-heading">
           <div>
             <span class="heading-kicker">Регион</span>
             <h2>Региональные новости</h2>
           </div>
-          <a href="<?=e(isset($catBySlug['regionalnye-novosti']) ? category_url($catBySlug['regionalnye-novosti']) : base_url('news.php'))?>">Все →</a>
+          <a href="<?=e(isset($catBySlug['regionalnye-novosti']) ? category_url($catBySlug['regionalnye-novosti']) : base_url('news.php'))?>">Все новости →</a>
         </div>
 
         <?php if($regionalNews):?>
@@ -204,13 +204,13 @@ require __DIR__ . '/partials/header.php';
         <?php endif;?>
       </section>
 
-      <section class="dual-news-card sport-news-card">
-        <div class="dual-news-head">
+      <section class="home-news-row-section sport-news-card">
+        <div class="block-heading district-magazine-heading home-news-row-heading">
           <div>
             <span class="heading-kicker">Спорт</span>
             <h2>Спортивные новости</h2>
           </div>
-          <a href="<?=e(isset($catBySlug['sport']) ? category_url($catBySlug['sport']) : base_url('news.php'))?>">Все →</a>
+          <a href="<?=e(isset($catBySlug['sport']) ? category_url($catBySlug['sport']) : base_url('news.php'))?>">Все новости →</a>
         </div>
 
         <?php if($sportNews):?>
