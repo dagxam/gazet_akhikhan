@@ -16,7 +16,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     if($action==='save_album'){
       $saveId=(int)($_POST['album_id']??0);
       $title=trim($_POST['title']??'');
-      $description=trim($_POST['description']??'');
+      $description=sanitize_rich_text($_POST['description']??'');
       $albumDate=trim($_POST['album_date']??'') ?: date('Y-m-d');
       $status=in_array($_POST['status']??'published',['draft','published'],true)?$_POST['status']:'published';
       $sortOrder=max(-9999,min(9999,(int)($_POST['sort_order']??100)));
@@ -170,7 +170,7 @@ require __DIR__.'/_top.php';
 
       <label class="field-modern">
         <span>Описание</span>
-        <textarea name="description" rows="5" maxlength="2000" placeholder="Кратко расскажите о событии"><?=e($editing['description']??'')?></textarea>
+        <textarea name="description" rows="5" data-rich-text placeholder="Кратко расскажите о событии"><?=e($editing['description']??'')?></textarea>
       </label>
 
       <div class="right-block-form-row">
