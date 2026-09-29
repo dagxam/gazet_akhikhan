@@ -4832,3 +4832,137 @@ h1,h2,h3,h4{
   .district-magazine-card-image{aspect-ratio:16/10}
   .district-magazine-card h3{font-size:15px}
 }
+
+
+/* regional + sport 3x1 cards v1 */
+.home-news-three-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+  padding:16px;
+}
+.home-news-three-card{
+  min-width:0;
+  overflow:hidden;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--paper-white);
+  box-shadow:0 7px 20px rgba(44,32,22,.045);
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+}
+.home-news-three-card:hover{
+  transform:translateY(-2px);
+  border-color:#d1bea5;
+  box-shadow:var(--shadow-sm);
+}
+.home-news-three-image{
+  position:relative;
+  display:block;
+  width:100%;
+  aspect-ratio:1.48/1;
+  overflow:hidden;
+  background:#d8d0c7;
+}
+.home-news-three-image:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,transparent 70%,rgba(32,23,16,.08));
+  pointer-events:none;
+}
+.home-news-three-image img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  transition:transform .28s ease;
+}
+.home-news-three-card:hover .home-news-three-image img{
+  transform:scale(1.025);
+}
+.home-news-three-placeholder{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  color:#9a8e82;
+  background:
+    radial-gradient(circle at 26% 22%,rgba(166,125,73,.08),transparent 28%),
+    linear-gradient(135deg,#ebe5dc,#d9d0c5);
+  font:800 9px/1 var(--sans);
+  letter-spacing:.12em;
+}
+.home-news-three-copy{
+  padding:13px 13px 14px;
+}
+.home-news-three-copy .article-label{
+  display:block;
+  margin-bottom:7px;
+  color:var(--gold);
+  font-size:7.5px;
+  letter-spacing:.11em;
+}
+.home-news-three-copy h4{
+  margin:0;
+  min-height:56px;
+  font-size:15px;
+  line-height:1.24;
+  font-weight:700;
+}
+.home-news-three-copy h4 a{
+  color:var(--ink);
+  transition:color .15s ease;
+}
+.home-news-three-copy h4 a:hover{
+  color:var(--walnut);
+}
+.home-news-three-copy .article-meta{
+  margin-top:10px;
+  gap:10px;
+  font-size:8px;
+}
+@media(max-width:1050px){
+  .home-news-three-grid{
+    gap:11px;
+    padding:13px;
+  }
+  .home-news-three-copy{
+    padding:11px 11px 12px;
+  }
+  .home-news-three-copy h4{
+    min-height:52px;
+    font-size:13.5px;
+  }
+}
+@media(max-width:900px){
+  .home-news-three-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+@media(max-width:680px){
+  .home-news-three-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .home-news-three-card:last-child{
+    grid-column:1/-1;
+  }
+  .home-news-three-card:last-child .home-news-three-image{
+    aspect-ratio:16/8;
+  }
+}
+@media(max-width:430px){
+  .home-news-three-grid{
+    grid-template-columns:1fr;
+    padding:10px;
+  }
+  .home-news-three-card:last-child{
+    grid-column:auto;
+  }
+  .home-news-three-card:last-child .home-news-three-image,
+  .home-news-three-image{
+    aspect-ratio:16/9;
+  }
+  .home-news-three-copy h4{
+    min-height:0;
+    font-size:15px;
+  }
+}
