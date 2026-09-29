@@ -9,6 +9,7 @@ if($videoId && !$current){
   http_response_code(404);
   $pageTitle='Видео не найдено';
   $pageDescription='Запрошенное видео не найдено.';
+  $seoRobots='noindex,nofollow,noarchive';
   require __DIR__.'/partials/header.php';
   ?>
   <div class="wrap video-page-shell">
@@ -29,6 +30,8 @@ $pageTitle=$current ? $current['title'] : 'Видеогалерея';
 $pageDescription=$current
   ? (rich_text_excerpt($current['description'],260) ?: 'Видео «'.$current['title'].'» — АХИХЪАН.')
   : 'Видеогалерея сетевого издания АХИХЪАН: события, интервью, репортажи и жизнь Унцукульского района.';
+$seoCanonical=$current ? base_url('videos.php?id='.(int)$current['id']) : base_url('videos.php');
+$seoImage=($current && !empty($current['cover_image'])) ? (string)$current['cover_image'] : 'assets/img/akhikhan-logo-hq.webp';
 
 require __DIR__.'/partials/header.php';
 ?>
