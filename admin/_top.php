@@ -1,4 +1,4 @@
-<?php require_admin(); $me=admin_user(); $maintenanceOn=maintenance_mode_enabled(); $adminTheme=admin_theme_name(); $adminLogo=branding_asset('admin_logo','assets/img/akhikhan-logo-transparent.webp'); $siteFavicon=branding_asset('site_favicon','assets/img/seal.svg'); ?><!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title><?=e($adminTitle ?? 'Админ-панель')?> — АХИХЪАН</title><link rel="icon" href="<?=e(base_url($siteFavicon))?>"><link rel="stylesheet" href="<?=e(base_url('assets/css/admin.css?v=20260929-themes2'))?>"></head><body class="admin-theme-<?=e($adminTheme)?>">
+<?php require_admin(); $me=admin_user(); $maintenanceOn=maintenance_mode_enabled(); $adminTheme=admin_theme_name(); $adminLogo=branding_asset('admin_logo','assets/img/akhikhan-logo-transparent.webp'); $siteFavicon=branding_asset('site_favicon','assets/img/seal.svg'); ?><!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title><?=e($adminTitle ?? 'Админ-панель')?> — АХИХЪАН</title><link rel="icon" href="<?=e(base_url($siteFavicon))?>"><link rel="stylesheet" href="<?=e(base_url('assets/css/admin.css?v=20260929-rightblocks2'))?>"></head><body class="admin-theme-<?=e($adminTheme)?>">
 <aside class="admin-side">
   <?php
     $adminPage=basename((string)($_SERVER['PHP_SELF']??''));
@@ -44,7 +44,7 @@
     </a>
     <a class="admin-nav-link<?=$adminNavActive(['right-block.php'])?>" href="<?=e(base_url('admin/right-block.php'))?>">
       <span class="admin-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"></path><path d="M14 5v14M17 9h1M17 13h1"></path></svg></span>
-      <span>Правый блок</span>
+      <span>Правые блоки</span>
     </a>
     <a class="admin-nav-link<?=$adminNavActive(['settings.php'])?>" href="<?=e(base_url('admin/settings.php'))?>">
       <span class="admin-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5A3.5 3.5 0 1 0 12 15.5 3.5 3.5 0 0 0 12 8.5z"></path><path d="M19 13.5v-3l-2-.7-.5-1.2.9-1.9-2.1-2.1-1.9.9-1.2-.5-.7-2h-3l-.7 2-1.2.5-1.9-.9-2.1 2.1.9 1.9-.5 1.2-2 .7v3l2 .7.5 1.2-.9 1.9 2.1 2.1 1.9-.9 1.2.5.7 2h3l.7-2 1.2-.5 1.9.9 2.1-2.1-.9-1.9.5-1.2z"></path></svg></span>
