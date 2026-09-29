@@ -29,7 +29,7 @@ $photos=$album ? photo_album_images((int)$album['id']) : [];
 
 $pageTitle=$album ? $album['title'] : 'Фотогалерея';
 $pageDescription=$album
-  ? ($album['description'] ?: 'Фотоальбом «'.$album['title'].'» — АХИХЪАН.')
+  ? (rich_text_excerpt($album['description'],260) ?: 'Фотоальбом «'.$album['title'].'» — АХИХЪАН.')
   : 'Фотогалерея сетевого издания АХИХЪАН: события, люди и жизнь Унцукульского района.';
 
 require __DIR__.'/partials/header.php';
@@ -42,7 +42,7 @@ require __DIR__.'/partials/header.php';
         <a class="gallery-back" href="<?=e(base_url('gallery.php'))?>">← Все фотоальбомы</a>
         <span class="heading-kicker">Фотоальбом</span>
         <h1><?=e($album['title'])?></h1>
-        <?php if(!empty($album['description'])):?><p><?=e($album['description'])?></p><?php endif;?>
+        <?php if(!empty($album['description'])):?><div class="gallery-album-description rich-text"><?=rich_text_html($album['description'])?></div><?php endif;?>
         <div class="gallery-album-hero-meta">
           <span><?=e(ru_date($album['album_date']))?></span>
           <span><?=e((string)$album['photo_count'])?> фотографий</span>
@@ -93,7 +93,7 @@ require __DIR__.'/partials/header.php';
             <span class="gallery-album-card-copy">
               <small><?=e(ru_date($item['album_date']))?></small>
               <strong><?=e($item['title'])?></strong>
-              <?php if(!empty($item['description'])):?><span><?=e($item['description'])?></span><?php endif;?>
+              <?php if(!empty($item['description'])):?><span><?=e(rich_text_excerpt($item['description'],180))?></span><?php endif;?>
               <b>Открыть альбом →</b>
             </span>
           </a>
