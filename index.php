@@ -10,16 +10,7 @@ $regionalNews = latest_articles_by_category_slug('regionalnye-novosti', 3);
 $sportNews = latest_articles_by_category_slug('sport', 3);
 $newspaper = latest_newspaper();
 $documents = latest_documents(8);
-$rightBlock = [
-  'enabled' => setting('right_block_enabled','1') === '1',
-  'kicker' => setting('right_block_kicker','От редакции'),
-  'title' => setting('right_block_title','О районе — с уважением к людям и истории'),
-  'text' => setting('right_block_text', setting('editor_note','Наша задача — рассказывать о важном для жителей района, сохранять память о прошлом и показывать людей, которые сегодня меняют родной край.')),
-  'image' => setting('right_block_image',''),
-  'link_text' => setting('right_block_link_text',''),
-  'link_url' => setting('right_block_link_url',''),
-  'style' => setting('right_block_style','light'),
-];
+$rightBlocks = homepage_right_blocks();
 $cats = categories();
 $catBySlug = [];
 foreach ($cats as $cat) $catBySlug[$cat['slug']] = $cat;
@@ -154,33 +145,98 @@ require __DIR__ . '/partials/header.php';
       </div>
     <?php endif; ?>
 
-    <div class="magazine-side-column">
-      <?php if($rightBlock['enabled']):?>
-        <?php
-          $rightBlockUrl=trim($rightBlock['link_url']);
-          if($rightBlockUrl!==''){
-            $rightBlockHref=preg_match('~^(https?://|mailto:|tel:)~i',$rightBlockUrl)
-              ? $rightBlockUrl
-              : base_url(ltrim($rightBlockUrl,'/'));
-          }else{
-            $rightBlockHref='';
-          }
-        ?>
-        <aside class="right-feature-card right-feature-<?=e(in_array($rightBlock['style'],['light','dark','accent'],true)?$rightBlock['style']:'light')?> <?=!empty($rightBlock['image'])?'has-image':''?>"
-          <?php if(!empty($rightBlock['image'])):?>style="--right-block-image:url('<?=e(base_url($rightBlock['image']))?>')"<?php endif;?>>
+
+  </div>
+</section>
+
+<section class="content-section regional-sport-sidebar-section">
+  <div class="regional-sport-layout">
+    <div class="regional-sport-main">
+
+      <section class="dual-news-card regional-news-card">
+        <div class="dual-news-head">
+          <div>
+            <span class="heading-kicker">Регион</span>
+            <h2>Региональные новости</h2>
+          </div>
+          <a href="<?=e(isset($catBySlug['regionalnye-novosti']) ? category_url($catBySlug['regionalnye-novosti']) : base_url('news.php'))?>">Все →</a>
+        </div>
+
+        <?php if($regionalNews):?>
+          <div class="dual-news-list dual-news-list-three">
+            <?php foreach(array_slice($regionalNews,0,3) as $i=>$item):?>
+              <article class="dual-news-row dual-news-row-full <?=$i===0?'is-first':''?>">
+                <a class="dual-news-thumb" href="<?=e(article_url($item))?>" style="<?=!empty($item['cover_image']) ? "background-image:url('".e(base_url($item['cover_image']))."')" : ''?>"></a>
+                <div class="dual-news-row-copy">
+                  <span class="article-label">Региональные новости</span>
+                  <h4><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h4>
+                  <?php if(!empty($item['excerpt'])):?><p><?=e($item['excerpt'])?></p><?php endif;?>
+                  <div class="article-meta"><span><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></span><span>◉ <?=number_format((int)$item['views'],0,'.',' ')?></span></div>
+                </div>
+              </article>
+            <?php endforeach;?>
+          </div>
+        <?php else:?>
+          <div class="dual-news-empty">
+            <strong>Региональных новостей пока нет</strong>
+            <p>После публикации материалов в рубрике «Региональные новости» они автоматически появятся здесь.</p>
+          </div>
+        <?php endif;?>
+      </section>
+
+      <section class="dual-news-card sport-news-card">
+        <div class="dual-news-head">
+          <div>
+            <span class="heading-kicker">Спорт</span>
+            <h2>Спортивные новости</h2>
+          </div>
+          <a href="<?=e(isset($catBySlug['sport']) ? category_url($catBySlug['sport']) : base_url('news.php'))?>">Все →</a>
+        </div>
+
+        <?php if($sportNews):?>
+          <div class="dual-news-list dual-news-list-three">
+            <?php foreach(array_slice($sportNews,0,3) as $i=>$item):?>
+              <article class="dual-news-row dual-news-row-full <?=$i===0?'is-first':''?>">
+                <a class="dual-news-thumb" href="<?=e(article_url($item))?>" style="<?=!empty($item['cover_image']) ? "background-image:url('".e(base_url($item['cover_image']))."')" : ''?>"></a>
+                <div class="dual-news-row-copy">
+                  <span class="article-label">Спорт</span>
+                  <h4><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h4>
+                  <?php if(!empty($item['excerpt'])):?><p><?=e($item['excerpt'])?></p><?php endif;?>
+                  <div class="article-meta"><span><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></span><span>◉ <?=number_format((int)$item['views'],0,'.',' ')?></span></div>
+                </div>
+              </article>
+            <?php endforeach;?>
+          </div>
+        <?php else:?>
+          <div class="dual-news-empty">
+            <strong>Спортивных новостей пока нет</strong>
+            <p>После публикации материалов в рубрике «Спорт» они автоматически появятся здесь.</p>
+          </div>
+        <?php endif;?>
+      </section>
+
+    </div>
+
+    <aside class="home-right-sidebar">
+      <?php foreach($rightBlocks as $block):
+        $blockHref=homepage_right_block_href($block['link_url']??'');
+        $blockStyle=in_array($block['style'],['light','accent','dark'],true)?$block['style']:'light';
+      ?>
+        <section class="right-feature-card right-feature-<?=e($blockStyle)?> <?=!empty($block['image'])?'has-image':''?>"
+          <?php if(!empty($block['image'])):?>style="--right-block-image:url('<?=e(base_url($block['image']))?>')"<?php endif;?>>
           <div class="right-feature-overlay"></div>
           <div class="right-feature-content">
-            <span class="heading-kicker"><?=e($rightBlock['kicker'])?></span>
-            <h3><?=e($rightBlock['title'])?></h3>
-            <?php if(trim($rightBlock['text'])!==''):?><p><?=nl2br(e($rightBlock['text']))?></p><?php endif;?>
-            <?php if($rightBlockHref!=='' && trim($rightBlock['link_text'])!==''):?>
-              <a href="<?=e($rightBlockHref)?>"><?=e($rightBlock['link_text'])?> <b>→</b></a>
+            <?php if(!empty($block['kicker'])):?><span class="heading-kicker"><?=e($block['kicker'])?></span><?php endif;?>
+            <h3><?=e($block['title'])?></h3>
+            <?php if(!empty($block['body'])):?><p><?=nl2br(e($block['body']))?></p><?php endif;?>
+            <?php if($blockHref!=='' && !empty($block['link_text'])):?>
+              <a href="<?=e($blockHref)?>"><?=e($block['link_text'])?> <b>→</b></a>
             <?php endif;?>
           </div>
-        </aside>
-      <?php endif;?>
+        </section>
+      <?php endforeach;?>
 
-      <aside class="newspaper-card <?=$newspaper?'has-newspaper':''?>">
+      <aside class="newspaper-card sidebar-newspaper <?=$newspaper?'has-newspaper':''?>">
         <div class="newspaper-card-top">
           <div>
             <span class="heading-kicker">Газета</span>
@@ -203,7 +259,6 @@ require __DIR__ . '/partials/header.php';
                 <span class="newspaper-cover-loading">PDF</span>
               <?php endif;?>
             </a>
-
             <div class="newspaper-live-copy">
               <span><?=e(ru_date($newspaper['issue_date']))?></span>
               <h4><?=e($newspaper['title'])?></h4>
@@ -225,81 +280,7 @@ require __DIR__ . '/partials/header.php';
           </div>
         <?php endif;?>
       </aside>
-    </div>
-  </div>
-</section>
-
-<section class="content-section dual-news-section">
-  <div class="block-heading news-section-heading dual-section-heading">
-    <div>
-      <span class="heading-kicker">Лента</span>
-      <h2>Регион и спорт</h2>
-    </div>
-    <span class="block-note">Свежие материалы по двум направлениям</span>
-  </div>
-
-  <div class="dual-news-grid dual-news-grid-rows">
-    <section class="dual-news-card regional-news-card">
-      <div class="dual-news-head">
-        <div>
-          <span class="heading-kicker">Регион</span>
-          <h2>Региональные новости</h2>
-        </div>
-        <a href="<?=e(isset($catBySlug['regionalnye-novosti']) ? category_url($catBySlug['regionalnye-novosti']) : base_url('news.php'))?>">Все →</a>
-      </div>
-
-      <?php if($regionalNews):?>
-        <div class="dual-news-list dual-news-list-three">
-          <?php foreach(array_slice($regionalNews,0,3) as $i=>$item):?>
-            <article class="dual-news-row dual-news-row-full <?=$i===0?'is-first':''?>">
-              <a class="dual-news-thumb" href="<?=e(article_url($item))?>" style="<?=!empty($item['cover_image']) ? "background-image:url('".e(base_url($item['cover_image']))."')" : ''?>"></a>
-              <div class="dual-news-row-copy">
-                <span class="article-label">Региональные новости</span>
-                <h4><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h4>
-                <?php if(!empty($item['excerpt'])):?><p><?=e($item['excerpt'])?></p><?php endif;?>
-                <div class="article-meta"><span><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></span><span>◉ <?=number_format((int)$item['views'],0,'.',' ')?></span></div>
-              </div>
-            </article>
-          <?php endforeach;?>
-        </div>
-      <?php else:?>
-        <div class="dual-news-empty">
-          <strong>Региональных новостей пока нет</strong>
-          <p>После публикации материалов в рубрике «Региональные новости» они автоматически появятся здесь.</p>
-        </div>
-      <?php endif;?>
-    </section>
-
-    <section class="dual-news-card sport-news-card">
-      <div class="dual-news-head">
-        <div>
-          <span class="heading-kicker">Спорт</span>
-          <h2>Спортивные новости</h2>
-        </div>
-        <a href="<?=e(isset($catBySlug['sport']) ? category_url($catBySlug['sport']) : base_url('news.php'))?>">Все →</a>
-      </div>
-
-      <?php if($sportNews):?>
-        <div class="dual-news-list dual-news-list-three">
-          <?php foreach(array_slice($sportNews,0,3) as $i=>$item):?>
-            <article class="dual-news-row dual-news-row-full <?=$i===0?'is-first':''?>">
-              <a class="dual-news-thumb" href="<?=e(article_url($item))?>" style="<?=!empty($item['cover_image']) ? "background-image:url('".e(base_url($item['cover_image']))."')" : ''?>"></a>
-              <div class="dual-news-row-copy">
-                <span class="article-label">Спорт</span>
-                <h4><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h4>
-                <?php if(!empty($item['excerpt'])):?><p><?=e($item['excerpt'])?></p><?php endif;?>
-                <div class="article-meta"><span><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></span><span>◉ <?=number_format((int)$item['views'],0,'.',' ')?></span></div>
-              </div>
-            </article>
-          <?php endforeach;?>
-        </div>
-      <?php else:?>
-        <div class="dual-news-empty">
-          <strong>Спортивных новостей пока нет</strong>
-          <p>После публикации материалов в рубрике «Спорт» они автоматически появятся здесь.</p>
-        </div>
-      <?php endif;?>
-    </section>
+    </aside>
   </div>
 </section>
 
