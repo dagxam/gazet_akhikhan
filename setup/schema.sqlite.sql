@@ -104,6 +104,7 @@ CREATE INDEX IF NOT EXISTS idx_main_menu_active_sort ON main_menu_items(is_activ
 
 CREATE TABLE IF NOT EXISTS homepage_right_blocks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  area TEXT NOT NULL DEFAULT 'home' CHECK (area IN ('home','pages')),
   kicker TEXT,
   title TEXT NOT NULL,
   body TEXT,
@@ -117,6 +118,7 @@ CREATE TABLE IF NOT EXISTS homepage_right_blocks (
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_homepage_right_blocks_active_sort ON homepage_right_blocks(is_active,sort_order);
+CREATE INDEX IF NOT EXISTS idx_homepage_right_blocks_area_active_sort ON homepage_right_blocks(area,is_active,sort_order,id);
 
 
 CREATE TABLE IF NOT EXISTS photo_albums (
@@ -172,3 +174,18 @@ CREATE TABLE IF NOT EXISTS video_gallery (
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_video_gallery_status_date ON video_gallery(status,video_date,sort_order,id);
+
+
+CREATE TABLE IF NOT EXISTS static_pages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  excerpt TEXT,
+  content TEXT NOT NULL,
+  cover_image TEXT,
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','published')),
+  menu_item_id INTEGER,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_static_pages_status_title ON static_pages(status,title);
