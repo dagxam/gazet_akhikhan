@@ -8,6 +8,69 @@ $siteHeaderLogo = branding_asset('site_header_logo','assets/img/akhikhan-logo-tr
 $topbarRegion = setting('topbar_region_label','Унцукульский район');
 $siteSocialLinks = social_links(true);
 
+$seoSiteName = 'АХИХЪАН';
+$seoDefaultDescription = 'Сетевое издание Унцукульского района Республики Дагестан: новости, общество, культура, спорт, люди и история.';
+$seoTitleText = trim((string)($pageTitle ?? ''));
+$seoFullTitle = $seoTitleText !== ''
+    ? $seoTitleText . ' — ' . $seoSiteName
+    : 'АХИХЪАН — сетевое издание Унцукульского района';
+$seoDescription = trim((string)($pageDescription ?? ''));
+if ($seoDescription === '') $seoDescription = $seoDefaultDescription;
+
+$requestPath = (string)(parse_url((string)($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/');
+$seoCanonical = trim((string)($seoCanonical ?? ''));
+if ($seoCanonical === '') {
+    $seoCanonical = $requestPath === '/' ? base_url() : base_url(ltrim($requestPath, '/'));
+}
+
+$seoImage = trim((string)($seoImage ?? ''));
+if ($seoImage === '') {
+    $seoImage = base_url('assets/img/akhikhan-logo-hq.webp');
+} elseif (!preg_match('~^https?://~i', $seoImage)) {
+    $seoImage = base_url(ltrim($seoImage, '/'));
+}
+
+$seoType = trim((string)($seoType ?? 'website')) ?: 'website';
+$seoRobots = trim((string)($seoRobots ?? 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1'));
+$seoAuthor = trim((string)($seoAuthor ?? ''));
+$seoPublishedTime = trim((string)($seoPublishedTime ?? ''));
+$seoModifiedTime = trim((string)($seoModifiedTime ?? ''));
+$seoJsonLd = isset($seoJsonLd) && is_array($seoJsonLd) ? $seoJsonLd : [];
+
+$seoSameAs = [];
+foreach ($siteSocialLinks as $social) {
+    $url = trim((string)($social['url'] ?? ''));
+    if (preg_match('~^https?://~i', $url)) $seoSameAs[] = $url;
+}
+
+$seoOrganization = [
+    '@context' => 'https://schema.org',
+    '@type' => 'NewsMediaOrganization',
+    '@id' => base_url('#organization'),
+    'name' => $seoSiteName,
+    'alternateName' => 'Сетевое издание Унцукульского района',
+    'url' => base_url(),
+    'logo' => [
+        '@type' => 'ImageObject',
+        'url' => base_url($siteHeaderLogo),
+    ],
+];
+if ($seoSameAs) $seoOrganization['sameAs'] = array_values(array_unique($seoSameAs));
+
+$seoWebsite = [
+    '@context' => 'https://schema.org',
+    '@type' => 'WebSite',
+    '@id' => base_url('#website'),
+    'url' => base_url(),
+    'name' => $seoSiteName,
+    'description' => $seoDefaultDescription,
+    'inLanguage' => 'ru-RU',
+    'publisher' => ['@id' => base_url('#organization')],
+];
+
+array_unshift($seoJsonLd, $seoWebsite);
+array_unshift($seoJsonLd, $seoOrganization);
+
 function nav_link_for_slug(string $slug, string $fallbackLabel): string {
     global $bySlug;
     if (isset($bySlug[$slug])) return category_url($bySlug[$slug]);
@@ -20,8 +83,28 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#231d18">
 <link rel="icon" href="<?=e(base_url($siteFavicon))?>">
-<title><?=e(($pageTitle ?? '') ? $pageTitle . ' — АХИХЪАН' : 'АХИХЪАН — сетевое издание Унцукульского района')?></title>
-<meta name="description" content="<?=e($pageDescription ?? 'Сетевое издание Унцукульского района Республики Дагестан: новости, общество, культура, спорт, люди и история.')?>">
+<title><?=e($seoFullTitle)?></title>
+<meta name="description" content="<?=e($seoDescription)?>">
+<meta name="robots" content="<?=e($seoRobots)?>">
+<link rel="canonical" href="<?=e($seoCanonical)?>">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:site_name" content="<?=e($seoSiteName)?>">
+<meta property="og:type" content="<?=e($seoType)?>">
+<meta property="og:title" content="<?=e($seoFullTitle)?>">
+<meta property="og:description" content="<?=e($seoDescription)?>">
+<meta property="og:url" content="<?=e($seoCanonical)?>">
+<meta property="og:image" content="<?=e($seoImage)?>">
+<meta property="og:image:alt" content="<?=e($seoTitleText !== '' ? $seoTitleText : $seoSiteName)?>">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<?=e($seoFullTitle)?>">
+<meta name="twitter:description" content="<?=e($seoDescription)?>">
+<meta name="twitter:image" content="<?=e($seoImage)?>">
+<?php if($seoAuthor!==''):?><meta name="author" content="<?=e($seoAuthor)?>"><?php endif;?>
+<?php if($seoPublishedTime!==''):?><meta property="article:published_time" content="<?=e($seoPublishedTime)?>"><?php endif;?>
+<?php if($seoModifiedTime!==''):?><meta property="article:modified_time" content="<?=e($seoModifiedTime)?>"><?php endif;?>
+<?php foreach($seoJsonLd as $jsonLd):?>
+<script type="application/ld+json"><?=json_encode($jsonLd,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?></script>
+<?php endforeach;?>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@400;500;600;700;800&family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Noto+Serif:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
