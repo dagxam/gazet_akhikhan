@@ -97,3 +97,17 @@ jobs:
           test "$transparent_logo_code" = "200"
           test "$(wc -c < /tmp/akhikhan-logo-transparent.webp)" -gt 50000
           echo "Akhikhan production site is reachable in normal or reconstruction mode."
+
+          if [ "$code" = "200" ]; then
+            grep -q "Последние видео" /tmp/akhikhan.html
+          fi
+
+          login_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin-login.html --write-out '%{http_code}' https://akhikhan.ru/admin/login.php)"
+          test "$login_code" = "200"
+          grep -q "Вход в редакцию" /tmp/akhikhan-admin-login.html
+
+          security_headers="$(curl --silent --show-error --head --max-time 30 https://akhikhan.ru/ | tr -d '\r')"
+          echo "$security_headers" | grep -qi '^X-Content-Type-Options: nosniff'
+          echo "$security_headers" | grep -qi '^X-Frame-Options: SAMEORIGIN'
+          echo "$security_headers" | grep -qi '^Content-Security-Policy:'
+          echo "Homepage content, admin login and security headers verified."
