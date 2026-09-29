@@ -26,6 +26,7 @@ if(!$page){
 }
 
 $pageBlocks=page_right_blocks(true);
+$pageRelated=latest_articles(5);
 $pageTitle=$page['title'];
 $pageDescription=rich_text_excerpt($page['excerpt']??'',260)
   ?: rich_text_excerpt($page['content']??'',260)
@@ -44,7 +45,7 @@ require __DIR__.'/partials/header.php';
 ?>
 
 <div class="wrap static-public-shell">
-  <div class="static-public-layout <?=$pageBlocks?'has-sidebar':'no-sidebar'?>">
+  <div class="static-public-layout has-sidebar">
     <article class="static-page-paper">
       <div class="article-breadcrumbs">
         <a href="<?=e(base_url())?>">Главная</a><span>›</span><span><?=e($page['title'])?></span>
@@ -57,24 +58,41 @@ require __DIR__.'/partials/header.php';
       <div class="static-page-content rich-text"><?=rich_text_html($page['content'])?></div>
     </article>
 
-    <?php if($pageBlocks):?>
-      <aside class="static-page-sidebar">
-        <?php foreach($pageBlocks as $block):
-          $blockHref=homepage_right_block_href($block['link_url']??'');
-          $blockStyle=in_array($block['style'],['light','accent','dark'],true)?$block['style']:'light';
-        ?>
-          <section class="right-feature-card right-feature-<?=e($blockStyle)?> <?=!empty($block['image'])?'has-image':''?>" <?php if(!empty($block['image'])):?>style="--right-block-image:url('<?=e(base_url($block['image']))?>')"<?php endif;?>>
-            <div class="right-feature-overlay"></div>
-            <div class="right-feature-content">
-              <?php if(!empty($block['kicker'])):?><span class="heading-kicker"><?=e($block['kicker'])?></span><?php endif;?>
-              <h3><?=e($block['title'])?></h3>
-              <?php if(!empty($block['body'])):?><div class="right-feature-body rich-text"><?=rich_text_html($block['body'])?></div><?php endif;?>
-              <?php if($blockHref!=='' && !empty($block['link_text'])):?><a href="<?=e($blockHref)?>"><?=e($block['link_text'])?> <b>→</b></a><?php endif;?>
-            </div>
-          </section>
-        <?php endforeach;?>
-      </aside>
-    <?php endif;?>
+    <aside class="static-page-sidebar">
+      <section class="article-side-card">
+        <h3>Читайте также</h3>
+        <div class="related-list">
+          <?php foreach($pageRelated as $item): ?>
+            <a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a>
+          <?php endforeach; ?>
+          <?php if(!$pageRelated): ?><a href="<?=e(base_url('news.php'))?>">Все новости Унцукульского района →</a><?php endif; ?>
+        </div>
+      </section>
+
+      <section class="article-side-card">
+        <h3>АХИХЪАН</h3>
+        <div class="related-list">
+          <a href="<?=e(base_url('about.php'))?>">О сетевом издании</a>
+          <a href="<?=e(base_url('contacts.php'))?>">Связаться с редакцией</a>
+          <a href="<?=e(nav_link_for_slug('istoriya','История'))?>">История района</a>
+        </div>
+      </section>
+
+      <?php foreach($pageBlocks as $block):
+        $blockHref=homepage_right_block_href($block['link_url']??'');
+        $blockStyle=in_array($block['style'],['light','accent','dark'],true)?$block['style']:'light';
+      ?>
+        <section class="right-feature-card right-feature-<?=e($blockStyle)?> <?=!empty($block['image'])?'has-image':''?>" <?php if(!empty($block['image'])):?>style="--right-block-image:url('<?=e(base_url($block['image']))?>')"<?php endif;?>>
+          <div class="right-feature-overlay"></div>
+          <div class="right-feature-content">
+            <?php if(!empty($block['kicker'])):?><span class="heading-kicker"><?=e($block['kicker'])?></span><?php endif;?>
+            <h3><?=e($block['title'])?></h3>
+            <?php if(!empty($block['body'])):?><div class="right-feature-body rich-text"><?=rich_text_html($block['body'])?></div><?php endif;?>
+            <?php if($blockHref!=='' && !empty($block['link_text'])):?><a href="<?=e($blockHref)?>"><?=e($block['link_text'])?> <b>→</b></a><?php endif;?>
+          </div>
+        </section>
+      <?php endforeach;?>
+    </aside>
   </div>
 </div>
 
