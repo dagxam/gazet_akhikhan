@@ -41,7 +41,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     $title=trim($_POST['title']??'');
     if($title==='') throw new RuntimeException('Введите название документа.');
 
-    $description=trim($_POST['description']??'');
+    $description=sanitize_rich_text($_POST['description']??'');
     $documentDate=trim($_POST['document_date']??'') ?: date('Y-m-d');
     $status=in_array($_POST['status']??'published',['draft','published'],true)?$_POST['status']:'published';
 
@@ -115,7 +115,7 @@ require __DIR__.'/_top.php';
 
       <label class="field-modern compact">
         <span>Краткое описание</span>
-        <textarea name="description" rows="3" placeholder="Необязательно"><?=e($editing['description']??'')?></textarea>
+        <textarea name="description" rows="3" data-rich-text placeholder="Необязательно"><?=e($editing['description']??'')?></textarea>
       </label>
 
       <div class="document-form-row">
@@ -172,7 +172,7 @@ require __DIR__.'/_top.php';
             <div class="document-admin-info">
               <span class="status <?=$row['status']==='published'?'green':'gray'?>"><?=$row['status']==='published'?'Опубликован':'Черновик'?></span>
               <h3><?=e($row['title'])?></h3>
-              <?php if(!empty($row['description'])):?><p><?=e($row['description'])?></p><?php endif;?>
+              <?php if(!empty($row['description'])):?><div class="rich-text document-admin-description"><?=rich_text_html($row['description'])?></div><?php endif;?>
               <div class="document-admin-meta">
                 <span><?=e(ru_date($row['document_date']))?></span>
                 <span><?=e(strtoupper($row['file_ext']))?></span>
