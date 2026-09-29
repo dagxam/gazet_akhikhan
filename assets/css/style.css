@@ -6096,3 +6096,897 @@ h1,h2,h3,h4{
     font-size:20px;
   }
 }
+
+
+/* complete public responsive layer v1 */
+html,
+body,
+.site-shell{
+  max-width:100%;
+  overflow-x:clip;
+}
+img,
+video,
+iframe,
+svg{
+  max-width:100%;
+}
+.rich-text{
+  min-width:0;
+  overflow-wrap:anywhere;
+  word-break:normal;
+}
+.rich-text iframe,
+.rich-text video{
+  width:100%;
+}
+.rich-text table{
+  display:block;
+  width:100%;
+  max-width:100%;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  border-collapse:collapse;
+}
+.article-paper,
+.static-page-paper,
+.list-card,
+.video-gallery-card,
+.gallery-album-card,
+.right-feature-card,
+.info-card{
+  min-width:0;
+}
+
+/* Tablets: keep the desktop visual language, but remove narrow side columns. */
+@media(max-width:1100px) and (min-width:761px){
+  .wrap{
+    width:min(100% - 32px,1280px);
+  }
+
+  .home-lead-grid{
+    grid-template-columns:1fr;
+  }
+  .hero-story{
+    min-height:500px;
+  }
+  .latest-list{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    padding:0 18px 12px;
+    column-gap:20px;
+  }
+  .latest-item{
+    min-width:0;
+  }
+
+  .district-magazine-grid{
+    grid-template-columns:1fr;
+    gap:20px;
+  }
+  .district-magazine-side-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .regional-sport-layout{
+    grid-template-columns:1fr;
+  }
+  .home-right-sidebar{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .home-right-sidebar .sidebar-newspaper{
+    min-height:0;
+  }
+
+  .section-cards,
+  .home-video-section-cards{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .article-layout{
+    grid-template-columns:1fr;
+  }
+  .article-sidebar{
+    position:static;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .article-sidebar .right-feature-card{
+    min-height:210px;
+  }
+
+  .static-public-layout{
+    grid-template-columns:1fr;
+  }
+  .static-page-sidebar{
+    position:static;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .video-view-layout{
+    grid-template-columns:1fr;
+  }
+
+  .footer-main{
+    grid-template-columns:minmax(0,1.4fr) minmax(150px,.6fr) minmax(150px,.6fr);
+    gap:28px;
+  }
+  .footer-contact{
+    grid-column:1/-1;
+    justify-self:start;
+    text-align:left;
+  }
+  .footer-socials{
+    justify-content:flex-start;
+  }
+}
+
+/* Phones and narrow tablets. */
+@media(max-width:760px){
+  :root{
+    --radius:16px;
+  }
+
+  .wrap{
+    width:calc(100% - 24px);
+  }
+
+  body.mobile-menu-open{
+    overflow:hidden;
+    overscroll-behavior:none;
+  }
+
+  .site-topbar-inner{
+    width:calc(100% - 24px);
+  }
+  .topbar-socials{
+    max-width:150px;
+    overflow-x:auto;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .topbar-socials::-webkit-scrollbar{
+    display:none;
+  }
+
+  .reference-header-inner{
+    min-height:68px;
+    gap:10px;
+  }
+  .reference-logo{
+    width:min(205px,66vw);
+    height:56px;
+  }
+  .reference-logo img{
+    max-height:52px;
+  }
+  .reference-mobile-toggle{
+    width:46px;
+    height:42px;
+  }
+  .reference-menu-shell{
+    left:0;
+    right:0;
+  }
+  .reference-site-menu{
+    left:12px;
+    right:12px;
+    top:7px;
+    max-height:calc(100dvh - 116px);
+    padding:7px;
+    overscroll-behavior:contain;
+  }
+  .reference-site-menu>a{
+    min-height:48px;
+    padding:0 14px!important;
+    font-size:13px!important;
+  }
+
+  .home-shell{
+    padding-top:16px;
+    padding-bottom:36px;
+  }
+  .home-lead-grid{
+    grid-template-columns:1fr;
+    gap:14px;
+  }
+  .hero-story{
+    min-height:440px;
+    border-radius:16px;
+  }
+  .hero-story:before{
+    margin:8px;
+    border-radius:11px;
+  }
+  .hero-story-copy{
+    width:100%;
+    padding:34px 28px;
+  }
+  .hero-story h1{
+    max-width:100%;
+    font-size:clamp(32px,8.2vw,43px);
+    line-height:1.04;
+  }
+  .hero-story p{
+    max-width:100%;
+    margin-bottom:20px;
+    font-size:14px;
+    line-height:1.55;
+  }
+  .story-button{
+    min-height:43px;
+    padding:0 16px;
+  }
+  .hero-location{
+    right:16px;
+    top:15px;
+    max-width:55%;
+  }
+
+  .latest-panel{
+    border-radius:16px;
+  }
+  .latest-list{
+    display:grid;
+    grid-template-columns:1fr;
+    padding:0 17px;
+  }
+  .block-heading,
+  .home-news-row-heading,
+  .home-photo-gallery-head,
+  .district-magazine-heading{
+    align-items:flex-end;
+    gap:12px;
+  }
+  .block-heading h2,
+  .district-magazine-heading h2,
+  .home-news-row-heading h2,
+  .home-photo-gallery-head h2{
+    font-size:clamp(24px,7vw,28px);
+  }
+  .block-heading>a,
+  .district-magazine-heading>a,
+  .home-news-row-heading>a,
+  .home-photo-gallery-head>a{
+    flex:0 0 auto;
+    font-size:8px;
+  }
+
+  .district-ribbon{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .district-ribbon-title{
+    grid-column:1/-1;
+  }
+
+  .district-magazine-grid,
+  .regional-sport-layout{
+    grid-template-columns:1fr;
+    gap:18px;
+  }
+  .district-magazine-side-grid{
+    grid-template-columns:1fr;
+    gap:14px;
+  }
+  .district-magazine-lead-image{
+    aspect-ratio:16/10;
+  }
+  .district-magazine-card{
+    display:grid;
+    grid-template-columns:38% minmax(0,1fr);
+    overflow:hidden;
+    border:1px solid var(--line);
+    border-radius:14px;
+    background:var(--paper-white);
+  }
+  .district-magazine-card-image{
+    height:100%;
+    min-height:150px;
+    aspect-ratio:auto;
+  }
+  .district-magazine-card-copy{
+    align-self:center;
+    padding:15px;
+  }
+
+  .home-news-three-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+  }
+  .home-news-three-card:last-child{
+    grid-column:1/-1;
+  }
+  .home-right-sidebar{
+    grid-template-columns:1fr;
+  }
+
+  .documents-strip{
+    grid-auto-columns:minmax(260px,84vw);
+    scroll-padding-left:2px;
+  }
+
+  .section-cards,
+  .home-video-section-cards{
+    grid-template-columns:1fr;
+    gap:13px;
+  }
+  .section-card{
+    min-height:190px;
+    grid-template-columns:40% minmax(0,1fr);
+  }
+  .section-card-image{
+    min-height:190px;
+  }
+  .section-card-body{
+    padding:22px 18px;
+  }
+  .section-card-body strong{
+    font-size:20px;
+  }
+
+  .heritage-feature{
+    grid-template-columns:1fr;
+    min-height:0;
+    margin-top:34px;
+    border-radius:17px;
+  }
+  .heritage-visual{
+    min-height:260px;
+  }
+  .heritage-feature-copy{
+    padding:32px 26px 34px;
+  }
+  .heritage-feature-copy h2{
+    font-size:31px;
+  }
+  .heritage-feature-copy p{
+    font-size:14px;
+  }
+
+  .page-shell,
+  .gallery-page-shell,
+  .video-page-shell,
+  .static-public-shell{
+    padding-top:22px;
+    padding-bottom:38px;
+  }
+  .page-head{
+    grid-template-columns:1fr;
+    margin-bottom:18px;
+    padding-top:8px;
+  }
+  .page-head-mark{
+    display:none;
+  }
+  .page-head h1{
+    font-size:clamp(32px,9vw,40px);
+  }
+  .page-head p{
+    font-size:13px;
+  }
+
+  .listing-grid{
+    grid-template-columns:1fr;
+    gap:14px;
+  }
+  .list-card{
+    border-radius:16px;
+  }
+  .list-thumb{
+    height:auto;
+    aspect-ratio:16/9;
+  }
+  .list-card-body{
+    padding:18px;
+  }
+  .list-card-body h2{
+    font-size:22px;
+  }
+
+  .article-layout{
+    grid-template-columns:1fr;
+    gap:16px;
+  }
+  .article-paper{
+    padding:26px 22px 30px;
+    border-radius:16px;
+  }
+  .article-paper h1{
+    font-size:clamp(32px,8.8vw,42px);
+    overflow-wrap:anywhere;
+  }
+  .article-meta{
+    gap:9px 13px;
+  }
+  .article-cover{
+    margin:20px 0;
+    max-height:none;
+    aspect-ratio:auto;
+  }
+  .article-lead{
+    padding-left:15px;
+    font-size:17px;
+  }
+  .article-content{
+    font-size:16px;
+    line-height:1.72;
+  }
+  .article-sidebar{
+    position:static;
+    grid-template-columns:1fr;
+  }
+
+  .static-public-layout{
+    grid-template-columns:1fr;
+    gap:16px;
+  }
+  .static-page-paper{
+    padding:26px 22px 30px;
+    border-radius:16px;
+  }
+  .static-page-paper h1{
+    font-size:clamp(31px,8.5vw,39px);
+    overflow-wrap:anywhere;
+  }
+  .static-page-lead{
+    font-size:14px;
+  }
+  .static-page-content{
+    font-size:16px;
+    line-height:1.72;
+  }
+  .static-page-sidebar{
+    position:static;
+    grid-template-columns:1fr;
+  }
+
+  .info-grid{
+    grid-template-columns:1fr;
+    gap:14px;
+  }
+  .info-card{
+    padding:24px 22px;
+    border-radius:16px;
+  }
+  .info-card h2{
+    font-size:25px;
+  }
+
+  .gallery-page-heading,
+  .video-page-heading{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:14px;
+  }
+  .gallery-page-heading h1,
+  .gallery-album-hero h1,
+  .video-page-heading h1,
+  .video-view-copy h1{
+    font-size:clamp(31px,8.5vw,38px);
+  }
+  .gallery-album-hero{
+    grid-template-columns:1fr;
+    gap:18px;
+    padding:22px;
+    border-radius:16px;
+  }
+  .gallery-album-hero-cover{
+    min-height:240px;
+  }
+  .gallery-albums-public-grid,
+  .video-gallery-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:12px;
+  }
+  .gallery-photo-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:7px;
+  }
+  .gallery-photo-tile{
+    min-height:220px;
+  }
+  .gallery-photo-tile.is-featured{
+    grid-column:span 2;
+    min-height:400px;
+  }
+
+  .video-view-layout{
+    grid-template-columns:1fr;
+    gap:14px;
+  }
+  .video-view-player,
+  .video-view-copy{
+    border-radius:16px;
+  }
+  .video-view-copy{
+    padding:21px;
+  }
+
+  .right-feature-card,
+  .right-feature-card .right-feature-content{
+    min-height:190px;
+  }
+
+  .heritage-band{
+    min-height:100px;
+    padding:14px 0;
+    background-size:auto 100%;
+  }
+  .heritage-copy{
+    width:min(92%,620px);
+    padding:14px 20px;
+    border-radius:18px;
+  }
+  .heritage-copy strong{
+    font-size:17px;
+  }
+
+  .footer-main{
+    grid-template-columns:1fr 1fr;
+    gap:28px 22px;
+    padding:46px 0 34px;
+  }
+  .footer-identity,
+  .footer-contact{
+    grid-column:1/-1;
+  }
+  .footer-contact{
+    justify-self:start;
+    text-align:left;
+  }
+  .footer-socials{
+    justify-content:flex-start;
+    flex-wrap:wrap;
+  }
+  .footer-bottom-inner{
+    min-height:0;
+    padding:14px 0;
+    flex-wrap:wrap;
+    gap:8px 14px;
+  }
+  .footer-bottom-inner span:nth-child(2){
+    margin-left:0;
+  }
+  .back-top{
+    margin-left:auto;
+  }
+}
+
+/* Small phones. */
+@media(max-width:520px){
+  .wrap,
+  .site-topbar-inner,
+  .wrap.reference-header-inner{
+    width:calc(100% - 20px);
+  }
+
+  .site-topbar-left{
+    min-width:0;
+  }
+  .topbar-weather{
+    display:none;
+  }
+  .topbar-socials{
+    max-width:175px;
+  }
+
+  .reference-header-inner{
+    min-height:64px;
+  }
+  .reference-logo{
+    width:min(188px,64vw);
+    height:52px;
+  }
+  .reference-logo img{
+    max-height:48px;
+  }
+  .reference-mobile-toggle{
+    width:43px;
+    height:40px;
+  }
+  .reference-mobile-toggle b{
+    display:none;
+  }
+  .reference-mobile-toggle{
+    grid-template-columns:18px;
+  }
+  .reference-mobile-toggle span{
+    width:18px;
+  }
+  .reference-site-menu{
+    left:10px;
+    right:10px;
+    max-height:calc(100dvh - 108px);
+  }
+
+  .hero-story{
+    min-height:390px;
+    background-position:center;
+  }
+  .hero-story-copy{
+    padding:30px 22px 26px;
+  }
+  .hero-story h1{
+    margin:12px 0 13px;
+    font-size:clamp(29px,9vw,36px);
+  }
+  .hero-story p{
+    font-size:13px;
+    line-height:1.5;
+  }
+  .hero-location{
+    display:none;
+  }
+  .story-button{
+    width:100%;
+    justify-content:space-between;
+  }
+
+  .block-heading,
+  .home-news-row-heading,
+  .home-photo-gallery-head,
+  .district-magazine-heading{
+    align-items:flex-start;
+    flex-wrap:wrap;
+  }
+  .block-heading>a,
+  .district-magazine-heading>a,
+  .home-news-row-heading>a,
+  .home-photo-gallery-head>a{
+    margin-left:auto;
+  }
+
+  .district-ribbon{
+    grid-template-columns:1fr;
+  }
+  .district-ribbon-title{
+    grid-column:auto;
+  }
+
+  .district-magazine-card{
+    grid-template-columns:36% minmax(0,1fr);
+  }
+  .district-magazine-card-image{
+    min-height:135px;
+  }
+  .district-magazine-card-copy{
+    padding:12px;
+  }
+
+  .home-news-three-grid{
+    grid-template-columns:1fr;
+  }
+  .home-news-three-card:last-child{
+    grid-column:auto;
+  }
+  .home-news-three-image,
+  .home-news-three-card:last-child .home-news-three-image{
+    aspect-ratio:16/9;
+  }
+
+  .home-photo-gallery-grid{
+    grid-template-columns:1fr;
+    grid-template-rows:none;
+    grid-auto-rows:190px;
+  }
+  .home-photo-tile.is-featured{
+    grid-column:auto;
+    grid-row:auto;
+  }
+
+  .documents-strip{
+    grid-auto-columns:minmax(250px,89vw);
+  }
+  .document-card{
+    grid-template-columns:54px minmax(0,1fr);
+    gap:12px;
+    padding:13px;
+  }
+  .document-format-icon{
+    width:54px;
+    height:66px;
+  }
+
+  .section-card{
+    grid-template-columns:38% minmax(0,1fr);
+    min-height:172px;
+  }
+  .section-card-image{
+    min-height:172px;
+  }
+  .section-card-body{
+    padding:18px 15px;
+  }
+  .section-card-body strong{
+    font-size:18px;
+  }
+  .section-card-body b{
+    margin-top:16px;
+  }
+
+  .heritage-visual{
+    min-height:215px;
+  }
+  .heritage-feature-copy{
+    padding:27px 21px 30px;
+  }
+  .heritage-feature-copy h2{
+    font-size:28px;
+  }
+  .heritage-links{
+    gap:12px 18px;
+  }
+
+  .article-paper,
+  .static-page-paper{
+    padding:22px 18px 26px;
+    border-radius:14px;
+  }
+  .article-breadcrumbs{
+    gap:5px;
+    margin-bottom:16px;
+  }
+  .article-paper h1,
+  .static-page-paper h1{
+    font-size:clamp(29px,9vw,35px);
+  }
+  .article-content,
+  .static-page-content{
+    font-size:15.5px;
+  }
+  .article-content blockquote,
+  .rich-text blockquote{
+    margin-left:0;
+    margin-right:0;
+    padding:13px 14px;
+  }
+
+  .list-card-body{
+    padding:16px;
+  }
+  .list-card-body h2{
+    font-size:20px;
+  }
+
+  .gallery-albums-public-grid,
+  .video-gallery-grid,
+  .gallery-photo-grid{
+    grid-template-columns:1fr;
+  }
+  .video-gallery-main-grid .video-gallery-card.is-leading,
+  .gallery-photo-tile.is-featured{
+    grid-column:auto;
+  }
+  .gallery-photo-tile,
+  .gallery-photo-tile.is-featured{
+    min-height:270px;
+  }
+  .gallery-album-hero{
+    padding:19px 17px;
+  }
+  .gallery-album-hero-cover{
+    min-height:210px;
+  }
+
+  .gallery-lightbox{
+    grid-template-columns:1fr;
+    padding:50px 10px 74px;
+  }
+  .gallery-lightbox figure img{
+    max-height:74vh;
+  }
+  .gallery-lightbox-nav{
+    position:absolute;
+    bottom:15px;
+    width:46px;
+    height:42px;
+  }
+  .gallery-lightbox-nav.prev{
+    left:calc(50% - 55px);
+  }
+  .gallery-lightbox-nav.next{
+    right:calc(50% - 55px);
+  }
+  .gallery-lightbox-close{
+    right:10px;
+    top:10px;
+  }
+
+  .video-view-copy{
+    padding:18px;
+  }
+  .video-gallery-copy>strong{
+    font-size:18px;
+  }
+
+  .info-card{
+    padding:21px 18px;
+  }
+
+  .right-feature-card{
+    border-radius:16px;
+  }
+  .right-feature-card .right-feature-content{
+    padding:21px 18px;
+  }
+
+  .heritage-copy{
+    width:96%;
+    padding:13px 15px;
+  }
+  .heritage-copy small{
+    letter-spacing:.12em;
+  }
+  .heritage-copy strong{
+    font-size:15px;
+  }
+
+  .footer-main{
+    grid-template-columns:1fr;
+    gap:24px;
+    padding:40px 0 30px;
+  }
+  .footer-identity,
+  .footer-contact{
+    grid-column:auto;
+  }
+  .footer-logo img{
+    width:min(270px,82vw);
+  }
+  .footer-column{
+    padding-top:18px;
+    border-top:1px solid rgba(200,171,130,.12);
+  }
+  .footer-bottom-inner{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .back-top{
+    margin-left:0;
+  }
+}
+
+@media(max-width:380px){
+  .wrap,
+  .site-topbar-inner,
+  .wrap.reference-header-inner{
+    width:calc(100% - 16px);
+  }
+  .reference-logo{
+    width:min(170px,62vw);
+  }
+  .hero-story{
+    min-height:370px;
+  }
+  .hero-story-copy{
+    padding-left:18px;
+    padding-right:18px;
+  }
+  .district-magazine-card{
+    grid-template-columns:1fr;
+  }
+  .district-magazine-card-image{
+    min-height:190px;
+  }
+  .section-card{
+    grid-template-columns:1fr;
+  }
+  .section-card-image{
+    min-height:180px;
+  }
+  .documents-strip{
+    grid-auto-columns:92vw;
+  }
+}
+
+/* Touch devices should not keep desktop hover transforms stuck. */
+@media(hover:none),(pointer:coarse){
+  .list-card:hover,
+  .section-card:hover,
+  .video-gallery-card:hover,
+  .gallery-album-card:hover,
+  .document-card:hover,
+  .right-feature-card:hover,
+  .newspaper-cover-frame:hover{
+    transform:none;
+  }
+}
