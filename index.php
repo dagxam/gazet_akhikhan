@@ -104,51 +104,64 @@ require __DIR__ . '/partials/header.php';
   <a href="<?=e(nav_link_for_slug('istoriya','История'))?>"><b>04</b><span>История<small>Память и места</small></span></a>
 </section>
 
-<section class="content-section district-news-section">
-  <div class="block-heading news-section-heading">
+<section class="content-section district-news-section district-magazine-style">
+  <div class="block-heading district-magazine-heading">
     <div>
       <span class="heading-kicker">Район</span>
       <h2>Новости района</h2>
     </div>
-    <a href="<?=e(isset($catBySlug['novosti-rayona']) ? category_url($catBySlug['novosti-rayona']) : base_url('news.php'))?>">Все новости района →</a>
+    <a href="<?=e(isset($catBySlug['novosti-rayona']) ? category_url($catBySlug['novosti-rayona']) : base_url('news.php'))?>">Все новости →</a>
   </div>
 
-  <div class="news-magazine-grid">
-    <?php if($districtNews):
-      $lead = $districtNews[0];
-      $secondary = array_slice($districtNews,1,4);
-    ?>
-      <div class="news-stack">
-        <?php foreach($secondary as $item): ?>
-          <article class="news-row">
-            <a class="news-image small" href="<?=e(article_url($item))?>" style="<?=!empty($item['cover_image']) ? "background-image:url('".e(base_url($item['cover_image']))."')" : ''?>"></a>
-            <div>
-              <div class="article-label">Новости района</div>
-              <h3><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h3>
-              <div class="article-meta"><span><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></span><span>◉ <?=number_format((int)$item['views'],0,'.',' ')?></span></div>
-            </div>
-          </article>
-        <?php endforeach; ?>
-      </div>
-      <article class="news-feature">
-        <a class="news-image large" href="<?=e(article_url($lead))?>" style="<?=!empty($lead['cover_image']) ? "background-image:url('".e(base_url($lead['cover_image']))."')" : ''?>"></a>
-        <div class="news-feature-body">
-          <div class="article-label">Новости района</div>
+  <?php if($districtNews):
+    $lead = $districtNews[0];
+    $secondary = array_slice($districtNews,1,4);
+  ?>
+    <div class="district-magazine-grid">
+      <article class="district-magazine-lead">
+        <a class="district-magazine-lead-image" href="<?=e(article_url($lead))?>">
+          <?php if(!empty($lead['cover_image'])):?>
+            <img src="<?=e(base_url($lead['cover_image']))?>" alt="<?=e($lead['title'])?>">
+          <?php else:?>
+            <span class="district-magazine-placeholder">АХИХЪАН</span>
+          <?php endif;?>
+        </a>
+
+        <div class="district-magazine-lead-copy">
+          <span class="district-magazine-category">Новости района</span>
           <h3><a href="<?=e(article_url($lead))?>"><?=e($lead['title'])?></a></h3>
+          <time datetime="<?=e(date('Y-m-d',strtotime($lead['published_at'] ?: $lead['created_at'])))?>"><?=e(ru_date($lead['published_at'] ?: $lead['created_at']))?></time>
           <?php if(!empty($lead['excerpt'])):?><p><?=e($lead['excerpt'])?></p><?php endif;?>
-          <div class="article-meta"><span><?=e(ru_date($lead['published_at'] ?: $lead['created_at']))?></span><span>◉ <?=number_format((int)$lead['views'],0,'.',' ')?></span></div>
         </div>
       </article>
-    <?php else: ?>
-      <div class="district-news-empty">
-        <span class="heading-kicker">Новости района</span>
-        <strong>В этой рубрике пока нет опубликованных материалов</strong>
-        <p>Новости появятся здесь автоматически после публикации материала в рубрике «Новости района».</p>
+
+      <div class="district-magazine-side-grid">
+        <?php foreach($secondary as $item):?>
+          <article class="district-magazine-card">
+            <a class="district-magazine-card-image" href="<?=e(article_url($item))?>">
+              <?php if(!empty($item['cover_image'])):?>
+                <img src="<?=e(base_url($item['cover_image']))?>" alt="<?=e($item['title'])?>" loading="lazy">
+              <?php else:?>
+                <span class="district-magazine-placeholder">АХИХЪАН</span>
+              <?php endif;?>
+            </a>
+
+            <div class="district-magazine-card-copy">
+              <span class="district-magazine-category">Новости района</span>
+              <h3><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h3>
+              <time datetime="<?=e(date('Y-m-d',strtotime($item['published_at'] ?: $item['created_at'])))?>"><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></time>
+            </div>
+          </article>
+        <?php endforeach;?>
       </div>
-    <?php endif; ?>
-
-
-  </div>
+    </div>
+  <?php else:?>
+    <div class="district-news-empty">
+      <span class="heading-kicker">Новости района</span>
+      <strong>В этой рубрике пока нет опубликованных материалов</strong>
+      <p>Новости появятся здесь автоматически после публикации материала в рубрике «Новости района».</p>
+    </div>
+  <?php endif;?>
 </section>
 
 <section class="content-section regional-sport-sidebar-section">
