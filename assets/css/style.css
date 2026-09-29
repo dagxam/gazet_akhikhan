@@ -3247,3 +3247,149 @@ h1,h2,h3,h4{
 @media(min-width:1121px){
   .magazine-side-column{grid-template-rows:175px minmax(390px,1fr)}
 }
+
+
+/* stacked regional sport with managed sidebar v2 */
+@media(min-width:1121px){
+  .district-news-section .news-magazine-grid{
+    grid-template-columns:minmax(0,1.28fr) minmax(0,.92fr);
+    gap:20px;
+  }
+}
+.regional-sport-sidebar-section{
+  margin-top:28px;
+}
+.regional-sport-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1.65fr) minmax(310px,.68fr);
+  gap:22px;
+  align-items:start;
+}
+.regional-sport-main{
+  display:grid;
+  gap:20px;
+  min-width:0;
+}
+.regional-sport-main .dual-news-card{
+  width:100%;
+}
+.regional-sport-main .dual-news-head{
+  min-height:82px;
+}
+.regional-sport-main .dual-news-list-three{
+  padding:0 22px 0 25px;
+}
+.regional-sport-main .dual-news-row-full{
+  grid-template-columns:142px minmax(0,1fr);
+  min-height:132px;
+  gap:17px;
+}
+.regional-sport-main .dual-news-row-full .dual-news-thumb{
+  width:142px;
+  height:94px;
+}
+.regional-sport-main .dual-news-row-full h4{
+  font-size:18px;
+  line-height:1.22;
+}
+.regional-sport-main .dual-news-row-full p{
+  font-size:11px;
+  -webkit-line-clamp:2;
+}
+.home-right-sidebar{
+  display:grid;
+  gap:14px;
+  min-width:0;
+}
+.home-right-sidebar .right-feature-card{
+  min-height:190px;
+  border-radius:17px;
+}
+.home-right-sidebar .right-feature-content{
+  padding:21px 20px;
+}
+.home-right-sidebar .right-feature-content h3{
+  margin:6px 0 9px;
+  font-size:21px;
+  line-height:1.13;
+}
+.home-right-sidebar .right-feature-content p{
+  font-size:11px;
+  line-height:1.52;
+  -webkit-line-clamp:5;
+}
+.home-right-sidebar .sidebar-newspaper{
+  min-height:390px;
+  width:100%;
+}
+.home-right-sidebar .newspaper-cover-frame{
+  width:min(190px,76%);
+}
+.home-right-sidebar .right-feature-card.has-image{
+  min-height:225px;
+}
+.home-right-sidebar .right-feature-card.has-image .right-feature-content{
+  min-height:225px;
+  justify-content:flex-end;
+}
+@media(max-width:1120px){
+  .district-news-section .news-magazine-grid{
+    grid-template-columns:1.15fr 1fr;
+  }
+  .regional-sport-layout{
+    grid-template-columns:minmax(0,1.45fr) minmax(280px,.72fr);
+    gap:18px;
+  }
+  .home-right-sidebar .sidebar-newspaper{
+    min-height:330px;
+  }
+  .home-right-sidebar .newspaper-live{
+    display:flex;
+  }
+  .home-right-sidebar .newspaper-cover-frame{
+    width:min(172px,74%);
+  }
+  .home-right-sidebar .newspaper-live-copy{
+    text-align:center;
+    padding-top:15px;
+  }
+  .home-right-sidebar .newspaper-live-copy p{margin-left:auto}
+}
+@media(max-width:900px){
+  .regional-sport-layout{
+    grid-template-columns:1fr;
+  }
+  .home-right-sidebar{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    align-items:start;
+  }
+  .home-right-sidebar .sidebar-newspaper{
+    min-height:0;
+  }
+}
+@media(max-width:680px){
+  .regional-sport-main .dual-news-row-full{
+    grid-template-columns:100px minmax(0,1fr);
+    gap:12px;
+  }
+  .regional-sport-main .dual-news-row-full .dual-news-thumb{
+    width:100px;
+    height:76px;
+  }
+  .regional-sport-main .dual-news-row-full h4{
+    font-size:15.5px;
+  }
+  .home-right-sidebar{
+    grid-template-columns:1fr;
+  }
+}
+@media(max-width:430px){
+  .regional-sport-main .dual-news-row-full{
+    grid-template-columns:82px minmax(0,1fr);
+  }
+  .regional-sport-main .dual-news-row-full .dual-news-thumb{
+    width:82px;
+    height:66px;
+  }
+  .regional-sport-main .dual-news-row-full p{display:none}
+}
