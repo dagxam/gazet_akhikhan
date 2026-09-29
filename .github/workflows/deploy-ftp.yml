@@ -53,6 +53,12 @@ jobs:
             | base64 --decode > assets/img/akhikhan-logo-transparent.webp
           printf '%s  %s\n' "938e90f2288289612a47389b6e1035df01100f743c3701db383fcc483211cec3" "assets/img/akhikhan-logo-transparent.webp" | sha256sum -c -
 
+      - name: Validate PHP syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          find . -type f -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
+
       - name: Upload site via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
