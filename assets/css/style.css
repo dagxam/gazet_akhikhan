@@ -6990,3 +6990,97 @@ svg{
     transform:none;
   }
 }
+
+
+/* refined scalable footer ornament v3 */
+.heritage-band{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:170px;
+  overflow:hidden;
+  border-top:1px solid #b69160;
+  border-bottom:1px solid #b69160;
+  background-color:#fcf8f0;
+  background-image:url("../img/ornament-footer-premium.svg");
+  background-position:center center;
+  background-repeat:no-repeat;
+  background-size:cover;
+}
+.heritage-band .heritage-inner{
+  position:relative;
+  z-index:1;
+  width:min(100% - 24px,1280px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.heritage-band .heritage-copy{
+  width:min(620px,100%);
+  min-height:145px;
+  margin:0 auto;
+  padding:45px 24px 19px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  text-align:center;
+}
+.heritage-band .heritage-copy small{
+  display:block;
+  margin:0 0 9px;
+  color:#8a6034;
+  font:800 8.5px/1.2 var(--sans);
+  letter-spacing:.19em;
+  text-transform:uppercase;
+}
+.heritage-band .heritage-copy strong{
+  display:block;
+  max-width:570px;
+  color:#5c3d25;
+  font:italic 500 clamp(17px,1.3vw,21px)/1.3 var(--serif);
+  letter-spacing:-.015em;
+  text-wrap:balance;
+  overflow-wrap:break-word;
+}
+@media(max-width:760px){
+  .heritage-band{
+    min-height:166px;
+    padding:8px 0;
+    background-size:auto 100%;
+  }
+  .heritage-band .heritage-copy{
+    width:min(100%,570px);
+    min-height:144px;
+    padding:43px 17px 17px;
+  }
+  .heritage-band .heritage-copy small{
+    font-size:8px;
+    letter-spacing:.13em;
+  }
+  .heritage-band .heritage-copy strong{
+    font-size:clamp(15px,3.8vw,19px);
+    line-height:1.35;
+  }
+}
+@media(max-width:380px){
+  .heritage-band{
+    min-height:160px;
+  }
+  .heritage-band .heritage-copy{
+    min-height:140px;
+    padding:41px 10px 13px;
+  }
+  .heritage-band .heritage-copy small{
+    font-size:7px;
+    letter-spacing:.08em;
+  }
+  .heritage-band .heritage-copy strong{
+    font-size:15px;
+  }
+}
