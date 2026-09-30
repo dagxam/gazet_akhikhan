@@ -72,7 +72,26 @@ $footerSocialLinks = social_links(true);
   </div>
 </footer>
 
-<script src="<?=e(base_url('assets/js/app.js?v=20260929-responsive-public1'))?>"></script>
+<div class="privacy-notice" data-privacy-notice hidden role="dialog" aria-live="polite" aria-label="Cookie и конфиденциальность">
+  <div class="privacy-notice-card">
+    <div class="privacy-notice-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.7-2.7 8.2-7 10-4.3-1.8-7-5.3-7-10V6l7-3z"></path><path d="M9.3 12.1l1.8 1.8 3.8-4"></path></svg>
+    </div>
+    <div class="privacy-notice-copy">
+      <strong>Cookie и конфиденциальность</strong>
+      <p>Для работы редакционной системы используются необходимые технические cookie. Некоторые страницы также обращаются к внешним сервисам для шрифтов, иконок, погоды и предпросмотра PDF.</p>
+      <div class="privacy-notice-links">
+        <a href="<?=e(base_url('privacy.php'))?>">Персональные данные</a>
+        <a href="<?=e(base_url('cookies.php'))?>">Подробнее о cookie</a>
+      </div>
+    </div>
+    <div class="privacy-notice-actions">
+      <button type="button" class="privacy-notice-accept" data-privacy-accept>Принять</button>
+    </div>
+  </div>
+</div>
+
+<script src="<?=e(base_url('assets/js/app.js?v=20261001-privacy-banner1'))?>"></script>
 </div>
 </body>
 </html>
