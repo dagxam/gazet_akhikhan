@@ -117,6 +117,16 @@ jobs:
           echo "$security_headers" | grep -qi '^Content-Security-Policy:'
           echo "Homepage content, admin login and security headers verified."
 
+          ornament_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-ornament.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/ornament-footer-premium.svg)"
+          test "$ornament_code" = "200"
+          test "$(wc -c < /tmp/akhikhan-ornament.svg)" -gt 7000
+          grep -q 'viewBox="0 0 2048 170"' /tmp/akhikhan-ornament.svg
+
+          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20260930-ornament-premium1')"
+          test "$public_css_code" = "200"
+          grep -q 'ornament-footer-premium.svg' /tmp/akhikhan-style.css
+          echo "Scalable Uncukul footer ornament and production CSS verified."
+
           robots_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-robots.txt --write-out '%{http_code}' https://akhikhan.ru/robots.txt)"
           test "$robots_code" = "200"
           grep -q '^Sitemap: https://akhikhan.ru/sitemap.xml' /tmp/akhikhan-robots.txt
