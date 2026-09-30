@@ -241,3 +241,47 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
       box.title='Погода в Унцукуле';
     });
 })();
+
+(function(){
+  const banner=document.querySelector('[data-privacy-notice]');
+  const accept=document.querySelector('[data-privacy-accept]');
+  if(!banner||!accept) return;
+
+  const key='akhikhan_privacy_notice_v1';
+
+  function hasChoice(){
+    try{
+      return window.localStorage.getItem(key)==='accepted';
+    }catch(e){
+      return false;
+    }
+  }
+
+  function rememberChoice(){
+    try{
+      window.localStorage.setItem(key,'accepted');
+    }catch(e){}
+  }
+
+  function hideBanner(){
+    banner.classList.remove('is-visible');
+    window.setTimeout(function(){
+      banner.hidden=true;
+    },220);
+  }
+
+  if(!hasChoice()){
+    banner.hidden=false;
+    window.requestAnimationFrame(function(){
+      window.requestAnimationFrame(function(){
+        banner.classList.add('is-visible');
+      });
+    });
+  }
+
+  accept.addEventListener('click',function(){
+    rememberChoice();
+    hideBanner();
+  });
+})();
+
