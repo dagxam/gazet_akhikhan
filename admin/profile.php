@@ -202,6 +202,8 @@ require __DIR__.'/_top.php';
         </label>
       </div>
 
+      <p class="login-privacy-note">Имя и e-mail используются для работы учётной записи редакционной системы. Подробнее об обработке, хранении, уточнении и удалении данных — в <a href="<?=e(base_url('privacy.php'))?>" target="_blank" rel="noopener">Политике обработки персональных данных</a>.</p>
+
       <button class="primary profile-save" type="submit">Сохранить профиль</button>
     </form>
   </section>
