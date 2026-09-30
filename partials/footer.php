@@ -4,14 +4,12 @@ $siteFooterLogo = branding_asset('site_footer_logo','assets/img/akhikhan-logo-hq
 $footerSocialLinks = social_links(true);
 ?>
 
-<section class="heritage-band">
+<section class="heritage-band" aria-label="Декоративная полоса издания «АХИХЪАН»">
   <div class="wrap heritage-inner">
-    <span class="heritage-side heritage-side-left" aria-hidden="true"></span>
     <div class="heritage-copy">
       <small>АХИХЪАН · УНЦУКУЛЬСКИЙ РАЙОН</small>
       <strong>« <?=e(setting('footer_quote','Сила народа — в его корнях, а будущее — в его людях'))?> »</strong>
     </div>
-    <span class="heritage-side heritage-side-right" aria-hidden="true"></span>
   </div>
 </section>
 
