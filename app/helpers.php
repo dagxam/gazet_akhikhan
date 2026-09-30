@@ -567,12 +567,14 @@ function login_rate_limit_clear(): void
 
 function csrf_token(): string
 {
+    if (function_exists('app_start_session')) app_start_session();
     if (empty($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_bytes(32));
     return $_SESSION['csrf'];
 }
 
 function verify_csrf(): void
 {
+    if (function_exists('app_start_session')) app_start_session();
     $token = (string)($_POST['csrf'] ?? '');
     if (!$token || !hash_equals($_SESSION['csrf'] ?? '', $token)) {
         http_response_code(419);
@@ -582,6 +584,10 @@ function verify_csrf(): void
 
 function admin_user(): ?array
 {
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        if (!isset($_COOKIE[session_name()])) return null;
+        if (function_exists('app_start_session')) app_start_session();
+    }
     if (empty($_SESSION['admin_user']['id']) || !APP_INSTALLED) return null;
 
     $now=time();
