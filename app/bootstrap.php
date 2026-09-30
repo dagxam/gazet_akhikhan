@@ -25,8 +25,23 @@ session_set_cookie_params([
     'secure' => $https,
     'samesite' => 'Lax',
 ]);
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
+
+function app_start_session(): void
+{
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
+}
+
+$scriptNameForSession = str_replace('\\', '/', (string)($_SERVER['SCRIPT_NAME'] ?? ''));
+$isAdminSessionRequest = str_contains($scriptNameForSession, '/admin/') || basename($scriptNameForSession) === 'install.php';
+$hasExistingSessionCookie = isset($_COOKIE[session_name()]);
+
+// Data minimization: ordinary readers do not receive a PHP session cookie.
+// Sessions are started only for the editorial system or when a valid session
+// cookie already exists (for example, an authenticated editor viewing the site).
+if ($isAdminSessionRequest || $hasExistingSessionCookie) {
+    app_start_session();
 }
 
 $config = APP_INSTALLED ? require CONFIG_FILE : require ROOT_PATH . '/config.example.php';
