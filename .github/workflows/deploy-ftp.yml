@@ -106,6 +106,22 @@ jobs:
           test "$login_code" = "200"
           grep -q "Вход в редакцию" /tmp/akhikhan-admin-login.html
 
+          # All legal pages must remain accessible in reconstruction mode too.
+          for legal_page in privacy.php personal-data-consent.php cookies.php; do
+            legal_code="$(curl --silent --show-error --location --max-time 30 --output "/tmp/akhikhan-$legal_page" --write-out '%{http_code}' "https://akhikhan.ru/$legal_page")"
+            test "$legal_code" = "200"
+          done
+          grep -q 'Политика обработки персональных данных' /tmp/akhikhan-privacy.php
+          grep -q 'Согласие на обработку персональных данных' /tmp/akhikhan-personal-data-consent.php
+          grep -q 'Политика использования cookie' /tmp/akhikhan-cookies.php
+          grep -q 'Политике персональных данных' /tmp/akhikhan-admin-login.html
+          if [ "$code" = "200" ]; then
+            grep -q 'privacy.php' /tmp/akhikhan.html
+            grep -q 'personal-data-consent.php' /tmp/akhikhan.html
+            grep -q 'cookies.php' /tmp/akhikhan.html
+          fi
+          echo "Public privacy documents and links verified."
+
           right_blocks_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-right-blocks.html --write-out '%{http_code}' https://akhikhan.ru/admin/right-block.php)"
           test "$right_blocks_code" = "302" -o "$right_blocks_code" = "303"
           right_blocks_location="$(curl --silent --show-error --head --max-time 30 https://akhikhan.ru/admin/right-block.php | tr -d '\r' | grep -i '^Location:' || true)"

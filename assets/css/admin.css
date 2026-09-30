@@ -2792,3 +2792,9 @@ body.admin-theme-light .right-block-inner-switch{
     grid-template-columns:1fr;
   }
 }
+
+/* Legal notices in the editorial system */
+.login-privacy-note{margin:13px 0 0;font:500 11px/1.6 Manrope,Arial,sans-serif;color:#64574a}
+.login-privacy-note a,.admin-pd-confirm a{color:#926331;text-decoration:underline;text-underline-offset:3px}
+.admin-pd-confirm{display:flex;align-items:flex-start;gap:10px;margin:16px 0;font:500 12px/1.55 Manrope,Arial,sans-serif;color:inherit}
+.admin-pd-confirm input{width:17px;height:17px;flex:none;margin:2px 0 0;accent-color:#8a5f34}

@@ -4,6 +4,7 @@ require_admin();
 
 $error='';
 $textKeys=['site_name','site_subtitle','hero_kicker','editor_note','footer_quote','topbar_region_label'];
+$pdTextKeys=['pd_operator_name','pd_operator_address','pd_operator_email','pd_operator_phone','pd_responsible_person','pd_rkn_registry_number','pd_database_location','pd_policy_approved_date'];
 
 $brandDefaults=[
   'site_favicon'=>'',
@@ -16,6 +17,22 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
   verify_csrf();
 
   try{
+    // Validate legal details before changing other site settings.
+    $pdValues=[];
+    foreach($pdTextKeys as $k){
+      $value=trim((string)($_POST[$k]??''));
+      if($k==='pd_operator_email' && $value!=='' && !filter_var($value,FILTER_VALIDATE_EMAIL)){
+        throw new RuntimeException('Укажите корректный e-mail оператора персональных данных.');
+      }
+      if($k==='pd_policy_approved_date' && $value!==''){
+        $date=DateTimeImmutable::createFromFormat('!Y-m-d',$value);
+        if(!$date || $date->format('Y-m-d')!==$value){
+          throw new RuntimeException('Укажите корректную дату утверждения политики.');
+        }
+      }
+      $pdValues[$k]=$value;
+    }
+    foreach($pdValues as $k=>$value) save_setting($k,$value);
     foreach($textKeys as $k){
       $value=($k==='editor_note') ? sanitize_rich_text($_POST[$k]??'') : trim($_POST[$k]??'');
       save_setting($k,$value);
@@ -119,6 +136,31 @@ require __DIR__.'/_top.php';
           </div>
           <a href="<?=e(base_url('admin/social-links.php'))?>">Открыть «Мы в соцсетях» →</a>
         </div>
+      </section>
+
+      <section class="editor-card settings-section-card" id="personal-data-settings">
+        <div class="settings-section-head">
+          <span class="settings-section-icon">§</span>
+          <div>
+            <h3>Персональные данные · 152-ФЗ</h3>
+            <p>Подтверждённые сведения оператора для публичной политики. Не указывайте предполагаемые реквизиты.</p>
+          </div>
+        </div>
+        <div class="settings-two-col">
+          <label class="field-modern compact"><span>Полное наименование оператора</span><input name="pd_operator_name" maxlength="255" value="<?=e(setting('pd_operator_name',''))?>" placeholder="Юридическое лицо или ИП"></label>
+          <label class="field-modern compact"><span>E-mail для запросов по персональным данным</span><input type="email" name="pd_operator_email" maxlength="190" value="<?=e(setting('pd_operator_email',''))?>" placeholder="Контакт для обращений"></label>
+        </div>
+        <label class="field-modern compact"><span>Адрес оператора</span><input name="pd_operator_address" maxlength="500" value="<?=e(setting('pd_operator_address',''))?>" placeholder="Официальный адрес оператора"></label>
+        <div class="settings-two-col">
+          <label class="field-modern compact"><span>Телефон (необязательно)</span><input name="pd_operator_phone" maxlength="80" value="<?=e(setting('pd_operator_phone',''))?>"></label>
+          <label class="field-modern compact"><span>Ответственный за обработку ПД (если назначен)</span><input name="pd_responsible_person" maxlength="190" value="<?=e(setting('pd_responsible_person',''))?>"></label>
+        </div>
+        <div class="settings-two-col">
+          <label class="field-modern compact"><span>Номер в реестре РКН (если применимо)</span><input name="pd_rkn_registry_number" maxlength="90" value="<?=e(setting('pd_rkn_registry_number',''))?>"></label>
+          <label class="field-modern compact"><span>Дата утверждения политики</span><input type="date" name="pd_policy_approved_date" value="<?=e(setting('pd_policy_approved_date',''))?>"></label>
+        </div>
+        <label class="field-modern compact"><span>Подтверждённое место размещения базы данных граждан РФ</span><input name="pd_database_location" maxlength="190" value="<?=e(setting('pd_database_location',''))?>" placeholder="Уточните фактическую страну и инфраструктуру у хостинга"></label>
+        <p class="settings-hint-box">Сведения будут опубликованы в <a href="<?=e(base_url('privacy.php'))?>" target="_blank" rel="noopener">Политике обработки персональных данных</a>. Заполнение формы не заменяет проверку законности обработки, локализации, уведомлений РКН и внешних сервисов.</p>
       </section>
 
       <section class="editor-card settings-section-card">

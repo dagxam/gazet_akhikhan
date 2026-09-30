@@ -45,6 +45,8 @@ if (!maintenance_mode_enabled()) {
 
       <footer class="maintenance-footer">
         <span><?=e(current_date_ru())?></span>
+        <a href="<?=e(base_url('privacy.php'))?>">Персональные данные</a>
+        <a href="<?=e(base_url('cookies.php'))?>">Cookie</a>
         <a href="<?=e(base_url('admin/login.php'))?>">Вход для редакции →</a>
       </footer>
     </section>

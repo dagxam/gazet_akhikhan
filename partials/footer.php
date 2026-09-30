@@ -62,6 +62,11 @@ $footerSocialLinks = social_links(true);
     <div class="wrap footer-bottom-inner">
       <span>© <?=date('Y')?> АХИХЪАН. Все права защищены.</span>
       <span>Сетевое издание Унцукульского района</span>
+      <nav class="footer-legal-links" aria-label="Правовая информация">
+        <a href="<?=e(base_url('privacy.php'))?>">Персональные данные</a>
+        <a href="<?=e(base_url('personal-data-consent.php'))?>">Согласие</a>
+        <a href="<?=e(base_url('cookies.php'))?>">Cookie</a>
+      </nav>
       <a href="#top" class="back-top">Наверх ↑</a>
     </div>
   </div>

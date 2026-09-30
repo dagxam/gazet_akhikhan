@@ -75,6 +75,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             if($name==='') throw new RuntimeException('Введите имя нового пользователя.');
             if(!filter_var($email,FILTER_VALIDATE_EMAIL)) throw new RuntimeException('Введите корректный e-mail нового пользователя.');
             if(strlen($password)<8) throw new RuntimeException('Пароль нового пользователя должен содержать минимум 8 символов.');
+            if(empty($_POST['basis_confirmed'])) throw new RuntimeException('Подтвердите наличие основания для создания учётной записи и уведомление сотрудника об обработке его данных.');
 
             $q=db()->prepare('SELECT id FROM users WHERE email=? LIMIT 1');
             $q->execute([$email]);
@@ -248,6 +249,7 @@ require __DIR__.'/_top.php';
         </select>
       </label>
 
+      <label class="admin-pd-confirm"><input type="checkbox" name="basis_confirmed" value="1" required><span>Подтверждаю наличие правового основания для создания учётной записи и уведомление сотрудника о <a href="<?=e(base_url('privacy.php'))?>" target="_blank" rel="noopener">Политике обработки персональных данных</a>. Это подтверждение администратора, а не согласие за другого человека.</span></label>
       <button class="primary wide" type="submit">Добавить сотрудника</button>
     </form>
 

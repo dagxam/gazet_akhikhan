@@ -73,6 +73,7 @@ if (APP_INSTALLED) {
         && !$isAdminRequest
         && $scriptBase !== 'maintenance.php'
         && $scriptBase !== 'install.php'
+        && !in_array($scriptBase, ['privacy.php','personal-data-consent.php','cookies.php'], true)
         && !admin_user()
     ) {
         http_response_code(503);

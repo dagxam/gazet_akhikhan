@@ -107,6 +107,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
           <span>Войти</span>
           <b>→</b>
         </button>
+        <p class="login-privacy-note">Для входа используются e-mail и пароль сотрудника. Информация об обработке данных — в <a href="<?=e(base_url('privacy.php'))?>" target="_blank" rel="noopener">Политике персональных данных</a>. Вход не заменяет отдельное согласие в случаях, когда оно действительно требуется.</p>
       </form>
 
       <div class="login-card-footer">
