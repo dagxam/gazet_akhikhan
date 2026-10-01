@@ -6,6 +6,26 @@ $error='';
 $textKeys=['site_name','site_subtitle','hero_kicker','editor_note','footer_quote','topbar_region_label'];
 $pdTextKeys=['pd_operator_name','pd_operator_address','pd_operator_email','pd_operator_phone','pd_responsible_person','pd_rkn_registry_number','pd_database_location','pd_policy_approved_date'];
 
+$privacyBannerDefaults=[
+  'privacy_banner_enabled'=>'1',
+  'privacy_banner_title'=>'Cookie и конфиденциальность',
+  'privacy_banner_text'=>'Для работы редакционной системы используются необходимые технические cookie. Некоторые страницы также обращаются к внешним сервисам для шрифтов, иконок, погоды и предпросмотра PDF.',
+  'privacy_banner_accept_label'=>'Принять',
+  'privacy_banner_link1_label'=>'Персональные данные',
+  'privacy_banner_link1_url'=>'privacy.php',
+  'privacy_banner_link2_label'=>'Подробнее о cookie',
+  'privacy_banner_link2_url'=>'cookies.php',
+  'privacy_banner_bg_color'=>'#fcf8f0',
+  'privacy_banner_title_color'=>'#2f2924',
+  'privacy_banner_text_color'=>'#65594e',
+  'privacy_banner_accent_color'=>'#80532c',
+  'privacy_banner_button_bg'=>'#6f4a29',
+  'privacy_banner_button_text'=>'#ffffff',
+  'privacy_banner_version'=>'1',
+];
+$privacyBannerTextKeys=['privacy_banner_title','privacy_banner_text','privacy_banner_accept_label','privacy_banner_link1_label','privacy_banner_link1_url','privacy_banner_link2_label','privacy_banner_link2_url'];
+$privacyBannerColorKeys=['privacy_banner_bg_color','privacy_banner_title_color','privacy_banner_text_color','privacy_banner_accent_color','privacy_banner_button_bg','privacy_banner_button_text'];
+
 $brandDefaults=[
   'site_favicon'=>'',
   'site_header_logo'=>'',
@@ -33,6 +53,37 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
       $pdValues[$k]=$value;
     }
     foreach($pdValues as $k=>$value) save_setting($k,$value);
+
+    save_setting('privacy_banner_enabled',!empty($_POST['privacy_banner_enabled']) ? '1' : '0');
+
+    foreach($privacyBannerTextKeys as $k){
+      $value=trim((string)($_POST[$k]??$privacyBannerDefaults[$k]));
+      $limit=($k==='privacy_banner_text') ? 1200 : (($k==='privacy_banner_link1_url'||$k==='privacy_banner_link2_url') ? 500 : 160);
+      if(function_exists('mb_substr')) $value=mb_substr($value,0,$limit,'UTF-8');
+      else $value=substr($value,0,$limit);
+
+      if($k==='privacy_banner_link1_url'||$k==='privacy_banner_link2_url'){
+        if($value==='' || preg_match('~^(?:https?://|mailto:|tel:|/|[A-Za-z0-9][A-Za-z0-9_./?=&%#-]*)$~u',$value)!==1){
+          throw new RuntimeException('Ссылка в баннере персональных данных указана некорректно.');
+        }
+      }
+      save_setting($k,$value);
+    }
+
+    foreach($privacyBannerColorKeys as $k){
+      $value=trim((string)($_POST[$k]??$privacyBannerDefaults[$k]));
+      if(!preg_match('/^#[0-9a-fA-F]{6}$/',$value)){
+        throw new RuntimeException('Цвета баннера должны быть указаны в формате #RRGGBB.');
+      }
+      save_setting($k,strtolower($value));
+    }
+
+    $bannerVersion=trim((string)($_POST['privacy_banner_version']??'1'));
+    if(!preg_match('/^[A-Za-z0-9._-]{1,40}$/',$bannerVersion)){
+      throw new RuntimeException('Версия баннера может содержать только буквы, цифры, точку, дефис и подчёркивание.');
+    }
+    save_setting('privacy_banner_version',$bannerVersion);
+
     foreach($textKeys as $k){
       $value=($k==='editor_note') ? sanitize_rich_text($_POST[$k]??'') : trim($_POST[$k]??'');
       save_setting($k,$value);
@@ -74,6 +125,11 @@ $favicon=branding_asset('site_favicon','assets/img/seal.svg');
 $headerLogo=branding_asset('site_header_logo','assets/img/akhikhan-logo-transparent.webp');
 $footerLogo=branding_asset('site_footer_logo','assets/img/akhikhan-logo-hq.webp');
 $adminLogo=branding_asset('admin_logo','assets/img/akhikhan-logo-transparent.webp');
+
+$privacyBanner=[];
+foreach($privacyBannerDefaults as $key=>$default){
+  $privacyBanner[$key]=setting($key,$default);
+}
 
 $adminTitle='Настройки сайта';
 require __DIR__.'/_top.php';
@@ -161,6 +217,88 @@ require __DIR__.'/_top.php';
         </div>
         <label class="field-modern compact"><span>Подтверждённое место размещения базы данных граждан РФ</span><input name="pd_database_location" maxlength="190" value="<?=e(setting('pd_database_location',''))?>" placeholder="Уточните фактическую страну и инфраструктуру у хостинга"></label>
         <p class="settings-hint-box">Сведения будут опубликованы в <a href="<?=e(base_url('privacy.php'))?>" target="_blank" rel="noopener">Политике обработки персональных данных</a>. Заполнение формы не заменяет проверку законности обработки, локализации, уведомлений РКН и внешних сервисов.</p>
+      </section>
+
+      <section class="editor-card settings-section-card" id="privacy-banner-settings">
+        <div class="settings-section-head">
+          <span class="settings-section-icon">▰</span>
+          <div>
+            <h3>Баннер персональных данных</h3>
+            <p>Настройте нижнее уведомление: тексты, ссылки, кнопку и фирменные цвета.</p>
+          </div>
+        </div>
+
+        <label class="featured-switch privacy-banner-toggle">
+          <input type="checkbox" name="privacy_banner_enabled" value="1" <?=$privacyBanner['privacy_banner_enabled']==='1'?'checked':''?>>
+          <span class="switch-ui"></span>
+          <span><b>Показывать баннер на публичных страницах</b><small>Если выключить, уведомление полностью исчезнет с сайта.</small></span>
+        </label>
+
+        <div class="settings-two-col">
+          <label class="field-modern compact"><span>Заголовок</span><input name="privacy_banner_title" maxlength="160" value="<?=e($privacyBanner['privacy_banner_title'])?>" data-privacy-preview-field="title"></label>
+          <label class="field-modern compact"><span>Текст кнопки</span><input name="privacy_banner_accept_label" maxlength="160" value="<?=e($privacyBanner['privacy_banner_accept_label'])?>" data-privacy-preview-field="button"></label>
+        </div>
+
+        <label class="field-modern compact"><span>Основной текст</span><textarea name="privacy_banner_text" rows="4" maxlength="1200" data-privacy-preview-field="text"><?=e($privacyBanner['privacy_banner_text'])?></textarea></label>
+
+        <div class="privacy-banner-link-grid">
+          <div class="privacy-banner-link-box">
+            <b>Ссылка 1</b>
+            <label class="field-modern compact"><span>Текст ссылки</span><input name="privacy_banner_link1_label" maxlength="160" value="<?=e($privacyBanner['privacy_banner_link1_label'])?>" data-privacy-preview-field="link1"></label>
+            <label class="field-modern compact"><span>Адрес</span><input name="privacy_banner_link1_url" maxlength="500" value="<?=e($privacyBanner['privacy_banner_link1_url'])?>" placeholder="privacy.php или https://..."></label>
+          </div>
+          <div class="privacy-banner-link-box">
+            <b>Ссылка 2</b>
+            <label class="field-modern compact"><span>Текст ссылки</span><input name="privacy_banner_link2_label" maxlength="160" value="<?=e($privacyBanner['privacy_banner_link2_label'])?>" data-privacy-preview-field="link2"></label>
+            <label class="field-modern compact"><span>Адрес</span><input name="privacy_banner_link2_url" maxlength="500" value="<?=e($privacyBanner['privacy_banner_link2_url'])?>" placeholder="cookies.php или https://..."></label>
+          </div>
+        </div>
+
+        <div class="privacy-banner-color-grid">
+          <?php
+          $bannerColors=[
+            'privacy_banner_bg_color'=>['Фон баннера','bg'],
+            'privacy_banner_title_color'=>['Цвет заголовка','title-color'],
+            'privacy_banner_text_color'=>['Цвет текста','text-color'],
+            'privacy_banner_accent_color'=>['Ссылки и акцент','accent'],
+            'privacy_banner_button_bg'=>['Фон кнопки','button-bg'],
+            'privacy_banner_button_text'=>['Текст кнопки','button-text'],
+          ];
+          foreach($bannerColors as $key=>$meta):
+          ?>
+            <label class="privacy-banner-color-field">
+              <span><?=e($meta[0])?></span>
+              <span class="privacy-banner-color-control">
+                <input type="color" name="<?=e($key)?>" value="<?=e($privacyBanner[$key])?>" data-privacy-preview-color="<?=e($meta[1])?>">
+                <code><?=e($privacyBanner[$key])?></code>
+              </span>
+            </label>
+          <?php endforeach;?>
+        </div>
+
+        <div class="settings-two-col privacy-banner-meta">
+          <label class="field-modern compact">
+            <span>Версия уведомления</span>
+            <input name="privacy_banner_version" maxlength="40" value="<?=e($privacyBanner['privacy_banner_version'])?>">
+            <small>Измените, например, с 1 на 2 — баннер снова появится даже у тех, кто уже нажимал «Принять».</small>
+          </label>
+          <div class="settings-hint-box privacy-banner-version-note">
+            <b>Важно</b>
+            <p>Ссылки можно указывать как внутренние, например privacy.php, или как полные https-ссылки. Все тексты выводятся безопасно без HTML.</p>
+          </div>
+        </div>
+
+        <div class="privacy-banner-admin-preview"
+             data-privacy-banner-preview
+             style="--pb-bg:<?=e($privacyBanner['privacy_banner_bg_color'])?>;--pb-title:<?=e($privacyBanner['privacy_banner_title_color'])?>;--pb-text:<?=e($privacyBanner['privacy_banner_text_color'])?>;--pb-accent:<?=e($privacyBanner['privacy_banner_accent_color'])?>;--pb-button-bg:<?=e($privacyBanner['privacy_banner_button_bg'])?>;--pb-button-text:<?=e($privacyBanner['privacy_banner_button_text'])?>">
+          <div class="privacy-banner-admin-icon">✓</div>
+          <div>
+            <strong data-privacy-preview-title><?=e($privacyBanner['privacy_banner_title'])?></strong>
+            <p data-privacy-preview-text><?=e($privacyBanner['privacy_banner_text'])?></p>
+            <span class="privacy-banner-admin-links"><u data-privacy-preview-link1><?=e($privacyBanner['privacy_banner_link1_label'])?></u><u data-privacy-preview-link2><?=e($privacyBanner['privacy_banner_link2_label'])?></u></span>
+          </div>
+          <button type="button" data-privacy-preview-button><?=e($privacyBanner['privacy_banner_accept_label'])?></button>
+        </div>
       </section>
 
       <section class="editor-card settings-section-card">
@@ -282,6 +420,44 @@ require __DIR__.'/_top.php';
     input.addEventListener('change',()=>{
       if(input.checked) previewAdminTheme(input.value);
     });
+  });
+})();
+
+(function(){
+  const preview=document.querySelector('[data-privacy-banner-preview]');
+  if(!preview) return;
+
+  const textMap={
+    title:preview.querySelector('[data-privacy-preview-title]'),
+    text:preview.querySelector('[data-privacy-preview-text]'),
+    button:preview.querySelector('[data-privacy-preview-button]'),
+    link1:preview.querySelector('[data-privacy-preview-link1]'),
+    link2:preview.querySelector('[data-privacy-preview-link2]')
+  };
+  document.querySelectorAll('[data-privacy-preview-field]').forEach(input=>{
+    input.addEventListener('input',()=>{
+      const target=textMap[input.dataset.privacyPreviewField];
+      if(target) target.textContent=input.value;
+    });
+  });
+
+  const vars={
+    'bg':'--pb-bg',
+    'title-color':'--pb-title',
+    'text-color':'--pb-text',
+    'accent':'--pb-accent',
+    'button-bg':'--pb-button-bg',
+    'button-text':'--pb-button-text'
+  };
+  document.querySelectorAll('[data-privacy-preview-color]').forEach(input=>{
+    const code=input.closest('.privacy-banner-color-control')?.querySelector('code');
+    const sync=()=>{
+      const cssVar=vars[input.dataset.privacyPreviewColor];
+      if(cssVar) preview.style.setProperty(cssVar,input.value);
+      if(code) code.textContent=input.value;
+    };
+    input.addEventListener('input',sync);
+    sync();
   });
 })();
 </script>
