@@ -7,6 +7,7 @@ $siteFavicon = branding_asset('site_favicon','assets/img/seal.svg');
 $siteHeaderLogo = branding_asset('site_header_logo','assets/img/akhikhan-logo-transparent.webp');
 $topbarRegion = setting('topbar_region_label','Унцукульский район');
 $siteSocialLinks = social_links(true);
+$publicAdminUser = admin_user();
 
 $seoSiteName = 'АХИХЪАН';
 $seoDefaultDescription = 'Сетевое издание Унцукульского района Республики Дагестан: новости, общество, культура, спорт, люди и история.';
@@ -109,7 +110,7 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@400;500;600;700;800&family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Noto+Serif:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20261001-privacy-banner2'))?>">
+<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20261001-admin-account1'))?>">
 </head>
 <body>
 <a id="top"></a>
@@ -145,10 +146,46 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
         <span class="topbar-separator" aria-hidden="true"></span>
       <?php endif;?>
 
-      <a class="topbar-admin-login" href="<?=e(base_url('admin/login.php'))?>">
-        <i class="fa-regular fa-user" aria-hidden="true"></i>
-        <span>Вход в редакцию</span>
-      </a>
+      <?php if($publicAdminUser):?>
+        <?php
+          $publicAdminName=trim((string)($publicAdminUser['name']??'Администратор'));
+          $publicAdminInitial=function_exists('mb_substr')
+            ? mb_strtoupper(mb_substr($publicAdminName,0,1,'UTF-8'),'UTF-8')
+            : strtoupper(substr($publicAdminName,0,1));
+        ?>
+        <div class="topbar-admin-account" data-topbar-admin-account>
+          <button class="topbar-admin-trigger" type="button" data-topbar-admin-toggle aria-expanded="false" aria-haspopup="true">
+            <span class="topbar-admin-avatar"><?=e($publicAdminInitial)?></span>
+            <span class="topbar-admin-label">Админ</span>
+            <i class="fa-solid fa-chevron-down topbar-admin-chevron" aria-hidden="true"></i>
+          </button>
+          <div class="topbar-admin-menu" data-topbar-admin-menu hidden>
+            <div class="topbar-admin-profile">
+              <span class="topbar-admin-profile-avatar"><?=e($publicAdminInitial)?></span>
+              <span class="topbar-admin-profile-copy">
+                <strong><?=e($publicAdminName)?></strong>
+                <small><?=e(role_label((string)($publicAdminUser['role']??'editor')))?></small>
+              </span>
+            </div>
+            <div class="topbar-admin-menu-links">
+              <a href="<?=e(base_url('admin/'))?>" target="_blank" rel="noopener">
+                <i class="fa-solid fa-gauge-high" aria-hidden="true"></i><span>Админ-панель</span>
+              </a>
+              <a href="<?=e(base_url('admin/profile.php'))?>" target="_blank" rel="noopener">
+                <i class="fa-regular fa-user" aria-hidden="true"></i><span>Профиль</span>
+              </a>
+              <a class="is-logout" href="<?=e(base_url('admin/logout.php'))?>">
+                <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i><span>Выйти</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      <?php else:?>
+        <a class="topbar-admin-login" href="<?=e(base_url('admin/login.php'))?>" target="_blank" rel="noopener">
+          <i class="fa-regular fa-user" aria-hidden="true"></i>
+          <span>Вход в редакцию</span>
+        </a>
+      <?php endif;?>
     </div>
   </div>
 </div>
