@@ -286,3 +286,36 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
   });
 })();
 
+(function(){
+  const account=document.querySelector('[data-topbar-admin-account]');
+  const toggle=document.querySelector('[data-topbar-admin-toggle]');
+  const menu=document.querySelector('[data-topbar-admin-menu]');
+  if(!account||!toggle||!menu) return;
+
+  function setOpen(open){
+    account.classList.toggle('is-open',open);
+    toggle.setAttribute('aria-expanded',open?'true':'false');
+    menu.hidden=!open;
+  }
+
+  toggle.addEventListener('click',function(e){
+    e.stopPropagation();
+    setOpen(menu.hidden);
+  });
+
+  menu.addEventListener('click',function(e){
+    e.stopPropagation();
+  });
+
+  document.addEventListener('click',function(){
+    setOpen(false);
+  });
+
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){
+      setOpen(false);
+      toggle.focus();
+    }
+  });
+})();
+
