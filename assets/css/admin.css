@@ -2798,3 +2798,134 @@ body.admin-theme-light .right-block-inner-switch{
 .login-privacy-note a,.admin-pd-confirm a{color:#926331;text-decoration:underline;text-underline-offset:3px}
 .admin-pd-confirm{display:flex;align-items:flex-start;gap:10px;margin:16px 0;font:500 12px/1.55 Manrope,Arial,sans-serif;color:inherit}
 .admin-pd-confirm input{width:17px;height:17px;flex:none;margin:2px 0 0;accent-color:#8a5f34}
+
+/* Configurable privacy banner settings — 2026-10-01 */
+.privacy-banner-toggle{margin-bottom:18px}
+.privacy-banner-link-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-bottom:16px;
+}
+.privacy-banner-link-box{
+  padding:14px;
+  border:1px solid var(--admin-border,#e2ddd5);
+  border-radius:13px;
+  background:var(--admin-card-soft,#fbfaf8);
+}
+.privacy-banner-link-box>b{
+  display:block;
+  margin-bottom:10px;
+  font-size:11px;
+}
+.privacy-banner-link-box .field-modern:last-child{margin-bottom:0}
+.privacy-banner-color-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin:4px 0 16px;
+}
+.privacy-banner-color-field{
+  display:grid;
+  gap:7px;
+  padding:11px;
+  border:1px solid var(--admin-border,#e2ddd5);
+  border-radius:12px;
+  background:var(--admin-card-soft,#fbfaf8);
+  font-size:10px;
+  font-weight:800;
+}
+.privacy-banner-color-control{
+  display:grid;
+  grid-template-columns:42px 1fr;
+  align-items:center;
+  gap:9px;
+}
+.privacy-banner-color-control input[type="color"]{
+  width:42px;
+  height:34px;
+  margin:0;
+  padding:2px;
+  border:1px solid var(--admin-border,#ddd5cc);
+  border-radius:9px;
+  background:#fff;
+  cursor:pointer;
+}
+.privacy-banner-color-control code{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  color:var(--admin-muted,#80776d);
+  font:700 9px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;
+}
+.privacy-banner-meta{align-items:start}
+.privacy-banner-version-note{margin-top:0}
+.privacy-banner-admin-preview{
+  --pb-bg:#fcf8f0;
+  --pb-title:#2f2924;
+  --pb-text:#65594e;
+  --pb-accent:#80532c;
+  --pb-button-bg:#6f4a29;
+  --pb-button-text:#fff;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:12px 14px;
+  margin-top:4px;
+  padding:15px;
+  border:1px solid color-mix(in srgb,var(--pb-accent) 25%,transparent);
+  border-radius:16px;
+  background:var(--pb-bg);
+  box-shadow:0 12px 28px rgba(36,27,18,.10);
+}
+.privacy-banner-admin-icon{
+  width:38px;
+  height:38px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  color:var(--pb-accent);
+  background:color-mix(in srgb,var(--pb-accent) 13%,#fff);
+  font-weight:900;
+}
+.privacy-banner-admin-preview strong{
+  display:block;
+  color:var(--pb-title);
+  font-size:12px;
+}
+.privacy-banner-admin-preview p{
+  margin:4px 0 0;
+  color:var(--pb-text);
+  font-size:9.5px;
+  line-height:1.45;
+}
+.privacy-banner-admin-links{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:6px;
+  color:var(--pb-accent);
+  font-size:9px;
+  font-weight:800;
+}
+.privacy-banner-admin-preview button{
+  min-width:96px;
+  height:38px;
+  border:0;
+  border-radius:10px;
+  background:var(--pb-button-bg);
+  color:var(--pb-button-text);
+  font-size:10px;
+  font-weight:900;
+}
+@media(max-width:820px){
+  .privacy-banner-color-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:640px){
+  .privacy-banner-link-grid,
+  .privacy-banner-color-grid,
+  .privacy-banner-meta{grid-template-columns:1fr}
+  .privacy-banner-admin-preview{grid-template-columns:auto minmax(0,1fr)}
+  .privacy-banner-admin-preview button{grid-column:1/-1;width:100%}
+}
+
