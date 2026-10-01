@@ -247,7 +247,8 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
   const accept=document.querySelector('[data-privacy-accept]');
   if(!banner||!accept) return;
 
-  const key='akhikhan_privacy_notice_v1';
+  const version=(banner.dataset.privacyVersion||'1').replace(/[^A-Za-z0-9._-]/g,'').slice(0,40)||'1';
+  const key='akhikhan_privacy_notice_v'+version;
 
   function hasChoice(){
     try{
