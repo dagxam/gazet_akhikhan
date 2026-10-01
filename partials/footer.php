@@ -124,7 +124,7 @@ $privacyBannerLink2Url=$privacyBannerUrl(setting('privacy_banner_link2_url','coo
 </div>
 <?php endif;?>
 
-<script src="<?=e(base_url('assets/js/app.js?v=20261001-privacy-banner2'))?>"></script>
+<script src="<?=e(base_url('assets/js/app.js?v=20261001-admin-account1'))?>"></script>
 </div>
 </body>
 </html>
