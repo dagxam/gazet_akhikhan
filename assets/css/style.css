@@ -7135,7 +7135,7 @@ svg{
   padding:16px 18px;
   border:1px solid rgba(172,134,86,.35);
   border-radius:18px;
-  background:rgba(252,248,240,.97);
+  background:var(--privacy-bg,#fcf8f0);
   box-shadow:0 16px 45px rgba(37,26,15,.2);
   backdrop-filter:blur(16px);
   -webkit-backdrop-filter:blur(16px);
@@ -7147,8 +7147,8 @@ svg{
   display:grid;
   place-items:center;
   border-radius:13px;
-  background:#f3e4cf;
-  color:#7f552d;
+  background:color-mix(in srgb,var(--privacy-accent,#80532c) 14%,#fff);
+  color:var(--privacy-accent,#80532c);
 }
 .privacy-notice-icon svg{
   width:24px;
@@ -7163,12 +7163,12 @@ svg{
 .privacy-notice-copy strong{
   display:block;
   margin:0 0 4px;
-  color:#2f2924;
+  color:var(--privacy-title,#2f2924);
   font:800 14px/1.25 var(--sans,Arial,sans-serif);
 }
 .privacy-notice-copy p{
   margin:0;
-  color:#65594e;
+  color:var(--privacy-text,#65594e);
   font:500 12px/1.55 var(--sans,Arial,sans-serif);
 }
 .privacy-notice-links{
@@ -7178,7 +7178,7 @@ svg{
   margin-top:7px;
 }
 .privacy-notice-links a{
-  color:#80532c;
+  color:var(--privacy-accent,#80532c);
   font:700 11px/1.4 var(--sans,Arial,sans-serif);
   text-decoration:underline;
   text-underline-offset:3px;
@@ -7195,15 +7195,15 @@ svg{
   height:42px;
   padding:0 20px;
   border-radius:12px;
-  background:#6f4a29;
-  color:#fff;
+  background:var(--privacy-button-bg,#6f4a29);
+  color:var(--privacy-button-text,#fff);
   font:800 12px/1 var(--sans,Arial,sans-serif);
   cursor:pointer;
   box-shadow:0 8px 18px rgba(74,46,24,.16);
   transition:transform .16s ease,background .16s ease,box-shadow .16s ease;
 }
 .privacy-notice-accept:hover{
-  background:#58391f;
+  filter:brightness(.9);
   transform:translateY(-1px);
   box-shadow:0 10px 22px rgba(74,46,24,.22);
 }
