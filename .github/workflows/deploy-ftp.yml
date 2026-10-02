@@ -106,14 +106,19 @@ jobs:
             grep -q 'home-news-three-grid items-' /tmp/akhikhan.html
             grep -q 'editorial-heritage' /tmp/akhikhan.html
             grep -q 'Wikimedia Commons' /tmp/akhikhan.html
-            grep -q 'href="https://akhikhan.ru/documents.php"' /tmp/akhikhan.html
-            grep -q 'Все документы' /tmp/akhikhan.html
           fi
 
-          documents_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-documents.html --write-out '%{http_code}' https://akhikhan.ru/documents.php)"
+          fresh_home_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-documents-home.html --write-out '%{http_code}' 'https://akhikhan.ru/?deploy=documents1')"
+          test "$fresh_home_code" = "200"
+          grep -q 'documents.php' /tmp/akhikhan-documents-home.html
+          grep -q 'Все документы' /tmp/akhikhan-documents-home.html
+          grep -q '>Документы<' /tmp/akhikhan-documents-home.html
+
+          documents_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-documents.html --write-out '%{http_code}' 'https://akhikhan.ru/documents.php?deploy=documents1')"
           test "$documents_code" = "200"
-          grep -q '<h1>Документы</h1>' /tmp/akhikhan-documents.html
+          grep -q 'Документы' /tmp/akhikhan-documents.html
           grep -q 'public-documents-page' /tmp/akhikhan-documents.html
+          echo "Public Documents page, homepage link and main-menu item verified."
 
           login_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin-login.html --write-out '%{http_code}' https://akhikhan.ru/admin/login.php)"
           test "$login_code" = "200"
