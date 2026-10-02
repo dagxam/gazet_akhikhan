@@ -517,6 +517,55 @@ function security_client_ip(): string
     return substr($ip,0,80);
 }
 
+function security_prune_state_files(): void
+{
+    $dir=ROOT_PATH.'/storage/security';
+    if(!is_dir($dir)) return;
+
+    $marker=$dir.'/.cleanup';
+    $now=time();
+    $last=is_file($marker) ? (int)@filemtime($marker) : 0;
+    if($last>0 && ($now-$last)<3600) return;
+
+    $fp=@fopen($marker,'c+');
+    if(!$fp) return;
+    if(!@flock($fp,LOCK_EX|LOCK_NB)){
+        fclose($fp);
+        return;
+    }
+
+    clearstatcache(true,$marker);
+    $last=is_file($marker) ? (int)@filemtime($marker) : 0;
+    if($last>0 && ($now-$last)<3600){
+        flock($fp,LOCK_UN);
+        fclose($fp);
+        return;
+    }
+
+    @touch($marker,$now);
+    $checked=0;
+    try{
+        $it=new DirectoryIterator($dir);
+        foreach($it as $entry){
+            if($entry->isDot() || !$entry->isFile()) continue;
+            $name=$entry->getFilename();
+            if($name==='.cleanup') continue;
+            if(!str_ends_with($name,'.json')) continue;
+
+            $checked++;
+            if($entry->getMTime()<($now-2*86400)){
+                @unlink($entry->getPathname());
+            }
+            if($checked>=2000) break;
+        }
+    }catch(Throwable $e){
+        error_log('[security cleanup] '.$e->getMessage());
+    }
+
+    flock($fp,LOCK_UN);
+    fclose($fp);
+}
+
 function security_same_origin_post(): bool
 {
     $siteHost=strtolower((string)(parse_url(base_url(),PHP_URL_HOST) ?: ''));
@@ -544,6 +593,7 @@ function require_same_origin_post(): void
 
 function security_rate_limit(string $namespace, string $identity, int $limit, int $windowSeconds, int $cooldownSeconds = 0, bool $record = true): array
 {
+    security_prune_state_files();
     $namespace=preg_replace('/[^a-z0-9_-]+/i','-',strtolower($namespace)) ?: 'request';
     $limit=max(1,min(1000,$limit));
     $windowSeconds=max(1,min(86400,$windowSeconds));
@@ -621,6 +671,7 @@ function security_once_per_window(string $namespace, string $identity, int $wind
 
 function security_login_bucket_path(): string
 {
+    security_prune_state_files();
     $dir=ROOT_PATH.'/storage/security';
     if(!is_dir($dir)){
         @mkdir($dir,0775,true);
@@ -692,9 +743,9 @@ function security_login_account_bucket(string $email, bool $recordFailure = fals
     return security_rate_limit(
         'login-account',
         $email,
-        12,
+        20,
         30*60,
-        30*60,
+        10*60,
         $recordFailure
     );
 }
@@ -750,6 +801,7 @@ function should_count_article_view(int $articleId): bool
 
 function contact_form_bucket_path(): string
 {
+    security_prune_state_files();
     $dir=ROOT_PATH.'/storage/security';
     if(!is_dir($dir)) @mkdir($dir,0775,true);
     return $dir.'/contact-'.hash('sha256',security_client_ip()).'.json';
