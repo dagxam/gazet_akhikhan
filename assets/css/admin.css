@@ -3266,3 +3266,85 @@ button[type="submit"]:disabled{
   }
 }
 
+/* Accessibility settings — 2026-10-02 */
+#accessibility-settings .settings-section-icon{
+  background:linear-gradient(145deg,#f3e6d7,#e7d2ba);
+  color:#765132;
+}
+.accessibility-admin-intro{
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+  margin-bottom:18px;
+  padding:15px;
+  border:1px solid #dfd4c7;
+  border-radius:14px;
+  background:linear-gradient(180deg,#fff,#faf6f1);
+}
+.accessibility-admin-badge{
+  width:46px;
+  height:46px;
+  flex:0 0 46px;
+  display:grid;
+  place-items:center;
+  border-radius:13px;
+  background:#68482e;
+  color:#fff;
+  font-size:20px;
+  box-shadow:0 8px 18px rgba(71,46,27,.14);
+}
+.accessibility-admin-intro b{
+  display:block;
+  margin-bottom:5px;
+  color:var(--admin-text,#3f352e);
+  font-size:13px;
+}
+.accessibility-admin-intro p{
+  margin:0;
+  color:var(--admin-muted,#7d7167);
+  font-size:10px;
+  line-height:1.55;
+}
+.accessibility-admin-divider{
+  height:1px;
+  margin:20px 0;
+  background:var(--admin-border,#e4ddd5);
+}
+.accessibility-age-settings{
+  display:grid;
+  grid-template-columns:minmax(0,1.25fr) minmax(260px,.75fr);
+  gap:18px;
+  align-items:start;
+}
+.accessibility-age-settings h4{
+  margin:5px 0 7px;
+  color:var(--admin-text,#3f352e);
+  font-size:18px;
+}
+.accessibility-age-settings p{
+  margin:0;
+  color:var(--admin-muted,#7d7167);
+  font-size:10px;
+  line-height:1.55;
+}
+.accessibility-age-controls{
+  display:grid;
+  gap:12px;
+  padding:14px;
+  border:1px solid var(--admin-border,#e4ddd5);
+  border-radius:13px;
+  background:var(--admin-card-soft,#faf8f5);
+}
+.accessibility-law-note{
+  margin-top:18px;
+}
+.accessibility-law-note b{
+  display:block;
+  margin-bottom:5px;
+}
+@media(max-width:800px){
+  .accessibility-age-settings{
+    grid-template-columns:1fr;
+  }
+}
+
