@@ -4,6 +4,11 @@ $bySlug = [];
 foreach ($navCategories as $cat) $bySlug[$cat['slug']] = $cat;
 $mainMenuItems = main_menu_items();
 $siteFavicon = branding_asset('site_favicon','assets/img/seal.svg');
+$siteFaviconPath = (string)(parse_url($siteFavicon, PHP_URL_PATH) ?: $siteFavicon);
+$siteFaviconExt = strtolower(pathinfo($siteFaviconPath, PATHINFO_EXTENSION));
+$searchFavicon = in_array($siteFaviconExt,['bmp','gif','ico','png','jpg','jpeg','ppm','tif','tiff'],true)
+    ? $siteFavicon
+    : 'assets/img/favicon-search.png';
 $siteHeaderLogo = branding_asset('site_header_logo','assets/img/akhikhan-logo-transparent.webp');
 $topbarRegion = setting('topbar_region_label','Унцукульский район');
 $siteSocialLinks = social_links(true);
@@ -44,8 +49,9 @@ $seoImageWidth = 0;
 $seoImageHeight = 0;
 $seoImageMime = '';
 $seoImagePath = '';
-if (!preg_match('~^https?://~i', trim((string)($seoImage ?? '')))) {
-    $seoImagePath = ROOT_PATH . '/' . ltrim((string)($seoImage ?? ''), '/');
+$seoImageUrlPath = (string)(parse_url((string)$seoImage, PHP_URL_PATH) ?: '');
+if ($seoImageUrlPath !== '') {
+    $seoImagePath = ROOT_PATH . '/' . ltrim($seoImageUrlPath, '/');
 }
 if ($seoImagePath !== '' && is_file($seoImagePath)) {
     $imageInfo = @getimagesize($seoImagePath);
@@ -104,8 +110,9 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#231d18">
 <meta name="application-name" content="<?=e($seoSiteName)?>">
-<link rel="icon" href="<?=e(base_url($siteFavicon))?>">
-<link rel="shortcut icon" href="<?=e(base_url($siteFavicon))?>">
+<link rel="icon" href="<?=e(base_url($searchFavicon))?>">
+<link rel="shortcut icon" href="<?=e(base_url($searchFavicon))?>">
+<link rel="apple-touch-icon" href="<?=e(base_url($searchFavicon))?>">
 <link rel="sitemap" type="application/xml" title="Sitemap" href="<?=e(base_url('sitemap.xml'))?>">
 <title><?=e($seoFullTitle)?></title>
 <meta name="description" content="<?=e($seoDescription)?>">
