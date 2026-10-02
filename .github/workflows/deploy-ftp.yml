@@ -173,7 +173,7 @@ jobs:
           test "$(wc -c < /tmp/akhikhan-ornament.svg)" -gt 7000
           grep -q 'viewBox="0 0 2048 170"' /tmp/akhikhan-ornament.svg
 
-          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-documents1')"
+          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-header-max1')"
           test "$public_css_code" = "200"
           grep -q 'ornament-footer-premium.svg' /tmp/akhikhan-style.css
           grep -q '.privacy-notice' /tmp/akhikhan-style.css
@@ -182,9 +182,17 @@ jobs:
           grep -q 'Homepage editorial redesign' /tmp/akhikhan-style.css
           grep -q 'Homepage compact rounded refinement' /tmp/akhikhan-style.css
           grep -q 'Public documents page + homepage link' /tmp/akhikhan-style.css
+          grep -q 'Header / MAX social polish' /tmp/akhikhan-style.css
+          grep -q '.reference-brand-caption' /tmp/akhikhan-style.css
+          grep -q '.social-service-image' /tmp/akhikhan-style.css
           grep -q '.home-news-summary' /tmp/akhikhan-style.css
           grep -q '.home-news-three-grid.items-1' /tmp/akhikhan-style.css
           grep -q '.editorial-heritage' /tmp/akhikhan-style.css
+
+          max_icon_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-social-max.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/social-max.svg)"
+          test "$max_icon_code" = "200"
+          grep -q '<svg' /tmp/akhikhan-social-max.svg
+          grep -q 'linearGradient' /tmp/akhikhan-social-max.svg
 
           search_favicon_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-favicon-search.png --write-out '%{http_code}' https://akhikhan.ru/assets/img/favicon-search.png)"
           test "$search_favicon_code" = "200"
