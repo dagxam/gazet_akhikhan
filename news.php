@@ -5,12 +5,36 @@ if (!APP_INSTALLED) { header('Location: install.php'); exit; }
 $q=db()->query("SELECT a.*,c.name category_name,c.slug category_slug
 FROM articles a LEFT JOIN categories c ON c.id=a.category_id
 WHERE a.status='published'
+AND (a.published_at IS NULL OR a.published_at<=CURRENT_TIMESTAMP)
 ORDER BY COALESCE(a.published_at,a.created_at) DESC LIMIT 100");
 $articles=$q->fetchAll();
 
 $pageTitle='Новости Унцукульского района';
 $pageDescription='Последние новости Унцукульского района Республики Дагестан: события, общество, культура, спорт и важные публикации сетевого издания «АХИХЪАН».';
 $seoCanonical=base_url('news.php');
+$newsItemList=[];
+foreach(array_slice($articles,0,20) as $index=>$item){
+  $newsItemList[]=[
+    '@type'=>'ListItem',
+    'position'=>$index+1,
+    'url'=>article_url($item),
+    'name'=>(string)$item['title'],
+  ];
+}
+$seoJsonLd=[[
+  '@context'=>'https://schema.org',
+  '@type'=>'CollectionPage',
+  '@id'=>$seoCanonical.'#collection',
+  'url'=>$seoCanonical,
+  'name'=>$pageTitle.' — АХИХЪАН',
+  'description'=>$pageDescription,
+  'isPartOf'=>['@id'=>base_url('#website')],
+  'mainEntity'=>[
+    '@type'=>'ItemList',
+    'numberOfItems'=>count($articles),
+    'itemListElement'=>$newsItemList,
+  ],
+]];
 require __DIR__.'/partials/header.php';
 ?>
 <div class="wrap page-shell">
