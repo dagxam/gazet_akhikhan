@@ -42,6 +42,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     $publishedAt=trim($_POST['published_at']??'');
     $publishedAt=$publishedAt?str_replace('T',' ',$publishedAt).(strlen($publishedAt)===16?':00':''):null;
     $cover=handle_cover_upload($_FILES['cover']??[], $article['cover_image']??null);
+    $removeArticleImages=(array)($_POST['remove_article_images']??[]);
+    $articleImageFiles=$_FILES['article_images']??[];
 
     $pdo=db();
     $pdo->beginTransaction();
@@ -66,6 +68,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
       }
 
       set_article_categories($id,$categoryIds);
+      remove_article_images($id,$removeArticleImages);
+      handle_article_image_uploads($id,$articleImageFiles,12);
       $pdo->commit();
     }catch(Throwable $e){
       if($pdo->inTransaction()) $pdo->rollBack();
@@ -106,6 +110,7 @@ $currentLocationCity=$_SERVER['REQUEST_METHOD']==='POST' ? trim($_POST['location
 $currentContent=$article['content']??'';
 $currentSlug=$article['slug']??'';
 $currentPublished=!empty($article['published_at'])?date('Y-m-d\\TH:i',strtotime($article['published_at'])):'';
+$currentImages=$id ? article_images($id) : [];
 ?>
 <?php if($error):?><div class="error"><?=e($error)?></div><?php endif;?>
 <?php if(isset($_GET['saved'])):?><div class="ok editor-notice">Изменения сохранены.</div><?php endif;?>
@@ -154,9 +159,40 @@ $currentPublished=!empty($article['published_at'])?date('Y-m-d\\TH:i',strtotime(
       <textarea class="content-editor modern-content-editor" name="content" data-rich-text rows="22" placeholder="Начните писать текст новости..."><?=e($currentContent)?></textarea>
     </section>
 
+    <section class="editor-card editor-card-gallery">
+      <div class="editor-section-head">
+        <div><span class="section-number">03</span><h3>Ещё фотографии</h3></div>
+        <span class="section-help">До 12 изображений к новости</span>
+      </div>
+
+      <label class="article-gallery-dropzone" data-article-gallery-zone>
+        <input type="file" name="article_images[]" accept="image/jpeg,image/png,image/webp" multiple data-article-gallery-input>
+        <span class="article-gallery-drop-icon"><i class="fa-regular fa-images"></i></span>
+        <b>Добавить фотографии к материалу</b>
+        <small>Можно выбрать сразу несколько JPG, PNG или WEBP. Они будут красиво собраны в галерею внутри полной новости.</small>
+      </label>
+
+      <div class="article-gallery-selected" data-article-gallery-selected hidden></div>
+
+      <?php if($currentImages):?>
+        <div class="article-gallery-existing">
+          <?php foreach($currentImages as $image):?>
+            <label class="article-gallery-existing-item">
+              <img src="<?=e(base_url($image['image_path']))?>" alt="">
+              <span class="article-gallery-remove">
+                <input type="checkbox" name="remove_article_images[]" value="<?=$image['id']?>">
+                <b>Удалить</b>
+              </span>
+            </label>
+          <?php endforeach;?>
+        </div>
+        <p class="field-hint"><i class="fa-solid fa-circle-info"></i> Отметьте «Удалить» у ненужной фотографии и сохраните новость.</p>
+      <?php endif;?>
+    </section>
+
     <section class="editor-card editor-card-link">
       <div class="editor-section-head">
-        <div><span class="section-number">03</span><h3>Адрес материала</h3></div>
+        <div><span class="section-number">04</span><h3>Адрес материала</h3></div>
         <span class="section-help">Можно оставить пустым</span>
       </div>
       <label class="field-modern">
@@ -264,5 +300,36 @@ $currentPublished=!empty($article['published_at'])?date('Y-m-d\\TH:i',strtotime(
   </aside>
 </div>
 </form>
+
+<script>
+(function(){
+  const input=document.querySelector('[data-article-gallery-input]');
+  const selected=document.querySelector('[data-article-gallery-selected]');
+  if(!input||!selected) return;
+
+  input.addEventListener('change',function(){
+    selected.innerHTML='';
+    const files=[...(input.files||[])].slice(0,12);
+    if(!files.length){
+      selected.hidden=true;
+      return;
+    }
+    selected.hidden=false;
+    files.forEach(function(file){
+      if(!file.type.startsWith('image/')) return;
+      const item=document.createElement('span');
+      item.className='article-gallery-selected-item';
+      const img=document.createElement('img');
+      img.alt='';
+      img.src=URL.createObjectURL(file);
+      img.onload=function(){ URL.revokeObjectURL(img.src); };
+      const name=document.createElement('small');
+      name.textContent=file.name;
+      item.append(img,name);
+      selected.appendChild(item);
+    });
+  });
+})();
+</script>
 
 <?php require __DIR__.'/_bottom.php'; ?>
