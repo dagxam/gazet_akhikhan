@@ -102,7 +102,10 @@
 
     <div class="admin-user">
       <span><?=e($me['name'])?></span>
-      <a href="<?=e(base_url('admin/logout.php'))?>">Выйти</a>
+      <form method="post" action="<?=e(base_url('admin/logout.php'))?>" class="admin-logout-form">
+        <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
+        <button type="submit">Выйти</button>
+      </form>
     </div>
   </div>
 </aside>
