@@ -52,6 +52,7 @@
       <span class="admin-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"></path><path d="M15 3v5h5M9 12h6M9 16h4"></path></svg></span>
       <span>Статичные страницы</span>
     </a>
+    <?php if(is_site_admin()):?>
     <details class="admin-nav-group <?=$settingsGroupOpen?'is-active':''?>" <?=$settingsGroupOpen?'open':''?>>
       <summary class="admin-nav-group-summary">
         <span class="admin-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5A3.5 3.5 0 1 0 12 15.5 3.5 3.5 0 0 0 12 8.5z"></path><path d="M19 13.5v-3l-2-.7-.5-1.2.9-1.9-2.1-2.1-1.9.9-1.2-.5-.7-2h-3l-.7 2-1.2.5-1.9-.9-2.1 2.1.9 1.9-.5 1.2-2 .7v3l2 .7.5 1.2-.9 1.9 2.1 2.1 1.9-.9 1.2.5.7 2h3l.7-2 1.2-.5 1.9.9 2.1-2.1-.9-1.9.5-1.2z"></path></svg></span>
@@ -73,6 +74,7 @@
         </a>
       </div>
     </details>
+    <?php endif;?>
   </nav>
 
   <div class="admin-side-bottom">
