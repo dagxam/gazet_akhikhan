@@ -3151,3 +3151,118 @@ button[type="submit"]:disabled{
   }
 }
 
+/* Article multi-image gallery editor — 2026-10-02 */
+.editor-card-gallery{
+  position:relative;
+  overflow:hidden;
+}
+.article-gallery-dropzone{
+  min-height:150px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  padding:22px;
+  border:1.5px dashed #d1c1ae;
+  border-radius:15px;
+  background:linear-gradient(180deg,#fff,#faf6f1);
+  text-align:center;
+  cursor:pointer;
+  transition:border-color .16s ease,background .16s ease,transform .16s ease;
+}
+.article-gallery-dropzone:hover{
+  transform:translateY(-1px);
+  border-color:var(--admin-accent,#a27445);
+  background:#fffaf5;
+}
+.article-gallery-dropzone input{
+  position:absolute;
+  width:1px;
+  height:1px;
+  opacity:0;
+  pointer-events:none;
+}
+.article-gallery-drop-icon{
+  width:46px;
+  height:46px;
+  display:grid;
+  place-items:center;
+  border-radius:13px;
+  background:#eee2d4;
+  color:#7d5734;
+  font-size:18px;
+}
+.article-gallery-dropzone>b{
+  color:#51463d;
+  font-size:14px;
+}
+.article-gallery-dropzone>small{
+  max-width:560px;
+  color:#8a7d72;
+  font-size:10px;
+  line-height:1.5;
+}
+.article-gallery-selected,
+.article-gallery-existing{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:9px;
+  margin-top:13px;
+}
+.article-gallery-selected-item,
+.article-gallery-existing-item{
+  position:relative;
+  min-width:0;
+  overflow:hidden;
+  border:1px solid #ded4c9;
+  border-radius:12px;
+  background:#f4eee7;
+}
+.article-gallery-selected-item img,
+.article-gallery-existing-item img{
+  display:block;
+  width:100%;
+  aspect-ratio:4/3;
+  object-fit:cover;
+}
+.article-gallery-selected-item small{
+  display:block;
+  overflow:hidden;
+  padding:7px 8px;
+  color:#70665d;
+  font-size:8px;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.article-gallery-remove{
+  position:absolute;
+  right:7px;
+  bottom:7px;
+  display:flex;
+  align-items:center;
+  gap:5px;
+  padding:6px 8px;
+  border-radius:8px;
+  background:rgba(255,255,255,.92);
+  color:#a04339;
+  box-shadow:0 3px 10px rgba(39,28,19,.12);
+  font-size:8px;
+  font-weight:800;
+}
+.article-gallery-remove input{
+  margin:0;
+}
+@media(max-width:900px){
+  .article-gallery-selected,
+  .article-gallery-existing{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+@media(max-width:560px){
+  .article-gallery-selected,
+  .article-gallery-existing{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
