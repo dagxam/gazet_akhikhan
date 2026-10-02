@@ -115,8 +115,9 @@ require __DIR__ . '/partials/header.php';
   <?php if($districtNews):
     $lead = $districtNews[0];
     $secondary = array_slice($districtNews,1,4);
+    $secondaryCount = count($secondary);
   ?>
-    <div class="district-magazine-grid">
+    <div class="district-magazine-grid district-secondary-<?=e((string)$secondaryCount)?>">
       <article class="district-magazine-lead">
         <a class="district-magazine-lead-image" href="<?=e(article_url($lead))?>">
           <?php if(!empty($lead['cover_image'])):?>
@@ -134,7 +135,7 @@ require __DIR__ . '/partials/header.php';
         </div>
       </article>
 
-      <div class="district-magazine-side-grid">
+      <div class="district-magazine-side-grid items-<?=e((string)$secondaryCount)?>">
         <?php foreach($secondary as $item):?>
           <article class="district-magazine-card">
             <a class="district-magazine-card-image" href="<?=e(article_url($item))?>">
