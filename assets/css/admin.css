@@ -2949,3 +2949,205 @@ body.admin-theme-light .right-block-inner-switch{
   border-radius:6px;
 }
 
+/* Unified admin buttons and top Open site action — 2026-10-02 */
+.admin-top{
+  justify-content:flex-start;
+}
+.admin-top-actions{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.admin-top-site-button{
+  min-height:42px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  padding:0 15px;
+  border:1px solid color-mix(in srgb,var(--admin-accent,#a27445) 28%,var(--admin-border,#ded8cf));
+  border-radius:12px;
+  background:linear-gradient(180deg,#fff,#faf7f2);
+  color:var(--admin-accent-strong,#6d4c27);
+  text-decoration:none;
+  font:800 11px/1 var(--sans,Arial,sans-serif);
+  box-shadow:0 6px 18px rgba(52,38,24,.055);
+  transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease,background .16s ease,color .16s ease;
+}
+.admin-top-site-button i{
+  font-size:11px;
+}
+.admin-top-site-button:hover{
+  transform:translateY(-1px);
+  border-color:color-mix(in srgb,var(--admin-accent,#a27445) 48%,var(--admin-border,#ded8cf));
+  background:#fff;
+  box-shadow:0 10px 24px rgba(52,38,24,.085);
+}
+.admin-top-site-button:active{
+  transform:translateY(0);
+  box-shadow:0 4px 12px rgba(52,38,24,.06);
+}
+
+/* Consistent actionable controls */
+.primary,
+.secondary,
+.danger,
+.edit-action,
+.editor-back,
+.social-link-actions a,
+.social-link-actions button,
+.card-head>a,
+.card-head>button,
+.settings-socials-link a,
+.current-pdf-link,
+button[type="submit"]:not(.danger):not(.secondary):not(.primary){
+  min-height:40px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:0 14px;
+  border-radius:11px;
+  text-decoration:none;
+  font:800 11px/1 var(--sans,Arial,sans-serif);
+  letter-spacing:.005em;
+  cursor:pointer;
+  transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease,background .16s ease,color .16s ease,filter .16s ease;
+}
+
+.primary,
+button[type="submit"]:not(.danger):not(.secondary):not(.primary){
+  border:1px solid transparent;
+  background:linear-gradient(180deg,var(--admin-accent-strong,#7a5733),color-mix(in srgb,var(--admin-accent-strong,#7a5733) 84%,#25190f));
+  color:#fff;
+  box-shadow:0 7px 18px color-mix(in srgb,var(--admin-accent-strong,#7a5733) 20%,transparent);
+}
+.primary:hover,
+button[type="submit"]:not(.danger):not(.secondary):not(.primary):hover{
+  transform:translateY(-1px);
+  filter:brightness(1.045);
+  box-shadow:0 10px 24px color-mix(in srgb,var(--admin-accent-strong,#7a5733) 26%,transparent);
+}
+.primary:active,
+button[type="submit"]:not(.danger):not(.secondary):not(.primary):active{
+  transform:translateY(0);
+  filter:brightness(.97);
+}
+
+.secondary,
+.edit-action,
+.editor-back,
+.card-head>a:not(.primary):not(.danger),
+.card-head>button:not(.primary):not(.danger),
+.settings-socials-link a,
+.current-pdf-link{
+  border:1px solid var(--admin-border,#ddd4c8);
+  background:linear-gradient(180deg,#fff,#f7f3ee);
+  color:var(--admin-text,#4d443c);
+  box-shadow:0 4px 12px rgba(54,42,30,.035);
+}
+.secondary:hover,
+.edit-action:hover,
+.editor-back:hover,
+.card-head>a:not(.primary):not(.danger):hover,
+.card-head>button:not(.primary):not(.danger):hover,
+.settings-socials-link a:hover,
+.current-pdf-link:hover{
+  transform:translateY(-1px);
+  border-color:color-mix(in srgb,var(--admin-accent,#a27445) 38%,var(--admin-border,#ddd4c8));
+  background:#fff;
+  color:var(--admin-accent-strong,#6d4c27);
+  box-shadow:0 8px 18px rgba(54,42,30,.06);
+}
+
+.danger{
+  border:1px solid #edc9c4;
+  background:linear-gradient(180deg,#fff7f5,#fbe9e6);
+  color:#9d3c32;
+  box-shadow:0 4px 12px rgba(150,56,45,.04);
+}
+.danger:hover{
+  transform:translateY(-1px);
+  border-color:#daa59e;
+  background:#fff1ef;
+  color:#852d25;
+  box-shadow:0 8px 18px rgba(150,56,45,.075);
+}
+.danger:active{
+  transform:translateY(0);
+}
+
+.primary:focus-visible,
+.secondary:focus-visible,
+.danger:focus-visible,
+.edit-action:focus-visible,
+.editor-back:focus-visible,
+.admin-top-site-button:focus-visible,
+button[type="submit"]:focus-visible{
+  outline:0;
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--admin-accent,#a27445) 16%,transparent);
+}
+
+.primary:disabled,
+.secondary:disabled,
+.danger:disabled,
+button[type="submit"]:disabled{
+  opacity:.52;
+  cursor:not-allowed;
+  transform:none!important;
+  box-shadow:none!important;
+}
+
+.wide{
+  width:100%;
+}
+.row-actions,
+.social-link-actions,
+.editor-page-actions{
+  gap:8px;
+}
+.row-actions .danger,
+.row-actions .edit-action{
+  min-height:38px;
+  padding-left:12px;
+  padding-right:12px;
+}
+
+/* Keep toolbar and tiny technical controls compact. */
+.editor-toolbar button,
+.rich-editor-toolbar button,
+.rich-editor-control,
+.menu-toggle,
+.maintenance-switch button{
+  min-height:0;
+}
+
+@media(max-width:900px){
+  .admin-top{
+    gap:10px;
+  }
+  .admin-top-actions{
+    margin-left:auto;
+  }
+  .admin-top-site-button{
+    min-height:40px;
+    padding:0 12px;
+  }
+  .admin-top-site-button span{
+    display:none;
+  }
+}
+@media(max-width:520px){
+  .admin-top{
+    min-height:68px;
+    height:auto;
+    padding-top:8px;
+    padding-bottom:8px;
+  }
+  .admin-top-site-button{
+    width:40px;
+    padding:0;
+  }
+}
+
