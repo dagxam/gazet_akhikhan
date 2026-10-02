@@ -5,6 +5,23 @@ define('ROOT_PATH', dirname(__DIR__));
 define('CONFIG_FILE', ROOT_PATH . '/config.php');
 define('APP_INSTALLED', is_file(CONFIG_FILE));
 
+// Reject abnormally large request targets before PHP opens sessions or queries the database.
+// Normal public URLs are far smaller; this reduces parser/database abuse and accidental resource exhaustion.
+$requestUriRaw=(string)($_SERVER['REQUEST_URI']??'');
+$queryStringRaw=(string)($_SERVER['QUERY_STRING']??'');
+if(strlen($requestUriRaw)>4096 || strlen($queryStringRaw)>2048){
+    http_response_code(414);
+    header('Cache-Control: no-store');
+    header('Connection: close');
+    exit('Request URI Too Long');
+}
+if(preg_match('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/',$requestUriRaw)){
+    http_response_code(400);
+    header('Cache-Control: no-store');
+    header('Connection: close');
+    exit('Bad Request');
+}
+
 // Production-safe PHP/session defaults. Errors are logged server-side and never shown to visitors.
 @ini_set('display_errors','0');
 @ini_set('log_errors','1');
