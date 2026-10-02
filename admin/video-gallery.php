@@ -112,6 +112,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
 $editing=$id ? video_gallery_item($id,false) : null;
 $videos=video_gallery_items(false);
+$videoPager=admin_paginate_array($videos,10,'page');
+$videos=$videoPager['items'];
 $adminTitle='Видеогалерея';
 require __DIR__.'/_top.php';
 ?>
@@ -256,6 +258,7 @@ require __DIR__.'/_top.php';
           </article>
         <?php endforeach;?>
       </div>
+      <?php render_admin_pagination('admin/video-gallery.php',$videoPager['page'],$videoPager['total_pages'],[],'page','Страницы видео'); ?>
     <?php else:?>
       <div class="video-admin-empty">
         <div>
