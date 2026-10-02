@@ -133,6 +133,8 @@ $current=$q->fetch() ?: $me;
 $users=is_site_admin()
     ? db()->query("SELECT id,name,email,role,status,created_at FROM users ORDER BY CASE WHEN role='admin' THEN 0 ELSE 1 END,name")->fetchAll()
     : [];
+$usersPager=admin_paginate_array($users,10,'users_page');
+$users=$usersPager['items'];
 
 $adminTitle='Профиль';
 require __DIR__.'/_top.php';
@@ -283,6 +285,7 @@ require __DIR__.'/_top.php';
           </form>
         </article>
       <?php endforeach;?>
+      <?php render_admin_pagination('admin/profile.php',$usersPager['page'],$usersPager['total_pages'],[],'users_page','Страницы пользователей'); ?>
     </div>
   </div>
 </section>
