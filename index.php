@@ -10,6 +10,7 @@ $regionalNews = latest_articles_by_category_slug('regionalnye-novosti', 3);
 $sportNews = latest_articles_by_category_slug('sport', 3);
 $newspaper = latest_newspaper();
 $documents = latest_documents(8);
+$bestNews = top_rated_articles(4);
 $rightBlocks = homepage_right_blocks();
 $homeGalleryPhotos = latest_gallery_photos(5);
 $homeGalleryAlbum = latest_gallery_album();
@@ -382,6 +383,43 @@ require __DIR__ . '/partials/header.php';
       </aside>
     </aside>
   </div>
+</section>
+
+<section class="content-section best-news-section">
+  <div class="block-heading best-news-heading">
+    <div>
+      <span class="heading-kicker">Выбор читателей</span>
+      <h2>Самые лучшие новости</h2>
+    </div>
+    <span class="block-note">Рейтинг по лайкам и дизлайкам</span>
+  </div>
+
+  <?php if($bestNews):?>
+    <div class="best-news-grid">
+      <?php foreach($bestNews as $index=>$item):?>
+        <article class="best-news-card">
+          <a class="best-news-image" href="<?=e(article_url($item))?>">
+            <?php if(!empty($item['cover_image'])):?>
+              <img src="<?=e(base_url($item['cover_image']))?>" alt="<?=e($item['title'])?>" loading="lazy">
+            <?php else:?>
+              <span class="best-news-placeholder">АХИХЪАН</span>
+            <?php endif;?>
+            <span class="best-news-rank"><?=str_pad((string)($index+1),2,'0',STR_PAD_LEFT)?></span>
+            <span class="best-news-overlay"></span>
+            <span class="best-news-copy">
+              <small><?=e($item['category_name'] ?: 'Новости')?></small>
+              <strong><?=e($item['title'])?></strong>
+              <span class="best-news-stats">
+                <b><i class="fa-regular fa-thumbs-up"></i><?=number_format((int)$item['likes'],0,'.',' ')?></b>
+                <b><i class="fa-regular fa-thumbs-down"></i><?=number_format((int)$item['dislikes'],0,'.',' ')?></b>
+                <em><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></em>
+              </span>
+            </span>
+          </a>
+        </article>
+      <?php endforeach;?>
+    </div>
+  <?php endif;?>
 </section>
 
 <section class="content-section documents-strip-section">
