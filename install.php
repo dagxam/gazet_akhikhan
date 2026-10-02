@@ -24,8 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $adminPass = (string)($_POST['admin_pass'] ?? '');
 
     try {
-        if (!filter_var($adminEmail, FILTER_VALIDATE_EMAIL) || strlen($adminPass) < 12) {
-            throw new RuntimeException('Укажите корректный e-mail. Пароль администратора — минимум 12 символов.');
+        if (!filter_var($adminEmail, FILTER_VALIDATE_EMAIL) || strlen($adminPass) < 12 || strlen($adminPass) > 72) {
+            throw new RuntimeException('Укажите корректный e-mail. Пароль администратора — от 12 до 72 байт.');
         }
 
         if ($driver === 'sqlite') {
@@ -231,7 +231,7 @@ button{background:#6f4d25;color:#fff;border:0;padding:13px 20px;border-radius:8p
 <div class="full"><label>Адрес сайта</label><input name="base_url" value="<?=e($_POST['base_url'] ?? 'https://akhikhan.ru')?>" required></div>
 <div><label>Имя администратора</label><input name="admin_name" value="<?=e($_POST['admin_name'] ?? 'Администратор')?>" required></div>
 <div><label>E-mail администратора</label><input type="email" name="admin_email" value="<?=e($_POST['admin_email'] ?? '')?>" required></div>
-<div class="full"><label>Пароль администратора</label><input type="password" name="admin_pass" minlength="12" required></div>
+<div class="full"><label>Пароль администратора</label><input type="password" name="admin_pass" minlength="12" maxlength="72" required></div>
 <div class="full"><button>Установить сайт</button></div>
 </div>
 </form>
