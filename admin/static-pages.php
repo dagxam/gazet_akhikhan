@@ -89,6 +89,8 @@ if($editing && !empty($editing['menu_item_id'])){
   $menuItem=$q->fetch() ?: null;
 }
 $pages=static_pages(false);
+$staticPagesPager=admin_paginate_array($pages,10,'page');
+$pages=$staticPagesPager['items'];
 
 $adminTitle=$editing?'Редактирование страницы':'Статичные страницы';
 require __DIR__.'/_top.php';
@@ -244,6 +246,7 @@ $menuOrder=$menuItem['sort_order']??100;
           </article>
         <?php endforeach;?>
       </div>
+      <?php render_admin_pagination('admin/static-pages.php',$staticPagesPager['page'],$staticPagesPager['total_pages'],[],'page','Страницы статичных страниц'); ?>
     <?php else:?>
       <div class="menu-admin-empty"><div><b>Статичных страниц пока нет</b><p>Создайте первую страницу в редакторе выше.</p></div></div>
     <?php endif;?>
