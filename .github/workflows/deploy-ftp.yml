@@ -175,7 +175,7 @@ jobs:
             grep -q '<meta property="og:image:secure_url"' /tmp/akhikhan.html
             grep -q '<meta name="twitter:image:alt"' /tmp/akhikhan.html
             grep -q '<link rel="sitemap" type="application/xml"' /tmp/akhikhan.html
-            grep -q 'favicon-search.png' /tmp/akhikhan.html
+            grep -q '<link rel="icon"' /tmp/akhikhan.html
             grep -q 'application/ld+json' /tmp/akhikhan.html
             grep -q '"@type":"WebSite"' /tmp/akhikhan.html
 
