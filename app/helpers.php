@@ -1104,6 +1104,41 @@ function main_menu_items(bool $activeOnly = true): array
     return db()->query($sql)->fetchAll();
 }
 
+function save_main_menu_order(array $submittedIds): void
+{
+    if (!APP_INSTALLED) return;
+
+    $rows=main_menu_items(false);
+    if(!$rows) return;
+
+    $existing=[];
+    foreach($rows as $row) $existing[(int)$row['id']]=true;
+
+    $ordered=[];
+    foreach($submittedIds as $rawId){
+        $id=(int)$rawId;
+        if($id>0 && isset($existing[$id]) && !in_array($id,$ordered,true)) $ordered[]=$id;
+    }
+    foreach($rows as $row){
+        $id=(int)$row['id'];
+        if(!in_array($id,$ordered,true)) $ordered[]=$id;
+    }
+
+    $pdo=db();
+    $started=!$pdo->inTransaction();
+    if($started) $pdo->beginTransaction();
+    try{
+        $q=$pdo->prepare('UPDATE main_menu_items SET sort_order=?,updated_at=CURRENT_TIMESTAMP WHERE id=?');
+        foreach($ordered as $index=>$id){
+            $q->execute([($index+1)*10,$id]);
+        }
+        if($started) $pdo->commit();
+    }catch(Throwable $e){
+        if($started && $pdo->inTransaction()) $pdo->rollBack();
+        throw $e;
+    }
+}
+
 function main_menu_url(string $value): string
 {
     $value=trim($value);
