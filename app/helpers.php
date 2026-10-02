@@ -896,6 +896,12 @@ function latest_documents(int $limit = 8): array
     return db()->query($sql)->fetchAll();
 }
 
+function all_published_documents(): array
+{
+    if (!APP_INSTALLED) return [];
+    return db()->query("SELECT * FROM documents WHERE status='published' ORDER BY document_date DESC,id DESC")->fetchAll();
+}
+
 function document_format_label(string $ext): string
 {
     $ext = strtolower($ext);
@@ -1064,6 +1070,23 @@ function ensure_main_menu_schema(): void
     }
 
     save_setting('schema_main_menu_v1', '1');
+}
+
+function ensure_documents_main_menu_item(): void
+{
+    if (!APP_INSTALLED) return;
+    if (setting('schema_main_menu_documents_v1','') === '1') return;
+
+    $pdo=db();
+    $check=$pdo->prepare("SELECT id FROM main_menu_items WHERE LOWER(TRIM(url)) IN ('documents.php','/documents.php','documents') LIMIT 1");
+    $check->execute();
+    if(!$check->fetchColumn()){
+        $maxOrder=(int)$pdo->query('SELECT COALESCE(MAX(sort_order),0) FROM main_menu_items')->fetchColumn();
+        $insert=$pdo->prepare('INSERT INTO main_menu_items(label,url,sort_order,is_active,open_new_tab) VALUES(?,?,?,?,?)');
+        $insert->execute(['Документы','documents.php',$maxOrder+10,1,0]);
+    }
+
+    save_setting('schema_main_menu_documents_v1','1');
 }
 
 function main_menu_items(bool $activeOnly = true): array
