@@ -676,6 +676,8 @@ function contact_mail_header_encode(string $value): string
 
 function send_contact_email(array $message): bool
 {
+    if(!function_exists('mail')) return false;
+
     $to='info@akhikhan.ru';
     $from='info@akhikhan.ru';
 
