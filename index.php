@@ -44,7 +44,12 @@ require __DIR__ . '/partials/header.php';
       <span class="kicker" data-hero-kicker>Главные новости</span>
       <?php if($hero):?>
         <h1 data-hero-title><?=e($hero['title'])?></h1>
-        <p data-hero-excerpt><?=e(rich_text_excerpt($hero['excerpt'] ?: 'Читайте подробности события в материале «АХИХЪАН».',260))?></p>
+        <p data-hero-excerpt><?=e(rich_text_excerpt($hero['excerpt'] ?: $hero['content'] ?: 'Читайте подробности события в материале «АХИХЪАН».',220))?></p>
+        <div class="home-news-meta hero-story-meta">
+          <time datetime="<?=e(date('Y-m-d',strtotime($hero['published_at'] ?: $hero['created_at'])))?>"><?=e(ru_date($hero['published_at'] ?: $hero['created_at']))?></time>
+          <span><i class="fa-regular fa-user"></i><?=e(trim((string)($hero['author_name']??'')) ?: 'Редакция')?></span>
+          <span><i class="fa-regular fa-eye"></i><?=number_format((int)$hero['views'],0,'.',' ')?></span>
+        </div>
         <a class="story-button" data-hero-link href="<?=e(article_url($hero))?>">Читать материал <span>→</span></a>
       <?php else:?>
         <h1 data-hero-title>Главных новостей пока нет</h1>
@@ -79,7 +84,10 @@ require __DIR__ . '/partials/header.php';
                    data-hero-location-region="<?=e(trim((string)($item['location_region']??'')) ?: 'Дагестан')?>">
             <time><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></time>
             <h3><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h3>
-            <div class="tiny-meta">Главные новости · ◉ <?=number_format((int)$item['views'],0,'.',' ')?></div>
+            <div class="tiny-meta">
+              <span><?=e(trim((string)($item['author_name']??'')) ?: 'Редакция')?></span>
+              <span>◉ <?=number_format((int)$item['views'],0,'.',' ')?></span>
+            </div>
           </article>
         <?php endforeach; ?>
       <?php else: ?>
@@ -130,11 +138,13 @@ require __DIR__ . '/partials/header.php';
         <div class="district-magazine-lead-copy">
           <span class="district-magazine-category">Новости района</span>
           <h3><a href="<?=e(article_url($lead))?>"><?=e($lead['title'])?></a></h3>
-          <time datetime="<?=e(date('Y-m-d',strtotime($lead['published_at'] ?: $lead['created_at'])))?>"><?=e(ru_date($lead['published_at'] ?: $lead['created_at']))?></time>
-          <?php
-            $leadSummary=rich_text_excerpt($lead['excerpt'] ?: $lead['content'],260);
-          ?>
+          <?php $leadSummary=rich_text_excerpt($lead['excerpt'] ?: $lead['content'],170); ?>
           <?php if($leadSummary!==''):?><p class="district-news-summary"><?=e($leadSummary)?></p><?php endif;?>
+          <div class="home-news-meta">
+            <time datetime="<?=e(date('Y-m-d',strtotime($lead['published_at'] ?: $lead['created_at'])))?>"><?=e(ru_date($lead['published_at'] ?: $lead['created_at']))?></time>
+            <span><i class="fa-regular fa-user"></i><?=e(trim((string)($lead['author_name']??'')) ?: 'Редакция')?></span>
+            <span><i class="fa-regular fa-eye"></i><?=number_format((int)$lead['views'],0,'.',' ')?></span>
+          </div>
         </div>
       </article>
 
@@ -152,9 +162,13 @@ require __DIR__ . '/partials/header.php';
             <div class="district-magazine-card-copy">
               <span class="district-magazine-category">Новости района</span>
               <h3><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h3>
-              <?php $itemSummary=rich_text_excerpt($item['excerpt'] ?: $item['content'],145); ?>
+              <?php $itemSummary=rich_text_excerpt($item['excerpt'] ?: $item['content'],105); ?>
               <?php if($itemSummary!==''):?><p class="district-news-summary"><?=e($itemSummary)?></p><?php endif;?>
-              <time datetime="<?=e(date('Y-m-d',strtotime($item['published_at'] ?: $item['created_at'])))?>"><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></time>
+              <div class="home-news-meta">
+                <time datetime="<?=e(date('Y-m-d',strtotime($item['published_at'] ?: $item['created_at'])))?>"><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></time>
+                <span><i class="fa-regular fa-user"></i><?=e(trim((string)($item['author_name']??'')) ?: 'Редакция')?></span>
+                <span><i class="fa-regular fa-eye"></i><?=number_format((int)$item['views'],0,'.',' ')?></span>
+              </div>
             </div>
           </article>
         <?php endforeach;?>
@@ -198,9 +212,13 @@ require __DIR__ . '/partials/header.php';
                 <div class="home-news-three-copy">
                   <span class="article-label">Региональные новости</span>
                   <h4><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h4>
-                  <?php $rowSummary=rich_text_excerpt($item['excerpt'] ?: $item['content'],150); ?>
+                  <?php $rowSummary=rich_text_excerpt($item['excerpt'] ?: $item['content'],105); ?>
                   <?php if($rowSummary!==''):?><p class="home-news-summary"><?=e($rowSummary)?></p><?php endif;?>
-                  <div class="article-meta"><span><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></span><span>◉ <?=number_format((int)$item['views'],0,'.',' ')?></span></div>
+                  <div class="home-news-meta">
+                    <time datetime="<?=e(date('Y-m-d',strtotime($item['published_at'] ?: $item['created_at'])))?>"><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></time>
+                    <span><i class="fa-regular fa-user"></i><?=e(trim((string)($item['author_name']??'')) ?: 'Редакция')?></span>
+                    <span><i class="fa-regular fa-eye"></i><?=number_format((int)$item['views'],0,'.',' ')?></span>
+                  </div>
                 </div>
               </article>
             <?php endforeach;?>
@@ -238,9 +256,13 @@ require __DIR__ . '/partials/header.php';
                 <div class="home-news-three-copy">
                   <span class="article-label">Спорт</span>
                   <h4><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h4>
-                  <?php $rowSummary=rich_text_excerpt($item['excerpt'] ?: $item['content'],150); ?>
+                  <?php $rowSummary=rich_text_excerpt($item['excerpt'] ?: $item['content'],105); ?>
                   <?php if($rowSummary!==''):?><p class="home-news-summary"><?=e($rowSummary)?></p><?php endif;?>
-                  <div class="article-meta"><span><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></span><span>◉ <?=number_format((int)$item['views'],0,'.',' ')?></span></div>
+                  <div class="home-news-meta">
+                    <time datetime="<?=e(date('Y-m-d',strtotime($item['published_at'] ?: $item['created_at'])))?>"><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></time>
+                    <span><i class="fa-regular fa-user"></i><?=e(trim((string)($item['author_name']??'')) ?: 'Редакция')?></span>
+                    <span><i class="fa-regular fa-eye"></i><?=number_format((int)$item['views'],0,'.',' ')?></span>
+                  </div>
                 </div>
               </article>
             <?php endforeach;?>
