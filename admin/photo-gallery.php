@@ -125,8 +125,13 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 }
 
 $albums=photo_albums(false);
+$albumPager=admin_paginate_array($albums,8,'album_page');
+$albums=$albumPager['items'];
+
 $editing=$albumId ? photo_album($albumId,false) : null;
 $photos=$editing ? photo_album_images((int)$editing['id']) : [];
+$photoPager=admin_paginate_array($photos,12,'photo_page');
+$photos=$photoPager['items'];
 
 $adminTitle='Фотогалерея';
 require __DIR__.'/_top.php';
@@ -229,6 +234,7 @@ require __DIR__.'/_top.php';
           </article>
         <?php endforeach;?>
       </div>
+      <?php render_admin_pagination('admin/photo-gallery.php',$albumPager['page'],$albumPager['total_pages'],[],'album_page','Страницы фотоальбомов'); ?>
     <?php else:?>
       <div class="gallery-empty-admin">
         <div><b>Фотоальбомов пока нет</b><p>Создайте первый альбом через форму слева.</p></div>
@@ -283,6 +289,8 @@ require __DIR__.'/_top.php';
 
       <div class="gallery-photo-save-all"><button class="primary" type="submit">Сохранить подписи и порядок</button></div>
     </form>
+
+    <?php render_admin_pagination('admin/photo-gallery.php',$photoPager['page'],$photoPager['total_pages'],['album_id'=>(int)$editing['id']],'photo_page','Страницы фотографий'); ?>
 
     <?php foreach($photos as $photo):?>
       <form id="delete-photo-<?=$photo['id']?>" method="post" onsubmit="return confirm('Удалить эту фотографию?')">
