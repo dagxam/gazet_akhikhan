@@ -141,10 +141,16 @@ jobs:
           test "$(wc -c < /tmp/akhikhan-ornament.svg)" -gt 7000
           grep -q 'viewBox="0 0 2048 170"' /tmp/akhikhan-ornament.svg
 
-          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261001-admin-account1')"
+          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-district-seo1')"
           test "$public_css_code" = "200"
           grep -q 'ornament-footer-premium.svg' /tmp/akhikhan-style.css
           grep -q '.privacy-notice' /tmp/akhikhan-style.css
+          grep -q 'District news balanced editorial grid' /tmp/akhikhan-style.css
+          grep -q '.district-magazine-side-grid.items-3' /tmp/akhikhan-style.css
+
+          search_favicon_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-favicon-search.png --write-out '%{http_code}' https://akhikhan.ru/assets/img/favicon-search.png)"
+          test "$search_favicon_code" = "200"
+          test "$(wc -c < /tmp/akhikhan-favicon-search.png)" -gt 1000
 
           privacy_js_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-app.js --write-out '%{http_code}' 'https://akhikhan.ru/assets/js/app.js?v=20261001-admin-account1')"
           test "$privacy_js_code" = "200"
@@ -164,13 +170,29 @@ jobs:
 
           if [ "$code" = "200" ]; then
             grep -q '<link rel="canonical" href="https://akhikhan.ru/' /tmp/akhikhan.html
-            grep -q '<meta property="og:site_name" content="АХИХЪАН">' /tmp/akhikhan.html
+            grep -q '<meta name="description"' /tmp/akhikhan.html
+            grep -q '<meta property="og:site_name"' /tmp/akhikhan.html
+            grep -q '<meta property="og:image:secure_url"' /tmp/akhikhan.html
+            grep -q '<meta name="twitter:image:alt"' /tmp/akhikhan.html
+            grep -q '<link rel="sitemap" type="application/xml"' /tmp/akhikhan.html
+            grep -q 'favicon-search.png' /tmp/akhikhan.html
             grep -q 'application/ld+json' /tmp/akhikhan.html
+            grep -q '"@type":"WebSite"' /tmp/akhikhan.html
 
             sitemap_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-sitemap.xml --write-out '%{http_code}' https://akhikhan.ru/sitemap.xml)"
             test "$sitemap_code" = "200"
-            grep -q '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' /tmp/akhikhan-sitemap.xml
+            grep -q 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' /tmp/akhikhan-sitemap.xml
+            grep -q 'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"' /tmp/akhikhan-sitemap.xml
             grep -q '<loc>https://akhikhan.ru/</loc>' /tmp/akhikhan-sitemap.xml
+
+            article_url="$(grep -oE '<loc>https://akhikhan\.ru/article/[^<]+' /tmp/akhikhan-sitemap.xml | head -n 1 | sed 's#<loc>##' || true)"
+            if [ -n "$article_url" ]; then
+              article_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-article.html --write-out '%{http_code}' "$article_url")"
+              test "$article_code" = "200"
+              grep -q '"@type":"NewsArticle"' /tmp/akhikhan-article.html
+              grep -q '<meta property="article:published_time"' /tmp/akhikhan-article.html
+              grep -q '<meta property="article:section"' /tmp/akhikhan-article.html
+            fi
 
             news_sitemap_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-news-sitemap.xml --write-out '%{http_code}' https://akhikhan.ru/news-sitemap.xml)"
             test "$news_sitemap_code" = "200"
