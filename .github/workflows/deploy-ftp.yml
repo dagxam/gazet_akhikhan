@@ -101,6 +101,10 @@ jobs:
 
           if [ "$code" = "200" ]; then
             grep -q "Последние видео" /tmp/akhikhan.html
+            grep -q 'district-news-summary' /tmp/akhikhan.html
+            grep -q 'home-news-summary' /tmp/akhikhan.html
+            grep -q 'editorial-heritage' /tmp/akhikhan.html
+            grep -q 'Wikimedia Commons' /tmp/akhikhan.html
           fi
 
           login_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin-login.html --write-out '%{http_code}' https://akhikhan.ru/admin/login.php)"
@@ -114,6 +118,7 @@ jobs:
           done
           grep -q 'Политика обработки персональных данных' /tmp/akhikhan-privacy.php
           grep -q 'Реализуемые требования и меры защиты персональных данных' /tmp/akhikhan-privacy.php
+          grep -q 'Wikimedia Commons' /tmp/akhikhan-privacy.php
           grep -q 'Согласие на обработку персональных данных' /tmp/akhikhan-personal-data-consent.php
           grep -q 'Сведения о субъекте персональных данных' /tmp/akhikhan-personal-data-consent.php
           grep -q 'Политика использования cookie' /tmp/akhikhan-cookies.php
@@ -141,12 +146,15 @@ jobs:
           test "$(wc -c < /tmp/akhikhan-ornament.svg)" -gt 7000
           grep -q 'viewBox="0 0 2048 170"' /tmp/akhikhan-ornament.svg
 
-          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-district-seo1')"
+          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-editorial-home1')"
           test "$public_css_code" = "200"
           grep -q 'ornament-footer-premium.svg' /tmp/akhikhan-style.css
           grep -q '.privacy-notice' /tmp/akhikhan-style.css
           grep -q 'District news balanced editorial grid' /tmp/akhikhan-style.css
           grep -q '.district-magazine-side-grid.items-3' /tmp/akhikhan-style.css
+          grep -q 'Homepage editorial redesign' /tmp/akhikhan-style.css
+          grep -q '.home-news-summary' /tmp/akhikhan-style.css
+          grep -q '.editorial-heritage' /tmp/akhikhan-style.css
 
           search_favicon_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-favicon-search.png --write-out '%{http_code}' https://akhikhan.ru/assets/img/favicon-search.png)"
           test "$search_favicon_code" = "200"
