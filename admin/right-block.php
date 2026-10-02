@@ -134,8 +134,11 @@ try{
 }
 
 $blocks=[];
+$blocksPager=['items'=>[],'page'=>1,'total_pages'=>1,'total'=>0];
 if($areaSelected){
   $blocks=$area==='pages' ? $pageBlocks : $homeBlocks;
+  $blocksPager=admin_paginate_array($blocks,10,'page');
+  $blocks=$blocksPager['items'];
 }
 
 $areaTitle=$area==='pages'?'На страницах':'На главной';
@@ -236,7 +239,7 @@ require __DIR__.'/_top.php';
       <strong><?=e($areaTitle)?></strong>
       <p><?=e($areaDescription)?></p>
     </div>
-    <span class="right-block-section-count"><b><?=count($blocks)?></b><small>всего</small></span>
+    <span class="right-block-section-count"><b><?=e((string)$blocksPager['total'])?></b><small>всего</small></span>
   </section>
 
   <div class="right-blocks-admin-layout">
@@ -361,6 +364,7 @@ require __DIR__.'/_top.php';
             </article>
           <?php endforeach;?>
         </div>
+        <?php render_admin_pagination('admin/right-block.php',$blocksPager['page'],$blocksPager['total_pages'],['area'=>$area],'page','Страницы правых блоков'); ?>
       <?php else:?>
         <div class="right-blocks-empty">
           <b>Здесь пока нет блоков</b>
