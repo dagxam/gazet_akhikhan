@@ -100,7 +100,11 @@ require __DIR__.'/_top.php';
         <?php foreach($catalog as $key=>$meta):?>
           <label class="social-service-option">
             <input type="radio" name="service" value="<?=e($key)?>" <?=($editing['service']??'vk')===$key?'checked':''?>>
-            <i class="<?=e($meta['icon'])?>" aria-hidden="true"></i>
+            <?php if(!empty($meta['asset'])):?>
+              <img class="social-service-image" src="<?=e(base_url($meta['asset']))?>" alt="" aria-hidden="true">
+            <?php else:?>
+              <i class="<?=e($meta['icon'])?>" aria-hidden="true"></i>
+            <?php endif;?>
             <span><?=e($meta['name'])?></span>
           </label>
         <?php endforeach;?>
@@ -143,14 +147,28 @@ require __DIR__.'/_top.php';
     <?php if($links):?>
       <div class="social-preview-strip" aria-label="Предпросмотр">
         <?php foreach($links as $link): if(empty($link['is_active'])) continue;?>
-          <span title="<?=e($link['label'] ?: social_service_name($link['service']))?>"><i class="<?=e(social_service_icon($link['service']))?>"></i></span>
+          <span title="<?=e($link['label'] ?: social_service_name($link['service']))?>">
+            <?php $linkAsset=social_service_asset((string)$link['service']); ?>
+            <?php if($linkAsset!==''):?>
+              <img class="social-service-image" src="<?=e(base_url($linkAsset))?>" alt="" aria-hidden="true">
+            <?php else:?>
+              <i class="<?=e(social_service_icon($link['service']))?>"></i>
+            <?php endif;?>
+          </span>
         <?php endforeach;?>
       </div>
 
       <div class="social-link-list">
         <?php foreach($links as $link):?>
           <article class="social-link-row <?=empty($link['is_active'])?'is-disabled':''?>">
-            <span class="social-link-icon"><i class="<?=e(social_service_icon($link['service']))?>" aria-hidden="true"></i></span>
+            <span class="social-link-icon">
+              <?php $linkAsset=social_service_asset((string)$link['service']); ?>
+              <?php if($linkAsset!==''):?>
+                <img class="social-service-image" src="<?=e(base_url($linkAsset))?>" alt="" aria-hidden="true">
+              <?php else:?>
+                <i class="<?=e(social_service_icon($link['service']))?>" aria-hidden="true"></i>
+              <?php endif;?>
+            </span>
             <div class="social-link-copy">
               <strong><?=e($link['label'] ?: social_service_name($link['service']))?></strong>
               <small><?=e($link['url'])?></small>
