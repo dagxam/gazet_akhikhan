@@ -14,6 +14,15 @@ $topbarRegion = setting('topbar_region_label','Унцукульский райо
 $siteSocialLinks = social_links(true);
 $publicAdminUser = admin_user();
 
+$ageRatingEnabled=setting('age_rating_enabled','1')==='1';
+$ageRatingLabel=trim(setting('age_rating_label','16+')) ?: '16+';
+$accessibilityEnabled=setting('accessibility_enabled','1')==='1';
+$accessibilityLabel=trim(setting('accessibility_label','Версия для слабовидящих')) ?: 'Версия для слабовидящих';
+$accessibilityDefaultFont=in_array(setting('accessibility_default_font','100'),['100','125','150','200'],true) ? setting('accessibility_default_font','100') : '100';
+$accessibilityDefaultContrast=in_array(setting('accessibility_default_contrast','normal'),['normal','black-white','white-black','yellow-black'],true) ? setting('accessibility_default_contrast','normal') : 'normal';
+$accessibilityDefaultSpacing=in_array(setting('accessibility_default_spacing','normal'),['normal','wide'],true) ? setting('accessibility_default_spacing','normal') : 'normal';
+$accessibilityDefaultMotion=setting('accessibility_default_reduce_motion','1')==='1' ? 'reduce' : 'normal';
+
 $seoSiteName = trim(setting('site_name','АХИХЪАН')) ?: 'АХИХЪАН';
 $seoSiteAlternateName = 'Сетевое издание Унцукульского района';
 $seoDefaultDescription = 'Сетевое издание Унцукульского района Республики Дагестан: новости, общество, культура, спорт, люди и история.';
@@ -149,6 +158,7 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 <link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20261002-article-community1'))?>">
 </head>
 <body>
+<a class="skip-link" href="#main-content">Перейти к основному содержанию</a>
 <a id="top"></a>
 <div class="site-shell">
 
@@ -185,6 +195,20 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
           <?php endforeach;?>
         </div>
         <span class="topbar-separator" aria-hidden="true"></span>
+      <?php endif;?>
+
+      <?php if($ageRatingEnabled):?>
+        <span class="topbar-age-rating" title="Возрастное ограничение: <?=e($ageRatingLabel)?>" aria-label="Возрастное ограничение <?=e($ageRatingLabel)?>">
+          <b><?=e($ageRatingLabel)?></b>
+          <span>для детей старше 16 лет</span>
+        </span>
+      <?php endif;?>
+
+      <?php if($accessibilityEnabled):?>
+        <button class="topbar-accessibility" type="button" data-accessibility-toggle aria-expanded="false" aria-controls="accessibility-panel">
+          <i class="fa-regular fa-eye" aria-hidden="true"></i>
+          <span><?=e($accessibilityLabel)?></span>
+        </button>
       <?php endif;?>
 
       <?php if($publicAdminUser):?>
@@ -231,6 +255,69 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
   </div>
 </div>
 
+<?php if($accessibilityEnabled):?>
+<section class="accessibility-panel"
+         id="accessibility-panel"
+         data-accessibility-panel
+         data-default-font="<?=e($accessibilityDefaultFont)?>"
+         data-default-contrast="<?=e($accessibilityDefaultContrast)?>"
+         data-default-spacing="<?=e($accessibilityDefaultSpacing)?>"
+         data-default-motion="<?=e($accessibilityDefaultMotion)?>"
+         hidden
+         role="dialog"
+         aria-modal="false"
+         aria-labelledby="accessibility-panel-title">
+  <div class="wrap accessibility-panel-inner">
+    <div class="accessibility-panel-head">
+      <div>
+        <span class="heading-kicker">Доступность</span>
+        <h2 id="accessibility-panel-title">Версия для слабовидящих</h2>
+      </div>
+      <button class="accessibility-close" type="button" data-accessibility-close aria-label="Закрыть настройки доступности">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <div class="accessibility-controls">
+      <fieldset class="accessibility-control-group">
+        <legend>Размер текста</legend>
+        <div class="accessibility-choice-row" data-a11y-font-group>
+          <button type="button" data-a11y-font="100">100%</button>
+          <button type="button" data-a11y-font="125">125%</button>
+          <button type="button" data-a11y-font="150">150%</button>
+          <button type="button" data-a11y-font="200">200%</button>
+        </div>
+      </fieldset>
+
+      <fieldset class="accessibility-control-group">
+        <legend>Контраст</legend>
+        <div class="accessibility-choice-row accessibility-contrast-row" data-a11y-contrast-group>
+          <button type="button" data-a11y-contrast="normal">Обычный</button>
+          <button type="button" data-a11y-contrast="black-white">Чёрный / белый</button>
+          <button type="button" data-a11y-contrast="white-black">Белый / чёрный</button>
+          <button type="button" data-a11y-contrast="yellow-black">Жёлтый / чёрный</button>
+        </div>
+      </fieldset>
+
+      <fieldset class="accessibility-control-group">
+        <legend>Отображение</legend>
+        <div class="accessibility-toggle-row">
+          <button type="button" data-a11y-spacing aria-pressed="false"><i class="fa-solid fa-text-width"></i><span>Увеличенный интервал</span></button>
+          <button type="button" data-a11y-grayscale aria-pressed="false"><i class="fa-regular fa-image"></i><span>Чёрно-белые изображения</span></button>
+          <button type="button" data-a11y-motion aria-pressed="false"><i class="fa-solid fa-person-walking"></i><span>Без анимации</span></button>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="accessibility-panel-actions">
+      <button class="accessibility-reset" type="button" data-accessibility-reset>Сбросить настройки</button>
+      <button class="accessibility-standard" type="button" data-accessibility-standard>Обычная версия сайта</button>
+      <span class="accessibility-status" data-accessibility-status aria-live="polite"></span>
+    </div>
+  </div>
+</section>
+<?php endif;?>
+
 <header class="reference-header" data-reference-header>
   <div class="wrap reference-header-inner">
     <div class="reference-brand">
@@ -269,4 +356,4 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
   </div>
 </header>
 
-<main>
+<main id="main-content" tabindex="-1">
