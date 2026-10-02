@@ -24,7 +24,9 @@ if(!$article){
   exit;
 }
 
-db()->prepare('UPDATE articles SET views=views+1 WHERE id=?')->execute([$article['id']]);
+if(should_count_article_view((int)$article['id'])){
+  db()->prepare('UPDATE articles SET views=views+1 WHERE id=?')->execute([$article['id']]);
+}
 $related = latest_articles(5, (int)$article['id']);
 $articleImages = article_images((int)$article['id']);
 $reactionCounts = article_reaction_counts((int)$article['id']);
