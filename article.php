@@ -7,7 +7,9 @@ $q = db()->prepare("SELECT a.*,c.name category_name,c.slug category_slug,u.name 
                     FROM articles a
                     LEFT JOIN categories c ON c.id=a.category_id
                     LEFT JOIN users u ON u.id=a.author_id
-                    WHERE a.slug=? AND a.status='published' LIMIT 1");
+                    WHERE a.slug=? AND a.status='published'
+                      AND (a.published_at IS NULL OR a.published_at<=CURRENT_TIMESTAMP)
+                    LIMIT 1");
 $q->execute([$slug]);
 $article = $q->fetch();
 
@@ -25,6 +27,14 @@ if(!$article){
 db()->prepare('UPDATE articles SET views=views+1 WHERE id=?')->execute([$article['id']]);
 $related = latest_articles(5, (int)$article['id']);
 $pageBlocks = page_right_blocks(true);
+$articleCategoryRows = article_categories((int)$article['id']);
+$articleSections = [];
+foreach($articleCategoryRows as $categoryRow){
+  $name=trim((string)($categoryRow['name']??''));
+  if($name!=='') $articleSections[]=$name;
+}
+if(!$articleSections && !empty($article['category_name'])) $articleSections[]=(string)$article['category_name'];
+$articleSections=array_values(array_unique($articleSections));
 
 $pageTitle = $article['title'];
 $pageDescription = rich_text_excerpt($article['excerpt'],260)
@@ -39,33 +49,32 @@ $modifiedRaw = (string)($article['updated_at'] ?: $publishedRaw);
 $seoPublishedTime = strtotime($publishedRaw) ? date('c', strtotime($publishedRaw)) : '';
 $seoModifiedTime = strtotime($modifiedRaw) ? date('c', strtotime($modifiedRaw)) : $seoPublishedTime;
 $seoImageAbsolute = preg_match('~^https?://~i',$seoImage) ? $seoImage : base_url(ltrim($seoImage,'/'));
+$seoArticleSection = implode(', ', $articleSections);
+$articlePlainText = trim(rich_text_plain((string)$article['content']));
+$articleWordCount = $articlePlainText==='' ? 0 : count(preg_split('/\s+/u',$articlePlainText,-1,PREG_SPLIT_NO_EMPTY));
 
 $articleJsonLd = [
   '@context' => 'https://schema.org',
   '@type' => 'NewsArticle',
   'mainEntityOfPage' => ['@type'=>'WebPage','@id'=>$seoCanonical],
+  'url' => $seoCanonical,
   'headline' => (string)$article['title'],
   'description' => $pageDescription,
   'image' => [$seoImageAbsolute],
+  'thumbnailUrl' => $seoImageAbsolute,
   'datePublished' => $seoPublishedTime,
   'dateModified' => $seoModifiedTime,
   'author' => [[
     '@type' => !empty($article['author_name']) ? 'Person' : 'Organization',
     'name' => $seoAuthor,
   ]],
-  'publisher' => [
-    '@type' => 'NewsMediaOrganization',
-    'name' => 'АХИХЪАН',
-    'url' => base_url(),
-    'logo' => [
-      '@type' => 'ImageObject',
-      'url' => base_url('assets/img/akhikhan-logo-transparent.webp'),
-    ],
-  ],
-  'articleSection' => (string)($article['category_name'] ?: 'Новости'),
+  'publisher' => ['@id'=>base_url('#organization')],
+  'articleSection' => $articleSections ?: ['Новости'],
+  'keywords' => implode(', ', $articleSections),
   'inLanguage' => 'ru-RU',
   'isAccessibleForFree' => true,
 ];
+if($articleWordCount>0) $articleJsonLd['wordCount']=$articleWordCount;
 
 $breadcrumbItems = [
   ['@type'=>'ListItem','position'=>1,'name'=>'Главная','item'=>base_url()],
