@@ -161,10 +161,6 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     }
     save_setting('age_rating_label',$ageRating);
 
-    if(isset($_POST['menu_order']) && is_array($_POST['menu_order'])){
-      save_main_menu_order($_POST['menu_order']);
-    }
-
     foreach($textKeys as $k){
       $value=($k==='editor_note') ? sanitize_rich_text($_POST[$k]??'') : trim($_POST[$k]??'');
       save_setting($k,$value);
@@ -216,7 +212,6 @@ $accessibilitySettings=[];
 foreach($accessibilityDefaults as $key=>$default){
   $accessibilitySettings[$key]=setting($key,$default);
 }
-$settingsMenuItems=main_menu_items(false);
 
 $adminTitle='Настройки сайта';
 require __DIR__.'/_top.php';
@@ -281,58 +276,23 @@ require __DIR__.'/_top.php';
         </div>
       </section>
 
-      <section class="editor-card settings-section-card" id="main-menu-settings">
+      <section class="editor-card settings-section-card settings-menu-link-card" id="main-menu-settings">
         <div class="settings-section-head">
           <span class="settings-section-icon"><i class="fa-solid fa-bars-staggered" aria-hidden="true"></i></span>
           <div>
             <h3>Главное меню</h3>
-            <p>Меняйте порядок пунктов прямо здесь. Перетащите строку за ручку или используйте стрелки.</p>
+            <p>Добавление, редактирование, удаление и изменение порядка пунктов выполняется на отдельной странице.</p>
           </div>
         </div>
 
-        <?php if($settingsMenuItems):?>
-          <div class="settings-menu-toolbar">
-            <div>
-              <b>Порядок в шапке сайта</b>
-              <span>Первый пункт будет слева. Неактивные пункты остаются в списке, но не показываются посетителям.</span>
-            </div>
-            <a href="<?=e(base_url('admin/main-menu.php'))?>">Добавить или изменить пункт →</a>
-          </div>
-
-          <div class="settings-menu-sortable" data-settings-menu-sortable>
-            <?php foreach($settingsMenuItems as $index=>$menuItem):?>
-              <article class="settings-menu-item" draggable="false" data-menu-sort-item>
-                <input type="hidden" name="menu_order[]" value="<?=e((string)$menuItem['id'])?>">
-                <button class="settings-menu-drag" type="button" data-menu-drag aria-label="Перетащить пункт <?=e($menuItem['label'])?>">
-                  <i class="fa-solid fa-grip-vertical" aria-hidden="true"></i>
-                </button>
-                <span class="settings-menu-number" data-menu-number><?=e(str_pad((string)($index+1),2,'0',STR_PAD_LEFT))?></span>
-                <span class="settings-menu-copy">
-                  <b><?=e($menuItem['label'])?></b>
-                  <small><?=e($menuItem['url'])?></small>
-                </span>
-                <span class="settings-menu-state <?=empty($menuItem['is_active'])?'is-off':''?>">
-                  <?=empty($menuItem['is_active'])?'Скрыт':'На сайте'?>
-                </span>
-                <span class="settings-menu-move">
-                  <button type="button" data-menu-move="up" aria-label="Поднять <?=e($menuItem['label'])?> выше"><i class="fa-solid fa-chevron-up"></i></button>
-                  <button type="button" data-menu-move="down" aria-label="Опустить <?=e($menuItem['label'])?> ниже"><i class="fa-solid fa-chevron-down"></i></button>
-                </span>
-              </article>
-            <?php endforeach;?>
-          </div>
-
-          <div class="settings-menu-preview">
-            <span>Предпросмотр</span>
-            <div data-menu-preview>
-              <?php foreach($settingsMenuItems as $menuItem): if(empty($menuItem['is_active'])) continue;?>
-                <b data-menu-preview-id="<?=e((string)$menuItem['id'])?>"><?=e($menuItem['label'])?></b>
-              <?php endforeach;?>
-            </div>
-          </div>
-        <?php else:?>
-          <div class="settings-hint-box">Пункты меню ещё не созданы. <a href="<?=e(base_url('admin/main-menu.php'))?>">Создать главное меню →</a></div>
-        <?php endif;?>
+        <a class="settings-menu-editor-link" href="<?=e(base_url('admin/main-menu.php'))?>">
+          <span class="settings-menu-editor-icon"><i class="fa-solid fa-bars" aria-hidden="true"></i></span>
+          <span class="settings-menu-editor-copy">
+            <b>Редактировать главное меню</b>
+            <small>Открыть управление пунктами, ссылками, видимостью и порядком в шапке сайта</small>
+          </span>
+          <span class="settings-menu-editor-arrow"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+        </a>
       </section>
 
       <section class="editor-card settings-section-card accessibility-settings-pro" id="accessibility-settings">
@@ -802,94 +762,6 @@ require __DIR__.'/_top.php';
     input.addEventListener('input',sync);
     sync();
   });
-})();
-
-(function(){
-  const list=document.querySelector('[data-settings-menu-sortable]');
-  if(!list) return;
-
-  const preview=document.querySelector('[data-menu-preview]');
-  let dragging=null;
-
-  function items(){
-    return [...list.querySelectorAll('[data-menu-sort-item]')];
-  }
-
-  function sync(){
-    items().forEach((item,index)=>{
-      const number=item.querySelector('[data-menu-number]');
-      if(number) number.textContent=String(index+1).padStart(2,'0');
-      const up=item.querySelector('[data-menu-move="up"]');
-      const down=item.querySelector('[data-menu-move="down"]');
-      if(up) up.disabled=index===0;
-      if(down) down.disabled=index===items().length-1;
-    });
-
-    if(preview){
-      const previewMap=new Map(
-        [...preview.querySelectorAll('[data-menu-preview-id]')].map(el=>[el.dataset.menuPreviewId,el])
-      );
-      items().forEach(item=>{
-        const id=item.querySelector('input[name="menu_order[]"]')?.value||'';
-        const previewItem=previewMap.get(id);
-        if(previewItem) preview.appendChild(previewItem);
-      });
-    }
-  }
-
-  items().forEach(item=>{
-    const drag=item.querySelector('[data-menu-drag]');
-    if(drag){
-      drag.addEventListener('mousedown',()=>item.setAttribute('draggable','true'));
-      drag.addEventListener('touchstart',()=>item.setAttribute('draggable','true'),{passive:true});
-      drag.addEventListener('mouseup',()=>item.setAttribute('draggable','false'));
-      drag.addEventListener('touchend',()=>item.setAttribute('draggable','false'));
-    }
-
-    item.addEventListener('dragstart',event=>{
-      dragging=item;
-      item.classList.add('is-dragging');
-      event.dataTransfer.effectAllowed='move';
-      try{event.dataTransfer.setData('text/plain',item.querySelector('input[name="menu_order[]"]')?.value||'');}catch(e){}
-    });
-
-    item.addEventListener('dragend',()=>{
-      item.classList.remove('is-dragging');
-      item.setAttribute('draggable','false');
-      items().forEach(row=>row.classList.remove('is-drag-over'));
-      dragging=null;
-      sync();
-    });
-
-    item.addEventListener('dragover',event=>{
-      if(!dragging||dragging===item) return;
-      event.preventDefault();
-      item.classList.add('is-drag-over');
-      const rect=item.getBoundingClientRect();
-      const after=event.clientY>rect.top+rect.height/2;
-      if(after) item.after(dragging);
-      else item.before(dragging);
-    });
-
-    item.addEventListener('dragleave',()=>item.classList.remove('is-drag-over'));
-
-    item.querySelectorAll('[data-menu-move]').forEach(button=>{
-      button.addEventListener('click',()=>{
-        const direction=button.dataset.menuMove;
-        if(direction==='up'){
-          const previous=item.previousElementSibling;
-          if(previous) list.insertBefore(item,previous);
-        }else{
-          const next=item.nextElementSibling;
-          if(next) list.insertBefore(next,item);
-        }
-        sync();
-        item.scrollIntoView({block:'nearest',behavior:'smooth'});
-      });
-    });
-  });
-
-  sync();
 })();
 
 (function(){
