@@ -175,7 +175,7 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
             $socialLabel=$social['label'] ?: social_service_name($social['service']);
           ?>
             <a href="<?=e($social['url'])?>" <?=str_starts_with(strtolower($social['url']),'mailto:')?'':'target="_blank" rel="noopener"'?> aria-label="<?=e($socialLabel)?>" title="<?=e($socialLabel)?>">
-              <?php $socialAsset=social_service_asset((string)$social['service']); ?>
+              <?php $socialAsset=social_service_asset((string)$social['service'],'black'); ?>
               <?php if($socialAsset!==''):?>
                 <img class="social-service-image" src="<?=e(base_url($socialAsset))?>" alt="" aria-hidden="true">
               <?php else:?>
