@@ -7394,3 +7394,163 @@ svg{
   }
 }
 
+/* District news balanced editorial grid — 2026-10-02 */
+.district-news-section{
+  position:relative;
+  padding-top:36px;
+  padding-bottom:26px;
+}
+.district-news-section:before{
+  content:"";
+  position:absolute;
+  inset:10px -18px 4px;
+  z-index:-1;
+  border:1px solid rgba(151,122,88,.10);
+  border-radius:24px;
+  background:
+    radial-gradient(circle at 10% 8%,rgba(166,125,73,.045),transparent 28%),
+    linear-gradient(180deg,rgba(255,255,255,.36),rgba(248,244,238,.34));
+}
+.district-news-section .district-magazine-heading{
+  margin-bottom:18px;
+}
+.district-news-section .district-magazine-grid{
+  grid-template-columns:minmax(0,1.06fr) minmax(0,.98fr);
+  gap:18px;
+  align-items:stretch;
+}
+.district-news-section .district-magazine-lead{
+  display:flex;
+  min-height:100%;
+  flex-direction:column;
+}
+.district-news-section .district-magazine-lead-image{
+  flex:0 0 auto;
+}
+.district-news-section .district-magazine-lead-copy{
+  flex:1 1 auto;
+  display:flex;
+  flex-direction:column;
+}
+.district-news-section .district-magazine-lead-copy p{
+  margin-top:14px;
+}
+.district-news-section .district-magazine-side-grid{
+  min-height:100%;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-template-rows:repeat(2,minmax(0,1fr));
+  gap:18px;
+  align-items:stretch;
+}
+.district-news-section .district-magazine-card{
+  height:100%;
+  display:flex;
+  flex-direction:column;
+}
+.district-news-section .district-magazine-card-image{
+  flex:0 0 auto;
+}
+.district-news-section .district-magazine-card-copy{
+  flex:1 1 auto;
+  display:flex;
+  flex-direction:column;
+}
+.district-news-section .district-magazine-card-copy time{
+  margin-top:auto;
+  padding-top:10px;
+}
+.district-news-section .district-magazine-side-grid.items-1{
+  grid-template-columns:1fr;
+  grid-template-rows:1fr;
+}
+.district-news-section .district-magazine-side-grid.items-1 .district-magazine-card{
+  display:grid;
+  grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);
+}
+.district-news-section .district-magazine-side-grid.items-1 .district-magazine-card-image{
+  height:100%;
+  aspect-ratio:auto;
+}
+.district-news-section .district-magazine-side-grid.items-2{
+  grid-template-rows:1fr;
+}
+.district-news-section .district-magazine-side-grid.items-2 .district-magazine-card-image{
+  min-height:48%;
+}
+.district-news-section .district-magazine-side-grid.items-3 .district-magazine-card:last-child{
+  grid-column:1/-1;
+  display:grid;
+  grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);
+}
+.district-news-section .district-magazine-side-grid.items-3 .district-magazine-card:last-child .district-magazine-card-image{
+  height:100%;
+  min-height:0;
+  aspect-ratio:auto;
+}
+.district-news-section .district-magazine-side-grid.items-3 .district-magazine-card:last-child .district-magazine-card-copy{
+  justify-content:center;
+  padding:17px 18px;
+}
+.district-news-section .district-magazine-side-grid.items-4{
+  grid-template-rows:repeat(2,minmax(0,1fr));
+}
+.district-news-section .district-magazine-lead,
+.district-news-section .district-magazine-card{
+  border-color:rgba(150,124,94,.22);
+  box-shadow:0 8px 24px rgba(46,34,22,.065);
+}
+.district-news-section .district-magazine-lead:hover,
+.district-news-section .district-magazine-card:hover{
+  border-color:rgba(151,105,57,.38);
+  box-shadow:0 14px 34px rgba(46,34,22,.105);
+}
+@media(max-width:1080px){
+  .district-news-section .district-magazine-grid{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  }
+  .district-news-section:before{
+    inset:10px -10px 4px;
+  }
+}
+@media(max-width:820px){
+  .district-news-section{
+    padding-top:28px;
+    padding-bottom:20px;
+  }
+  .district-news-section:before{
+    inset:8px -4px 2px;
+    border-radius:20px;
+  }
+  .district-news-section .district-magazine-grid{
+    grid-template-columns:1fr;
+  }
+  .district-news-section .district-magazine-side-grid{
+    min-height:0;
+  }
+}
+@media(max-width:620px){
+  .district-news-section:before{
+    display:none;
+  }
+  .district-news-section .district-magazine-side-grid,
+  .district-news-section .district-magazine-side-grid.items-1,
+  .district-news-section .district-magazine-side-grid.items-2,
+  .district-news-section .district-magazine-side-grid.items-3,
+  .district-news-section .district-magazine-side-grid.items-4{
+    grid-template-columns:1fr;
+    grid-template-rows:none;
+    gap:14px;
+  }
+  .district-news-section .district-magazine-side-grid.items-1 .district-magazine-card,
+  .district-news-section .district-magazine-side-grid.items-3 .district-magazine-card:last-child{
+    grid-column:auto;
+    display:flex;
+  }
+  .district-news-section .district-magazine-side-grid.items-1 .district-magazine-card-image,
+  .district-news-section .district-magazine-side-grid.items-3 .district-magazine-card:last-child .district-magazine-card-image{
+    height:auto;
+    aspect-ratio:16/9;
+  }
+}
+
