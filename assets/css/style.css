@@ -8138,3 +8138,197 @@ svg{
   }
 }
 
+/* Public documents page + homepage link — 2026-10-02 */
+.documents-heading-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:14px;
+  flex-wrap:wrap;
+}
+.documents-heading-actions>a{
+  color:var(--walnut,#765333);
+  font:800 9px/1 var(--sans,Arial,sans-serif);
+  text-transform:uppercase;
+  letter-spacing:.055em;
+  white-space:nowrap;
+}
+.documents-heading-actions>a:hover{
+  color:#4f3421;
+}
+
+.public-documents-page{
+  padding-top:30px;
+  padding-bottom:54px;
+}
+.public-documents-hero{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:28px;
+  padding:8px 2px 22px;
+  border-bottom:1px solid var(--line-strong,#d8cbbb);
+}
+.public-documents-hero h1{
+  margin:6px 0 10px;
+  font-size:clamp(38px,5vw,56px);
+  line-height:1;
+  letter-spacing:-.035em;
+}
+.public-documents-hero p{
+  max-width:760px;
+  margin:0;
+  color:#746b62;
+  font:500 13px/1.65 var(--sans,Arial,sans-serif);
+}
+.public-documents-count{
+  flex:0 0 auto;
+  padding:9px 12px;
+  border:1px solid #d8c8b4;
+  border-radius:999px;
+  color:#87633f;
+  background:#fbf7f1;
+  font:800 9px/1 var(--sans,Arial,sans-serif);
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.public-documents-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:16px;
+  margin-top:22px;
+}
+.public-document-card{
+  display:grid;
+  grid-template-columns:78px minmax(0,1fr);
+  gap:17px;
+  align-items:center;
+  min-height:172px;
+  padding:18px;
+  border:1px solid var(--line,#ded5ca);
+  border-radius:16px;
+  background:var(--paper-white,#fff);
+  box-shadow:var(--shadow-sm,0 8px 24px rgba(50,35,24,.05));
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.public-document-card:hover{
+  transform:translateY(-2px);
+  border-color:#c9b399;
+  box-shadow:0 14px 30px rgba(58,40,25,.08);
+}
+.public-document-icon{
+  width:78px;
+  height:94px;
+  text-decoration:none;
+}
+.public-document-copy{
+  min-width:0;
+}
+.public-document-meta{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  color:#9a8066;
+  font:700 8px/1.2 var(--sans,Arial,sans-serif);
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.public-document-meta span:before{
+  content:"•";
+  margin-right:10px;
+  color:#c4ad91;
+}
+.public-document-copy h2{
+  margin:7px 0 8px;
+  font-size:20px;
+  line-height:1.17;
+  letter-spacing:-.02em;
+}
+.public-document-copy h2 a{
+  color:inherit;
+}
+.public-document-copy h2 a:hover{
+  color:var(--walnut,#765333);
+}
+.public-document-copy p{
+  display:-webkit-box;
+  margin:0;
+  overflow:hidden;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:3;
+  color:#756b61;
+  font:500 11px/1.52 var(--sans,Arial,sans-serif);
+}
+.public-document-open{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin-top:13px;
+  color:#755235;
+  font:800 8.5px/1 var(--sans,Arial,sans-serif);
+  text-transform:uppercase;
+  letter-spacing:.055em;
+}
+.public-documents-empty{
+  min-height:150px;
+  display:flex;
+  align-items:center;
+  gap:18px;
+  margin-top:22px;
+  padding:22px;
+  border:1px dashed #d4c5b4;
+  border-radius:16px;
+  background:var(--paper-white,#fff);
+}
+.public-documents-empty strong{
+  display:block;
+  margin-bottom:6px;
+  font-size:20px;
+}
+.public-documents-empty p{
+  margin:0;
+  color:#81766b;
+  font-size:12px;
+  line-height:1.55;
+}
+@media(max-width:850px){
+  .public-documents-grid{
+    grid-template-columns:1fr;
+  }
+}
+@media(max-width:680px){
+  .documents-heading-actions{
+    width:100%;
+    justify-content:space-between;
+  }
+  .documents-heading-actions .block-note{
+    display:none;
+  }
+  .public-documents-page{
+    padding-top:22px;
+    padding-bottom:40px;
+  }
+  .public-documents-hero{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:14px;
+  }
+  .public-documents-hero h1{
+    font-size:38px;
+  }
+  .public-document-card{
+    grid-template-columns:62px minmax(0,1fr);
+    gap:13px;
+    padding:15px;
+    border-radius:14px;
+  }
+  .public-document-icon{
+    width:62px;
+    height:76px;
+  }
+  .public-document-copy h2{
+    font-size:17px;
+  }
+}
+
