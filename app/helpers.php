@@ -510,6 +510,54 @@ function featured_article(): ?array
 function article_url(array $a): string { return base_url('article/' . $a['slug']); }
 function category_url(array $c): string { return base_url('category/' . $c['slug']); }
 
+function security_log_event(string $event, array $context = []): void
+{
+    if(!APP_INSTALLED) return;
+
+    $event=preg_replace('/[^a-z0-9_.-]+/i','-',strtolower(trim($event))) ?: 'event';
+    $dir=ROOT_PATH.'/storage/security';
+    if(!is_dir($dir) && !@mkdir($dir,0775,true) && !is_dir($dir)) return;
+
+    $file=$dir.'/events.log';
+    $maxBytes=5*1024*1024;
+
+    clearstatcache(true,$file);
+    if(is_file($file) && (int)@filesize($file)>$maxBytes){
+        @rename($file,$dir.'/events-'.date('Ymd-His').'.log');
+    }
+
+    $safeContext=[];
+    foreach($context as $key=>$value){
+        $key=preg_replace('/[^a-z0-9_.-]+/i','-',(string)$key) ?: 'value';
+        if(is_bool($value) || is_int($value) || is_float($value)){
+            $safeContext[$key]=$value;
+            continue;
+        }
+        if(is_scalar($value) || $value===null){
+            $safeContext[$key]=substr((string)$value,0,180);
+        }
+    }
+
+    $entry=[
+        'time'=>gmdate('c'),
+        'event'=>$event,
+        'ip_hash'=>hash('sha256',security_client_ip()),
+        'path'=>substr((string)(parse_url((string)($_SERVER['REQUEST_URI']??''),PHP_URL_PATH) ?: ''),0,180),
+        'method'=>substr((string)($_SERVER['REQUEST_METHOD']??'GET'),0,12),
+        'context'=>$safeContext,
+    ];
+
+    $line=json_encode($entry,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n";
+    $fp=@fopen($file,'ab');
+    if(!$fp) return;
+    if(@flock($fp,LOCK_EX)){
+        @fwrite($fp,$line);
+        @fflush($fp);
+        @flock($fp,LOCK_UN);
+    }
+    @fclose($fp);
+}
+
 function security_client_ip(): string
 {
     $ip=trim((string)($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
@@ -584,6 +632,10 @@ function security_same_origin_post(): bool
 function require_same_origin_post(): void
 {
     if(($_SERVER['REQUEST_METHOD']??'GET')!=='POST' || !security_same_origin_post()){
+        security_log_event('cross-origin-post-rejected',[
+            'origin_host'=>(string)(parse_url((string)($_SERVER['HTTP_ORIGIN']??''),PHP_URL_HOST) ?: ''),
+            'referer_host'=>(string)(parse_url((string)($_SERVER['HTTP_REFERER']??''),PHP_URL_HOST) ?: ''),
+        ]);
         http_response_code(403);
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode(['ok'=>false,'error'=>'Запрос отклонён.'],JSON_UNESCAPED_UNICODE);
