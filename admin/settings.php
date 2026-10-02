@@ -301,7 +301,7 @@ require __DIR__.'/_top.php';
 
           <div class="settings-menu-sortable" data-settings-menu-sortable>
             <?php foreach($settingsMenuItems as $index=>$menuItem):?>
-              <article class="settings-menu-item" draggable="true" data-menu-sort-item>
+              <article class="settings-menu-item" draggable="false" data-menu-sort-item>
                 <input type="hidden" name="menu_order[]" value="<?=e((string)$menuItem['id'])?>">
                 <button class="settings-menu-drag" type="button" data-menu-drag aria-label="Перетащить пункт <?=e($menuItem['label'])?>">
                   <i class="fa-solid fa-grip-vertical" aria-hidden="true"></i>
@@ -483,6 +483,11 @@ require __DIR__.'/_top.php';
         <div class="accessibility-admin-preview"
              data-a11y-admin-preview
              style="--ap-bg:<?=e($accessibilitySettings['accessibility_panel_bg'])?>;--ap-text:<?=e($accessibilitySettings['accessibility_panel_text_color'])?>;--ap-accent:<?=e($accessibilitySettings['accessibility_panel_accent'])?>;--ap-border:<?=e($accessibilitySettings['accessibility_panel_border'])?>;--ap-primary:<?=e($accessibilitySettings['accessibility_primary_bg'])?>;--ap-primary-text:<?=e($accessibilitySettings['accessibility_primary_text'])?>">
+          <div class="accessibility-admin-preview-trigger">
+            <span><i class="fa-regular fa-eye"></i></span>
+            <b data-a11y-admin-preview-button><?=e($accessibilitySettings['accessibility_label'])?></b>
+            <small>Вкл.</small>
+          </div>
           <div class="accessibility-admin-preview-top">
             <span class="accessibility-admin-preview-eye"><i class="fa-regular fa-eye"></i></span>
             <div>
@@ -895,6 +900,7 @@ require __DIR__.'/_top.php';
   const text=preview.querySelector('[data-a11y-admin-preview-text]');
 
   const textTargets={
+    button:preview.querySelector('[data-a11y-admin-preview-button]'),
     title,
     text
   };
