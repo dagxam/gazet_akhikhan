@@ -281,68 +281,225 @@ require __DIR__.'/_top.php';
         </div>
       </section>
 
-      <section class="editor-card settings-section-card" id="accessibility-settings">
+      <section class="editor-card settings-section-card" id="main-menu-settings">
         <div class="settings-section-head">
-          <span class="settings-section-icon"><i class="fa-regular fa-eye" aria-hidden="true"></i></span>
+          <span class="settings-section-icon"><i class="fa-solid fa-bars-staggered" aria-hidden="true"></i></span>
+          <div>
+            <h3>Главное меню</h3>
+            <p>Меняйте порядок пунктов прямо здесь. Перетащите строку за ручку или используйте стрелки.</p>
+          </div>
+        </div>
+
+        <?php if($settingsMenuItems):?>
+          <div class="settings-menu-toolbar">
+            <div>
+              <b>Порядок в шапке сайта</b>
+              <span>Первый пункт будет слева. Неактивные пункты остаются в списке, но не показываются посетителям.</span>
+            </div>
+            <a href="<?=e(base_url('admin/main-menu.php'))?>">Добавить или изменить пункт →</a>
+          </div>
+
+          <div class="settings-menu-sortable" data-settings-menu-sortable>
+            <?php foreach($settingsMenuItems as $index=>$menuItem):?>
+              <article class="settings-menu-item" draggable="true" data-menu-sort-item>
+                <input type="hidden" name="menu_order[]" value="<?=e((string)$menuItem['id'])?>">
+                <button class="settings-menu-drag" type="button" data-menu-drag aria-label="Перетащить пункт <?=e($menuItem['label'])?>">
+                  <i class="fa-solid fa-grip-vertical" aria-hidden="true"></i>
+                </button>
+                <span class="settings-menu-number" data-menu-number><?=e(str_pad((string)($index+1),2,'0',STR_PAD_LEFT))?></span>
+                <span class="settings-menu-copy">
+                  <b><?=e($menuItem['label'])?></b>
+                  <small><?=e($menuItem['url'])?></small>
+                </span>
+                <span class="settings-menu-state <?=empty($menuItem['is_active'])?'is-off':''?>">
+                  <?=empty($menuItem['is_active'])?'Скрыт':'На сайте'?>
+                </span>
+                <span class="settings-menu-move">
+                  <button type="button" data-menu-move="up" aria-label="Поднять <?=e($menuItem['label'])?> выше"><i class="fa-solid fa-chevron-up"></i></button>
+                  <button type="button" data-menu-move="down" aria-label="Опустить <?=e($menuItem['label'])?> ниже"><i class="fa-solid fa-chevron-down"></i></button>
+                </span>
+              </article>
+            <?php endforeach;?>
+          </div>
+
+          <div class="settings-menu-preview">
+            <span>Предпросмотр</span>
+            <div data-menu-preview>
+              <?php foreach($settingsMenuItems as $menuItem): if(empty($menuItem['is_active'])) continue;?>
+                <b data-menu-preview-id="<?=e((string)$menuItem['id'])?>"><?=e($menuItem['label'])?></b>
+              <?php endforeach;?>
+            </div>
+          </div>
+        <?php else:?>
+          <div class="settings-hint-box">Пункты меню ещё не созданы. <a href="<?=e(base_url('admin/main-menu.php'))?>">Создать главное меню →</a></div>
+        <?php endif;?>
+      </section>
+
+      <section class="editor-card settings-section-card accessibility-settings-pro" id="accessibility-settings">
+        <div class="settings-section-head">
+          <span class="settings-section-icon"><i class="fa-solid fa-universal-access" aria-hidden="true"></i></span>
           <div>
             <h3>Версия для слабовидящих</h3>
-            <p>Настройка режима повышенной доступности и возрастной маркировки сайта.</p>
+            <p>Полная настройка режима повышенной доступности: содержимое, функции, стартовые параметры и оформление панели.</p>
           </div>
         </div>
 
-        <div class="accessibility-admin-intro">
-          <div class="accessibility-admin-badge"><i class="fa-solid fa-universal-access"></i></div>
+        <div class="accessibility-admin-hero">
+          <div class="accessibility-admin-hero-icon"><i class="fa-regular fa-eye"></i></div>
           <div>
-            <b>Режим повышенной доступности</b>
-            <p>Кнопка в верхней панели открывает пользовательские настройки размера текста, контраста, интервалов, изображений и анимации. Это техническая помощь для доступности и не заменяет проверку самого контента, PDF-документов и юридического статуса сайта.</p>
+            <span class="editor-eyebrow">Доступность сайта</span>
+            <h4>Настройте режим так, как должен видеть его посетитель</h4>
+            <p>Пользователь сможет увеличить текст, выбрать контраст, увеличить интервалы, обесцветить изображения и отключить анимацию. Его выбор сохраняется в браузере.</p>
+          </div>
+          <label class="accessibility-master-switch">
+            <input type="checkbox" name="accessibility_enabled" value="1" <?=$accessibilitySettings['accessibility_enabled']==='1'?'checked':''?>>
+            <span></span>
+            <b>Включено</b>
+          </label>
+        </div>
+
+        <div class="accessibility-admin-tabs">
+          <div class="accessibility-admin-block">
+            <div class="accessibility-admin-block-head">
+              <span>01</span>
+              <div><b>Тексты панели</b><small>Название кнопки и пояснение для посетителя</small></div>
+            </div>
+            <div class="settings-two-col">
+              <label class="field-modern compact">
+                <span>Кнопка в верхней панели</span>
+                <input name="accessibility_label" maxlength="120" value="<?=e($accessibilitySettings['accessibility_label'])?>" data-a11y-admin-text="button">
+              </label>
+              <label class="field-modern compact">
+                <span>Заголовок окна</span>
+                <input name="accessibility_panel_title" maxlength="120" value="<?=e($accessibilitySettings['accessibility_panel_title'])?>" data-a11y-admin-text="title">
+              </label>
+            </div>
+            <label class="field-modern compact">
+              <span>Короткое пояснение</span>
+              <textarea name="accessibility_panel_text" rows="3" maxlength="500" data-a11y-admin-text="text"><?=e($accessibilitySettings['accessibility_panel_text'])?></textarea>
+            </label>
+          </div>
+
+          <div class="accessibility-admin-block">
+            <div class="accessibility-admin-block-head">
+              <span>02</span>
+              <div><b>Какие инструменты показывать</b><small>Отключите функции, которые не хотите выводить в пользовательской панели</small></div>
+            </div>
+            <div class="accessibility-feature-grid">
+              <?php
+              $a11yFeatures=[
+                'accessibility_control_font'=>['fa-font','Размер текста','100–200%'],
+                'accessibility_control_contrast'=>['fa-circle-half-stroke','Контраст','4 цветовые схемы'],
+                'accessibility_control_spacing'=>['fa-text-width','Интервалы','обычные / увеличенные'],
+                'accessibility_control_grayscale'=>['fa-image','Изображения','цветные / чёрно-белые'],
+                'accessibility_control_motion'=>['fa-person-walking','Анимация','обычная / минимальная'],
+              ];
+              foreach($a11yFeatures as $key=>$meta):
+              ?>
+                <label class="accessibility-feature-card">
+                  <input type="checkbox" name="<?=e($key)?>" value="1" <?=$accessibilitySettings[$key]==='1'?'checked':''?>>
+                  <span class="accessibility-feature-icon"><i class="fa-solid <?=e($meta[0])?>"></i></span>
+                  <span><b><?=e($meta[1])?></b><small><?=e($meta[2])?></small></span>
+                  <i class="accessibility-feature-check fa-solid fa-check"></i>
+                </label>
+              <?php endforeach;?>
+            </div>
+          </div>
+
+          <div class="accessibility-admin-block">
+            <div class="accessibility-admin-block-head">
+              <span>03</span>
+              <div><b>Настройки при первом включении</b><small>Стартовое состояние, которое посетитель затем может изменить</small></div>
+            </div>
+            <div class="settings-two-col">
+              <label class="field-modern compact">
+                <span>Размер текста</span>
+                <select name="accessibility_default_font">
+                  <?php foreach(['100'=>'100%','125'=>'125%','150'=>'150%','200'=>'200%'] as $value=>$label):?>
+                    <option value="<?=e($value)?>" <?=$accessibilitySettings['accessibility_default_font']===$value?'selected':''?>><?=e($label)?></option>
+                  <?php endforeach;?>
+                </select>
+              </label>
+              <label class="field-modern compact">
+                <span>Контраст</span>
+                <select name="accessibility_default_contrast">
+                  <option value="normal" <?=$accessibilitySettings['accessibility_default_contrast']==='normal'?'selected':''?>>Обычный</option>
+                  <option value="black-white" <?=$accessibilitySettings['accessibility_default_contrast']==='black-white'?'selected':''?>>Чёрный текст / белый фон</option>
+                  <option value="white-black" <?=$accessibilitySettings['accessibility_default_contrast']==='white-black'?'selected':''?>>Белый текст / чёрный фон</option>
+                  <option value="yellow-black" <?=$accessibilitySettings['accessibility_default_contrast']==='yellow-black'?'selected':''?>>Жёлтый текст / чёрный фон</option>
+                </select>
+              </label>
+            </div>
+            <div class="settings-two-col">
+              <label class="field-modern compact">
+                <span>Интервалы</span>
+                <select name="accessibility_default_spacing">
+                  <option value="normal" <?=$accessibilitySettings['accessibility_default_spacing']==='normal'?'selected':''?>>Обычные</option>
+                  <option value="wide" <?=$accessibilitySettings['accessibility_default_spacing']==='wide'?'selected':''?>>Увеличенные</option>
+                </select>
+              </label>
+              <div class="accessibility-default-switches">
+                <label class="featured-switch">
+                  <input type="checkbox" name="accessibility_default_grayscale" value="1" <?=$accessibilitySettings['accessibility_default_grayscale']==='1'?'checked':''?>>
+                  <span class="switch-ui"></span><span><b>Ч/б изображения</b><small>Включить при первом запуске</small></span>
+                </label>
+                <label class="featured-switch">
+                  <input type="checkbox" name="accessibility_default_reduce_motion" value="1" <?=$accessibilitySettings['accessibility_default_reduce_motion']==='1'?'checked':''?>>
+                  <span class="switch-ui"></span><span><b>Минимум анимации</b><small>Рекомендуемый спокойный режим</small></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="accessibility-admin-block">
+            <div class="accessibility-admin-block-head">
+              <span>04</span>
+              <div><b>Оформление панели</b><small>Цвета можно точно подстроить под фирменный стиль</small></div>
+            </div>
+            <div class="accessibility-color-grid">
+              <?php
+              $a11yColors=[
+                'accessibility_panel_bg'=>['Фон панели','panel-bg'],
+                'accessibility_panel_text_color'=>['Основной текст','panel-text'],
+                'accessibility_panel_accent'=>['Акцент','accent'],
+                'accessibility_panel_border'=>['Рамки','border'],
+                'accessibility_primary_bg'=>['Главная кнопка','primary-bg'],
+                'accessibility_primary_text'=>['Текст кнопки','primary-text'],
+              ];
+              foreach($a11yColors as $key=>$meta):
+              ?>
+                <label class="accessibility-color-field">
+                  <span><?=e($meta[0])?></span>
+                  <span class="accessibility-color-control">
+                    <input type="color" name="<?=e($key)?>" value="<?=e($accessibilitySettings[$key])?>" data-a11y-admin-color="<?=e($meta[1])?>">
+                    <code><?=e($accessibilitySettings[$key])?></code>
+                  </span>
+                </label>
+              <?php endforeach;?>
+            </div>
           </div>
         </div>
 
-        <label class="featured-switch">
-          <input type="checkbox" name="accessibility_enabled" value="1" <?=$accessibilitySettings['accessibility_enabled']==='1'?'checked':''?>>
-          <span class="switch-ui"></span>
-          <span><b>Показывать «Версию для слабовидящих»</b><small>Кнопка с глазом будет доступна в верхней панели сайта на всех публичных страницах.</small></span>
-        </label>
-
-        <div class="settings-two-col">
-          <label class="field-modern compact">
-            <span>Подпись кнопки</span>
-            <input name="accessibility_label" maxlength="80" value="<?=e($accessibilitySettings['accessibility_label'])?>">
-          </label>
-          <label class="field-modern compact">
-            <span>Размер текста по умолчанию</span>
-            <select name="accessibility_default_font">
-              <?php foreach(['100'=>'100%','125'=>'125%','150'=>'150%','200'=>'200%'] as $value=>$label):?>
-                <option value="<?=e($value)?>" <?=$accessibilitySettings['accessibility_default_font']===$value?'selected':''?>><?=e($label)?></option>
-              <?php endforeach;?>
-            </select>
-          </label>
+        <div class="accessibility-admin-preview"
+             data-a11y-admin-preview
+             style="--ap-bg:<?=e($accessibilitySettings['accessibility_panel_bg'])?>;--ap-text:<?=e($accessibilitySettings['accessibility_panel_text_color'])?>;--ap-accent:<?=e($accessibilitySettings['accessibility_panel_accent'])?>;--ap-border:<?=e($accessibilitySettings['accessibility_panel_border'])?>;--ap-primary:<?=e($accessibilitySettings['accessibility_primary_bg'])?>;--ap-primary-text:<?=e($accessibilitySettings['accessibility_primary_text'])?>">
+          <div class="accessibility-admin-preview-top">
+            <span class="accessibility-admin-preview-eye"><i class="fa-regular fa-eye"></i></span>
+            <div>
+              <small>Предпросмотр</small>
+              <strong data-a11y-admin-preview-title><?=e($accessibilitySettings['accessibility_panel_title'])?></strong>
+              <p data-a11y-admin-preview-text><?=e($accessibilitySettings['accessibility_panel_text'])?></p>
+            </div>
+            <span class="accessibility-admin-preview-close">×</span>
+          </div>
+          <div class="accessibility-admin-preview-controls">
+            <span>A 100%</span><span class="is-active">A 150%</span><span>◐ Контраст</span><span>↔ Интервалы</span>
+          </div>
+          <div class="accessibility-admin-preview-actions">
+            <button type="button">Сбросить</button>
+            <button class="is-primary" type="button">Обычная версия сайта</button>
+          </div>
         </div>
-
-        <div class="settings-two-col">
-          <label class="field-modern compact">
-            <span>Контраст по умолчанию</span>
-            <select name="accessibility_default_contrast">
-              <option value="normal" <?=$accessibilitySettings['accessibility_default_contrast']==='normal'?'selected':''?>>Обычный</option>
-              <option value="black-white" <?=$accessibilitySettings['accessibility_default_contrast']==='black-white'?'selected':''?>>Чёрный текст / белый фон</option>
-              <option value="white-black" <?=$accessibilitySettings['accessibility_default_contrast']==='white-black'?'selected':''?>>Белый текст / чёрный фон</option>
-              <option value="yellow-black" <?=$accessibilitySettings['accessibility_default_contrast']==='yellow-black'?'selected':''?>>Жёлтый текст / чёрный фон</option>
-            </select>
-          </label>
-          <label class="field-modern compact">
-            <span>Интервалы по умолчанию</span>
-            <select name="accessibility_default_spacing">
-              <option value="normal" <?=$accessibilitySettings['accessibility_default_spacing']==='normal'?'selected':''?>>Обычные</option>
-              <option value="wide" <?=$accessibilitySettings['accessibility_default_spacing']==='wide'?'selected':''?>>Увеличенные</option>
-            </select>
-          </label>
-        </div>
-
-        <label class="featured-switch">
-          <input type="checkbox" name="accessibility_default_reduce_motion" value="1" <?=$accessibilitySettings['accessibility_default_reduce_motion']==='1'?'checked':''?>>
-          <span class="switch-ui"></span>
-          <span><b>Минимум анимации по умолчанию</b><small>Отключаются декоративные переходы, масштабирование карточек и смена контента по наведению в доступной версии.</small></span>
-        </label>
 
         <div class="accessibility-admin-divider"></div>
 
@@ -350,16 +507,14 @@ require __DIR__.'/_top.php';
           <div>
             <span class="heading-kicker">Возрастная маркировка</span>
             <h4>Ограничение информационной продукции</h4>
-            <p>Для категории 16+ закон допускает знак «16+» и (или) текстовое предупреждение «для детей старше 16 лет». Используйте категорию, которая соответствует фактической классификации материалов редакцией.</p>
+            <p>Отдельная настройка знака в верхней панели. Выберите категорию, соответствующую фактической классификации материалов редакцией.</p>
           </div>
-
           <div class="accessibility-age-controls">
             <label class="featured-switch">
               <input type="checkbox" name="age_rating_enabled" value="1" <?=$accessibilitySettings['age_rating_enabled']==='1'?'checked':''?>>
               <span class="switch-ui"></span>
-              <span><b>Показывать возрастной знак</b><small>Знак размещается в верхней панели рядом с версией для слабовидящих.</small></span>
+              <span><b>Показывать возрастной знак</b><small>Рядом с кнопкой доступности</small></span>
             </label>
-
             <label class="field-modern compact">
               <span>Категория</span>
               <select name="age_rating_label">
@@ -372,8 +527,8 @@ require __DIR__.'/_top.php';
         </div>
 
         <div class="settings-hint-box accessibility-law-note">
-          <b>Технический ориентир</b>
-          <p>Настройки сделаны с учётом требований к доступности: работа с клавиатуры, заметный фокус, возможность увеличения текста, альтернативные контрастные схемы, читаемый шрифт и отключение лишней анимации. Для полного соответствия отдельно проверяются тексты ссылок, alt-описания изображений, формы, видео и доступность загружаемых PDF/документов.</p>
+          <b>Контроль доступности</b>
+          <p>Сам режим помогает посетителю изменить отображение. Отдельно продолжайте проверять alt-тексты изображений, понятные подписи ссылок и кнопок, доступность форм, видео и загружаемых документов.</p>
         </div>
       </section>
 
