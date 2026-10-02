@@ -1296,6 +1296,70 @@ function safe_delete_document_upload(?string $relativePath): void
     if (is_file($full)) @unlink($full);
 }
 
+function validate_document_file_signature(string $tmp, string $ext): void
+{
+    if(!is_file($tmp) || !is_readable($tmp)){
+        throw new RuntimeException('Не удалось проверить загруженный документ.');
+    }
+
+    $head=(string)file_get_contents($tmp,false,null,0,16);
+    $ext=strtolower($ext);
+
+    if($ext==='pdf'){
+        if(!str_starts_with($head,'%PDF-')){
+            throw new RuntimeException('Содержимое файла не соответствует формату PDF.');
+        }
+        return;
+    }
+
+    if(in_array($ext,['doc','xls','ppt'],true)){
+        $oleMagic="\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1";
+        if(!str_starts_with($head,$oleMagic)){
+            throw new RuntimeException('Содержимое файла не соответствует старому формату Microsoft Office.');
+        }
+        return;
+    }
+
+    if(in_array($ext,['docx','xlsx','pptx'],true)){
+        if(!str_starts_with($head,"PK\x03\x04") && !str_starts_with($head,"PK\x05\x06") && !str_starts_with($head,"PK\x07\x08")){
+            throw new RuntimeException('Содержимое файла не соответствует формату Office Open XML.');
+        }
+
+        if(class_exists('ZipArchive')){
+            $zip=new ZipArchive();
+            $opened=$zip->open($tmp);
+            if($opened!==true){
+                throw new RuntimeException('Не удалось проверить структуру Office-документа.');
+            }
+            try{
+                if($zip->locateName('[Content_Types].xml')===false){
+                    throw new RuntimeException('Некорректная структура Office-документа.');
+                }
+
+                $required=match($ext){
+                    'docx'=>'word/document.xml',
+                    'xlsx'=>'xl/workbook.xml',
+                    'pptx'=>'ppt/presentation.xml',
+                    default=>'',
+                };
+                if($required==='' || $zip->locateName($required)===false){
+                    throw new RuntimeException('Содержимое файла не соответствует его расширению.');
+                }
+
+                // Avoid pathological archive structures even for authenticated uploads.
+                if($zip->numFiles>20000){
+                    throw new RuntimeException('Документ содержит слишком много внутренних файлов.');
+                }
+            }finally{
+                $zip->close();
+            }
+        }
+        return;
+    }
+
+    throw new RuntimeException('Неподдерживаемый формат документа.');
+}
+
 function handle_document_upload(array $file, ?string $oldPath = null, ?string $oldExt = null, ?string $oldName = null, int $oldSize = 0): array
 {
     if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
@@ -1343,6 +1407,8 @@ function handle_document_upload(array $file, ?string $oldPath = null, ?string $o
     if (!in_array($mime,$acceptedMimes,true)) {
         throw new RuntimeException('Формат файла не соответствует разрешённым документам.');
     }
+
+    validate_document_file_signature((string)$file['tmp_name'],$ext);
 
     $folder='uploads/documents/'.date('Y/m');
     $dir=ROOT_PATH.'/'.$folder;
