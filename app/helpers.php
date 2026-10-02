@@ -281,7 +281,11 @@ function category_id_by_slug(string $slug): ?int
 function ensure_article_categories_schema(): void
 {
     if (!APP_INSTALLED) return;
-    if (setting('schema_article_categories_v1', '') === '1') return;
+
+    // v2 intentionally runs once even when the old v1 flag exists. During a
+    // database migration the flag could be copied before every junction row
+    // was present, leaving homepage category blocks empty.
+    if (setting('schema_article_categories_v2_repaired', '') === '1') return;
 
     $pdo = db();
     $driver = (string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
@@ -297,11 +301,17 @@ function ensure_article_categories_schema(): void
         )");
         $pdo->exec('CREATE INDEX IF NOT EXISTS idx_article_categories_category ON article_categories(category_id,article_id)');
         $pdo->exec('INSERT OR IGNORE INTO article_categories(article_id,category_id) SELECT id,category_id FROM articles WHERE category_id IS NOT NULL');
+
         $mainId = category_id_by_slug('glavnye-novosti');
         if ($mainId) {
-            $q = $pdo->prepare('INSERT OR IGNORE INTO article_categories(article_id,category_id) SELECT id,? FROM articles WHERE category_id IS NULL');
+            $q = $pdo->prepare('INSERT OR IGNORE INTO article_categories(article_id,category_id)
+                SELECT a.id,? FROM articles a
+                WHERE a.category_id IS NULL
+                  AND NOT EXISTS (SELECT 1 FROM article_categories ac WHERE ac.article_id=a.id)');
             $q->execute([$mainId]);
-            $pdo->prepare('UPDATE articles SET category_id=? WHERE category_id IS NULL')->execute([$mainId]);
+            $pdo->prepare('UPDATE articles SET category_id=? WHERE category_id IS NULL
+                AND EXISTS (SELECT 1 FROM article_categories ac WHERE ac.article_id=articles.id AND ac.category_id=?)')
+                ->execute([$mainId,$mainId]);
         }
     } else {
         $pdo->exec("CREATE TABLE IF NOT EXISTS article_categories (
@@ -314,15 +324,24 @@ function ensure_article_categories_schema(): void
             CONSTRAINT fk_article_categories_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         $pdo->exec('INSERT IGNORE INTO article_categories(article_id,category_id) SELECT id,category_id FROM articles WHERE category_id IS NOT NULL');
+
         $mainId = category_id_by_slug('glavnye-novosti');
         if ($mainId) {
-            $q = $pdo->prepare('INSERT IGNORE INTO article_categories(article_id,category_id) SELECT id,? FROM articles WHERE category_id IS NULL');
+            $q = $pdo->prepare('INSERT IGNORE INTO article_categories(article_id,category_id)
+                SELECT a.id,? FROM articles a
+                WHERE a.category_id IS NULL
+                  AND NOT EXISTS (SELECT 1 FROM article_categories ac WHERE ac.article_id=a.id)');
             $q->execute([$mainId]);
-            $pdo->prepare('UPDATE articles SET category_id=? WHERE category_id IS NULL')->execute([$mainId]);
+            $pdo->prepare('UPDATE articles a
+                INNER JOIN article_categories ac ON ac.article_id=a.id AND ac.category_id=?
+                SET a.category_id=?
+                WHERE a.category_id IS NULL')
+                ->execute([$mainId,$mainId]);
         }
     }
 
     save_setting('schema_article_categories_v1', '1');
+    save_setting('schema_article_categories_v2_repaired', '1');
 }
 
 function article_category_ids(int $articleId): array
@@ -407,12 +426,16 @@ function latest_articles_by_category_slug(string $slug, int $limit = 8): array
     if (!APP_INSTALLED) return [];
     $sql = "SELECT a.*, c.name category_name, c.slug category_slug
             FROM articles a
-            INNER JOIN article_categories ac ON ac.article_id=a.id
-            INNER JOIN categories c ON c.id=ac.category_id
+            INNER JOIN categories c ON c.slug=? AND c.is_active=1
             WHERE a.status='published'
-              AND c.slug=?
-              AND c.is_active=1
               AND (a.published_at IS NULL OR a.published_at<=CURRENT_TIMESTAMP)
+              AND (
+                a.category_id=c.id
+                OR EXISTS (
+                  SELECT 1 FROM article_categories ac
+                  WHERE ac.article_id=a.id AND ac.category_id=c.id
+                )
+              )
             ORDER BY COALESCE(a.published_at,a.created_at) DESC
             LIMIT " . max(1, $limit);
     $q = db()->prepare($sql);
@@ -431,12 +454,16 @@ function latest_main_articles(int $limit = 5, ?int $excludeId = null): array
     if (!APP_INSTALLED) return [];
     $sql = "SELECT a.*, c.name category_name, c.slug category_slug
             FROM articles a
-            INNER JOIN article_categories ac ON ac.article_id=a.id
-            INNER JOIN categories c ON c.id=ac.category_id
+            INNER JOIN categories c ON c.slug='glavnye-novosti' AND c.is_active=1
             WHERE a.status='published'
-              AND c.slug='glavnye-novosti'
-              AND c.is_active=1
-              AND (a.published_at IS NULL OR a.published_at<=CURRENT_TIMESTAMP)";
+              AND (a.published_at IS NULL OR a.published_at<=CURRENT_TIMESTAMP)
+              AND (
+                a.category_id=c.id
+                OR EXISTS (
+                  SELECT 1 FROM article_categories ac
+                  WHERE ac.article_id=a.id AND ac.category_id=c.id
+                )
+              )";
     $params = [];
     if ($excludeId) {
         $sql .= ' AND a.id<>?';
