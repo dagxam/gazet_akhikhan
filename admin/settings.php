@@ -1,6 +1,6 @@
 <?php
 require dirname(__DIR__) . '/app/bootstrap.php';
-require_admin();
+require_site_admin();
 
 $error='';
 $textKeys=['site_name','site_subtitle','hero_kicker','editor_note','footer_quote','topbar_region_label'];
