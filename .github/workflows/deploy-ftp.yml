@@ -152,6 +152,21 @@ jobs:
             echo "check: contacts route hidden by reconstruction mode"
           fi
 
+          history_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-history.html --write-out '%{http_code}' 'https://akhikhan.ru/category/istoriya?deploy=history1')"
+          echo "check: history page HTTP $history_code"
+          test "$history_code" = "200" -o "$history_code" = "503"
+          if [ "$history_code" = "200" ]; then
+            grep -q 'history-feature' /tmp/akhikhan-history.html
+            grep -q 'Ключевые страницы' /tmp/akhikhan-history.html
+            grep -q 'Ахульго' /tmp/akhikhan-history.html
+            grep -q 'Унцукульская насечка' /tmp/akhikhan-history.html
+            grep -q 'Wikimedia Commons' /tmp/akhikhan-history.html
+            echo "check: history editorial landing ok"
+          else
+            grep -q 'maintenance-page' /tmp/akhikhan-history.html
+            echo "check: history route hidden by reconstruction mode"
+          fi
+
           login_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin-login.html --write-out '%{http_code}' https://akhikhan.ru/admin/login.php)"
           test "$login_code" = "200"
           grep -q "Вход в редакцию" /tmp/akhikhan-admin-login.html
@@ -213,7 +228,7 @@ jobs:
           test "$(wc -c < /tmp/akhikhan-ornament.svg)" -gt 7000
           grep -q 'viewBox="0 0 2048 170"' /tmp/akhikhan-ornament.svg
 
-          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-contacts1')"
+          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-history1')"
           test "$public_css_code" = "200"
           grep -q 'ornament-footer-premium.svg' /tmp/akhikhan-style.css
           grep -q '.privacy-notice' /tmp/akhikhan-style.css
@@ -229,6 +244,9 @@ jobs:
           grep -q 'Age rating + accessible version' /tmp/akhikhan-style.css
           grep -q 'Accessibility panel v2' /tmp/akhikhan-style.css
           grep -q 'Contacts page + feedback form' /tmp/akhikhan-style.css
+          grep -q 'History category editorial landing' /tmp/akhikhan-style.css
+          grep -q '.history-feature' /tmp/akhikhan-style.css
+          grep -q '.history-timeline' /tmp/akhikhan-style.css
           grep -q '.contact-form-card' /tmp/akhikhan-style.css
           grep -q '.accessibility-quick-presets' /tmp/akhikhan-style.css
           grep -q '.topbar-accessibility-state' /tmp/akhikhan-style.css
