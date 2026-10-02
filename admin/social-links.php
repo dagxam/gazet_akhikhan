@@ -63,7 +63,9 @@ if($id){
   $editing=$q->fetch();
 }
 
-$links=social_links(false);
+$allLinks=social_links(false);
+$socialPager=admin_paginate_array($allLinks,10,'page');
+$links=$socialPager['items'];
 $adminTitle='Мы в соцсетях';
 require __DIR__.'/_top.php';
 ?>
@@ -146,7 +148,7 @@ require __DIR__.'/_top.php';
 
     <?php if($links):?>
       <div class="social-preview-strip" aria-label="Предпросмотр">
-        <?php foreach($links as $link): if(empty($link['is_active'])) continue;?>
+        <?php foreach($allLinks as $link): if(empty($link['is_active'])) continue;?>
           <span title="<?=e($link['label'] ?: social_service_name($link['service']))?>">
             <?php $linkAsset=social_service_asset((string)$link['service']); ?>
             <?php if($linkAsset!==''):?>
@@ -190,6 +192,7 @@ require __DIR__.'/_top.php';
           </article>
         <?php endforeach;?>
       </div>
+      <?php render_admin_pagination('admin/social-links.php',$socialPager['page'],$socialPager['total_pages'],[],'page','Страницы социальных ссылок'); ?>
     <?php else:?>
       <div class="social-admin-empty">
         <div>
