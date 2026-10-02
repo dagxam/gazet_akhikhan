@@ -154,6 +154,10 @@ jobs:
           grep -q 'Сведения о субъекте персональных данных' /tmp/akhikhan-personal-data-consent.php
           grep -q 'Политика использования cookie' /tmp/akhikhan-cookies.php
           grep -q 'анонимного технического идентификатора браузера' /tmp/akhikhan-cookies.php
+          grep -q 'пользовательских настроек версии повышенной доступности' /tmp/akhikhan-cookies.php
+          grep -q 'accessibility-panel' /tmp/akhikhan-privacy.php
+          grep -q 'topbar-age-rating' /tmp/akhikhan-privacy.php
+          grep -q 'Версия для слабовидящих' /tmp/akhikhan-privacy.php
           grep -q 'Политике персональных данных' /tmp/akhikhan-admin-login.html
           if [ "$code" = "200" ]; then
             grep -q 'privacy.php' /tmp/akhikhan.html
@@ -162,12 +166,14 @@ jobs:
           fi
           echo "Public privacy documents and links verified."
 
-          admin_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/admin.css?v=20261002-article-images1')"
+          admin_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/admin.css?v=20261002-accessibility1')"
           test "$admin_css_code" = "200"
           grep -q 'Unified admin buttons and top Open site action' /tmp/akhikhan-admin.css
           grep -q '.admin-top-site-button' /tmp/akhikhan-admin.css
           grep -q '.admin-pagination' /tmp/akhikhan-admin.css
           grep -q 'Article multi-image gallery editor' /tmp/akhikhan-admin.css
+          grep -q 'Accessibility settings' /tmp/akhikhan-admin.css
+          grep -q '#accessibility-settings' /tmp/akhikhan-admin.css
           grep -q '.article-gallery-dropzone' /tmp/akhikhan-admin.css
 
           right_blocks_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-right-blocks.html --write-out '%{http_code}' https://akhikhan.ru/admin/right-block.php)"
@@ -186,7 +192,7 @@ jobs:
           test "$(wc -c < /tmp/akhikhan-ornament.svg)" -gt 7000
           grep -q 'viewBox="0 0 2048 170"' /tmp/akhikhan-ornament.svg
 
-          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-article-community1')"
+          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-accessibility1')"
           test "$public_css_code" = "200"
           grep -q 'ornament-footer-premium.svg' /tmp/akhikhan-style.css
           grep -q '.privacy-notice' /tmp/akhikhan-style.css
@@ -199,6 +205,10 @@ jobs:
           grep -q 'Unified public buttons and action links' /tmp/akhikhan-style.css
           grep -q 'Homepage image-overlay news cards' /tmp/akhikhan-style.css
           grep -q 'Navigation, social icons, article engagement and best news' /tmp/akhikhan-style.css
+          grep -q 'Age rating + accessible version' /tmp/akhikhan-style.css
+          grep -q '.topbar-accessibility' /tmp/akhikhan-style.css
+          grep -q '.accessibility-panel' /tmp/akhikhan-style.css
+          grep -q 'a11y-active' /tmp/akhikhan-style.css
           grep -q '.article-community-card' /tmp/akhikhan-style.css
           grep -q '.best-news-grid' /tmp/akhikhan-style.css
           grep -q '.home-news-meta' /tmp/akhikhan-style.css
@@ -225,12 +235,14 @@ jobs:
           test "$search_favicon_code" = "200"
           test "$(wc -c < /tmp/akhikhan-favicon-search.png)" -gt 1000
 
-          privacy_js_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-app.js --write-out '%{http_code}' 'https://akhikhan.ru/assets/js/app.js?v=20261002-reactions1')"
+          privacy_js_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-app.js --write-out '%{http_code}' 'https://akhikhan.ru/assets/js/app.js?v=20261002-accessibility1')"
           test "$privacy_js_code" = "200"
           grep -q 'data-privacy-notice' /tmp/akhikhan-app.js
           grep -q 'privacyVersion' /tmp/akhikhan-app.js
           grep -q 'data-topbar-admin-account' /tmp/akhikhan-app.js
           grep -q 'akhikhan_article_reaction_' /tmp/akhikhan-app.js
+          grep -q 'akhikhan_accessibility_v1' /tmp/akhikhan-app.js
+          grep -q 'data-accessibility-panel' /tmp/akhikhan-app.js
           grep -q 'data-copy-article-link' /tmp/akhikhan-app.js
           if [ "$code" = "200" ]; then
             grep -q 'target="_blank" rel="noopener"' /tmp/akhikhan.html
