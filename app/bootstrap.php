@@ -57,6 +57,7 @@ if (APP_INSTALLED) {
     ensure_newspapers_schema();
     ensure_documents_schema();
     ensure_main_menu_schema();
+    ensure_documents_main_menu_item();
     ensure_homepage_right_blocks_schema();
     ensure_right_blocks_area_schema();
     ensure_photo_gallery_schema();
