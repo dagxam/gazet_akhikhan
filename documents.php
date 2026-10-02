@@ -2,11 +2,15 @@
 require __DIR__ . '/app/bootstrap.php';
 if (!APP_INSTALLED) { header('Location: install.php'); exit; }
 
-$documents = all_published_documents();
+$documentsTotal=(int)db()->query("SELECT COUNT(*) FROM documents WHERE status='published'")->fetchColumn();
+$documentsPager=public_pagination_state($documentsTotal,18,'page');
+$documentsLimit=(int)$documentsPager['per_page'];
+$documentsOffset=(int)$documentsPager['offset'];
+$documents=db()->query("SELECT * FROM documents WHERE status='published' ORDER BY document_date DESC,id DESC LIMIT ".$documentsLimit." OFFSET ".$documentsOffset)->fetchAll();
 
 $pageTitle = 'Документы';
 $pageDescription = 'Документы и официальные материалы сетевого издания «АХИХЪАН»: PDF, Word, Excel и PowerPoint.';
-$seoCanonical = base_url('documents.php');
+$seoCanonical = public_pagination_url('documents.php',$documentsPager['page']);
 
 $documentItems=[];
 foreach(array_slice($documents,0,50) as $index=>$doc){
@@ -27,7 +31,7 @@ $seoJsonLd=[[
     'isPartOf'=>['@id'=>base_url('#website')],
     'mainEntity'=>[
         '@type'=>'ItemList',
-        'numberOfItems'=>count($documents),
+        'numberOfItems'=>$documentsTotal,
         'itemListElement'=>$documentItems,
     ],
 ]];
@@ -42,7 +46,7 @@ require __DIR__ . '/partials/header.php';
       <h1>Документы</h1>
       <p>Все опубликованные документы редакции: PDF, Word, Excel и PowerPoint. Новые материалы появляются здесь автоматически после публикации в админ-панели.</p>
     </div>
-    <span class="public-documents-count"><?=count($documents)?> <?=count($documents)===1?'документ':'документов'?></span>
+    <span class="public-documents-count"><?=$documentsTotal?> <?=$documentsTotal===1?'документ':'документов'?></span>
   </header>
 
   <?php if($documents):?>
@@ -72,6 +76,7 @@ require __DIR__ . '/partials/header.php';
         </article>
       <?php endforeach;?>
     </div>
+    <?php render_public_pagination('documents.php',$documentsPager['page'],$documentsPager['total_pages'],[],'page','Страницы документов'); ?>
   <?php else:?>
     <div class="public-documents-empty">
       <span class="document-format-icon file"><b>DOC</b><small>ФАЙЛ</small></span>
