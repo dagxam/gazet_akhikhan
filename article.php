@@ -26,6 +26,8 @@ if(!$article){
 
 db()->prepare('UPDATE articles SET views=views+1 WHERE id=?')->execute([$article['id']]);
 $related = latest_articles(5, (int)$article['id']);
+$articleImages = article_images((int)$article['id']);
+$reactionCounts = article_reaction_counts((int)$article['id']);
 $pageBlocks = page_right_blocks(true);
 $articleCategoryRows = article_categories((int)$article['id']);
 $articleSections = [];
@@ -49,6 +51,12 @@ $modifiedRaw = (string)($article['updated_at'] ?: $publishedRaw);
 $seoPublishedTime = strtotime($publishedRaw) ? date('c', strtotime($publishedRaw)) : '';
 $seoModifiedTime = strtotime($modifiedRaw) ? date('c', strtotime($modifiedRaw)) : $seoPublishedTime;
 $seoImageAbsolute = preg_match('~^https?://~i',$seoImage) ? $seoImage : base_url(ltrim($seoImage,'/'));
+$seoArticleImages=[$seoImageAbsolute];
+foreach($articleImages as $extraImage){
+  $extraPath=(string)($extraImage['image_path']??'');
+  if($extraPath!=='') $seoArticleImages[]=base_url(ltrim($extraPath,'/'));
+}
+$seoArticleImages=array_values(array_unique($seoArticleImages));
 $seoArticleSection = implode(', ', $articleSections);
 $articlePlainText = trim(rich_text_plain((string)$article['content']));
 $articleWordCount = $articlePlainText==='' ? 0 : count(preg_split('/\s+/u',$articlePlainText,-1,PREG_SPLIT_NO_EMPTY));
@@ -60,7 +68,7 @@ $articleJsonLd = [
   'url' => $seoCanonical,
   'headline' => (string)$article['title'],
   'description' => $pageDescription,
-  'image' => [$seoImageAbsolute],
+  'image' => $seoArticleImages,
   'thumbnailUrl' => $seoImageAbsolute,
   'datePublished' => $seoPublishedTime,
   'dateModified' => $seoModifiedTime,
@@ -103,6 +111,18 @@ $seoJsonLd = [
     'itemListElement'=>$breadcrumbItems,
   ],
 ];
+
+$shareUrlEncoded=rawurlencode($seoCanonical);
+$shareTitleEncoded=rawurlencode((string)$article['title']);
+$shareTextEncoded=rawurlencode((string)$article['title'].' '.$seoCanonical);
+$shareImageEncoded=rawurlencode($seoImageAbsolute);
+$shareLinks=[
+  'vk'=>'https://vk.com/share.php?url='.$shareUrlEncoded.'&title='.$shareTitleEncoded,
+  'ok'=>'https://connect.ok.ru/offer?url='.$shareUrlEncoded.'&title='.$shareTitleEncoded.'&imageUrl='.$shareImageEncoded,
+  'max'=>'https://max.ru/:share?text='.$shareTextEncoded,
+  'telegram'=>'https://t.me/share/url?url='.$shareUrlEncoded.'&text='.$shareTitleEncoded,
+];
+
 require __DIR__ . '/partials/header.php';
 ?>
 <div class="wrap page-shell">
@@ -128,6 +148,58 @@ require __DIR__ . '/partials/header.php';
 
       <?php if($article['excerpt']): ?><div class="article-lead rich-text"><?=rich_text_html($article['excerpt'])?></div><?php endif; ?>
       <div class="article-content rich-text"><?=rich_text_html($article['content'])?></div>
+
+      <?php if($articleImages):?>
+        <section class="article-extra-gallery" aria-label="Фотографии к новости">
+          <div class="article-extra-gallery-head">
+            <span class="heading-kicker">Фотографии</span>
+            <h2>К материалу</h2>
+          </div>
+          <div class="article-extra-gallery-grid items-<?=e((string)min(6,count($articleImages)))?>">
+            <?php foreach($articleImages as $index=>$image):?>
+              <a class="article-extra-photo <?=$index===0?'is-featured':''?>" href="<?=e(base_url($image['image_path']))?>" target="_blank" rel="noopener">
+                <img src="<?=e(base_url($image['image_path']))?>" alt="<?=e($image['caption'] ?: $article['title'])?>" loading="<?=$index<2?'eager':'lazy'?>">
+                <?php if(!empty($image['caption'])):?><span><?=e($image['caption'])?></span><?php endif;?>
+              </a>
+            <?php endforeach;?>
+          </div>
+        </section>
+      <?php endif;?>
+
+      <section class="article-community-card">
+        <div class="article-rating" data-article-reaction-widget data-article-id="<?=$article['id']?>" data-endpoint="<?=e(base_url('article-reaction.php'))?>">
+          <div class="article-rating-copy">
+            <span class="heading-kicker">Оценка читателей</span>
+            <strong>Была полезна эта новость?</strong>
+          </div>
+          <div class="article-rating-actions">
+            <button type="button" class="article-reaction-button is-like" data-reaction="like" aria-label="Нравится">
+              <i class="fa-regular fa-thumbs-up"></i>
+              <span>Нравится</span>
+              <b data-reaction-count="like"><?=number_format((int)$reactionCounts['likes'],0,'.',' ')?></b>
+            </button>
+            <button type="button" class="article-reaction-button is-dislike" data-reaction="dislike" aria-label="Не нравится">
+              <i class="fa-regular fa-thumbs-down"></i>
+              <span>Не нравится</span>
+              <b data-reaction-count="dislike"><?=number_format((int)$reactionCounts['dislikes'],0,'.',' ')?></b>
+            </button>
+          </div>
+        </div>
+
+        <div class="article-share">
+          <div class="article-share-copy">
+            <span class="heading-kicker">Поделиться</span>
+            <strong>Отправить новость</strong>
+          </div>
+          <div class="article-share-actions">
+            <a class="article-share-button is-vk" href="<?=e($shareLinks['vk'])?>" target="_blank" rel="noopener" aria-label="Поделиться ВКонтакте"><i class="fa-brands fa-vk"></i><span>VK</span></a>
+            <a class="article-share-button is-ok" href="<?=e($shareLinks['ok'])?>" target="_blank" rel="noopener" aria-label="Поделиться в Одноклассниках"><i class="fa-brands fa-odnoklassniki"></i><span>ОК</span></a>
+            <a class="article-share-button is-max" href="<?=e($shareLinks['max'])?>" target="_blank" rel="noopener" aria-label="Поделиться в MAX"><img src="<?=e(base_url('assets/img/social-max-white.svg'))?>" alt=""><span>MAX</span></a>
+            <a class="article-share-button is-telegram" href="<?=e($shareLinks['telegram'])?>" target="_blank" rel="noopener" aria-label="Поделиться в Telegram"><i class="fa-brands fa-telegram"></i><span>Telegram</span></a>
+            <button class="article-share-button is-copy" type="button" data-copy-article-link="<?=e($seoCanonical)?>" aria-label="Скопировать ссылку"><i class="fa-solid fa-link"></i><span>Ссылка</span></button>
+          </div>
+        </div>
+      </section>
     </article>
 
     <aside class="article-sidebar">
