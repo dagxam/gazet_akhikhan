@@ -24,6 +24,13 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
       exit;
     }
 
+    if(isset($_POST['save_order'])){
+      $menuOrder=is_array($_POST['menu_order']??null) ? $_POST['menu_order'] : [];
+      save_main_menu_order($menuOrder);
+      header('Location: '.base_url('admin/main-menu.php?ordered=1'));
+      exit;
+    }
+
     $saveId=(int)($_POST['id']??0);
     $label=trim($_POST['label']??'');
     if($label==='') throw new RuntimeException('Введите название пункта меню.');
@@ -76,6 +83,7 @@ require __DIR__.'/_top.php';
 <?php if($error):?><div class="error"><?=e($error)?></div><?php endif;?>
 <?php if(isset($_GET['saved'])):?><div class="ok">Пункт меню сохранён.</div><?php endif;?>
 <?php if(isset($_GET['deleted'])):?><div class="ok">Пункт меню удалён.</div><?php endif;?>
+<?php if(isset($_GET['ordered'])):?><div class="ok">Порядок главного меню сохранён.</div><?php endif;?>
 
 <div class="menu-admin-head">
   <div>
@@ -148,11 +156,18 @@ require __DIR__.'/_top.php';
   </section>
 
   <section class="editor-card menu-list-card">
-    <div class="card-head">
+    <div class="card-head menu-list-head">
       <div>
         <h2>Пункты верхнего меню</h2>
-        <p class="admin-intro">Порядок на сайте определяется числом «Порядок»: чем меньше число, тем левее пункт.</p>
+        <p class="admin-intro">Перетаскивайте пункты за ручку или используйте стрелки. После изменения нажмите «Сохранить порядок».</p>
       </div>
+      <?php if($rows):?>
+        <form id="menu-order-form" method="post" class="menu-order-save-form">
+          <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
+          <input type="hidden" name="save_order" value="1">
+          <button class="primary" type="submit"><i class="fa-solid fa-check"></i> Сохранить порядок</button>
+        </form>
+      <?php endif;?>
     </div>
 
     <?php if($rows):?>
@@ -162,14 +177,29 @@ require __DIR__.'/_top.php';
         <?php endforeach;?>
       </div>
 
-      <div class="menu-items-list">
-        <?php foreach($rows as $row):?>
-          <article class="menu-admin-item">
-            <div class="menu-order-badge"><?=e((string)$row['sort_order'])?></div>
+      <div class="menu-items-list" data-main-menu-sortable>
+        <?php foreach($rows as $index=>$row):?>
+          <article class="menu-admin-item menu-sort-item" draggable="false" data-menu-sort-item>
+            <input type="hidden" name="menu_order[]" value="<?=e((string)$row['id'])?>" form="menu-order-form">
+
+            <button class="menu-sort-handle" type="button" data-menu-drag aria-label="Перетащить пункт <?=e($row['label'])?>">
+              <i class="fa-solid fa-grip-vertical" aria-hidden="true"></i>
+            </button>
+
+            <div class="menu-order-badge" data-menu-number><?=e(str_pad((string)($index+1),2,'0',STR_PAD_LEFT))?></div>
+
             <div class="menu-admin-copy">
               <strong><i class="menu-state-dot <?=empty($row['is_active'])?'off':''?>"></i><?=e($row['label'])?></strong>
               <small><?=e($row['url'])?><?=$row['open_new_tab']?' · новая вкладка':''?></small>
             </div>
+
+            <span class="menu-admin-state <?=empty($row['is_active'])?'is-off':''?>"><?=empty($row['is_active'])?'Скрыт':'На сайте'?></span>
+
+            <div class="menu-reorder-actions" aria-label="Изменить порядок">
+              <button type="button" data-menu-move="up" aria-label="Поднять <?=e($row['label'])?> выше"><i class="fa-solid fa-chevron-up"></i></button>
+              <button type="button" data-menu-move="down" aria-label="Опустить <?=e($row['label'])?> ниже"><i class="fa-solid fa-chevron-down"></i></button>
+            </div>
+
             <div class="menu-admin-actions">
               <a class="edit-action" href="<?=e(base_url('admin/main-menu.php?id='.$row['id']))?>">Редактировать</a>
               <form method="post" onsubmit="return confirm('Удалить этот пункт главного меню?')">
@@ -204,6 +234,115 @@ if(categorySelect&&urlInput){
   categorySelect.addEventListener('change',sync);
   sync();
 }
+
+(function(){
+  const list=document.querySelector('[data-main-menu-sortable]');
+  if(!list) return;
+
+  let dragging=null;
+
+  function rows(){
+    return [...list.querySelectorAll('[data-menu-sort-item]')];
+  }
+
+  function syncOrder(){
+    const currentRows=rows();
+    currentRows.forEach((row,index)=>{
+      const number=row.querySelector('[data-menu-number]');
+      if(number) number.textContent=String(index+1).padStart(2,'0');
+
+      const up=row.querySelector('[data-menu-move="up"]');
+      const down=row.querySelector('[data-menu-move="down"]');
+      if(up) up.disabled=index===0;
+      if(down) down.disabled=index===currentRows.length-1;
+    });
+
+    const preview=document.querySelector('.menu-preview-bar');
+    if(preview){
+      const labels=new Map();
+      currentRows.forEach(row=>{
+        const hidden=row.querySelector('input[name="menu_order[]"]');
+        const title=row.querySelector('.menu-admin-copy strong');
+        const dot=row.querySelector('.menu-state-dot');
+        if(hidden && title && !dot?.classList.contains('off')){
+          labels.set(hidden.value,title.textContent.trim());
+        }
+      });
+      preview.innerHTML='';
+      labels.forEach(label=>{
+        const span=document.createElement('span');
+        span.textContent=label;
+        preview.appendChild(span);
+      });
+    }
+  }
+
+  rows().forEach(row=>{
+    const handle=row.querySelector('[data-menu-drag]');
+    if(handle){
+      handle.addEventListener('mousedown',()=>row.setAttribute('draggable','true'));
+      handle.addEventListener('touchstart',()=>row.setAttribute('draggable','true'),{passive:true});
+      handle.addEventListener('mouseup',()=>row.setAttribute('draggable','false'));
+      handle.addEventListener('touchend',()=>row.setAttribute('draggable','false'));
+      handle.addEventListener('keydown',event=>{
+        if(event.key==='ArrowUp'){
+          event.preventDefault();
+          const previous=row.previousElementSibling;
+          if(previous) list.insertBefore(row,previous);
+          syncOrder();
+        }
+        if(event.key==='ArrowDown'){
+          event.preventDefault();
+          const next=row.nextElementSibling;
+          if(next) list.insertBefore(next,row);
+          syncOrder();
+        }
+      });
+    }
+
+    row.addEventListener('dragstart',event=>{
+      dragging=row;
+      row.classList.add('is-dragging');
+      event.dataTransfer.effectAllowed='move';
+      try{event.dataTransfer.setData('text/plain','menu-item');}catch(e){}
+    });
+
+    row.addEventListener('dragend',()=>{
+      row.classList.remove('is-dragging');
+      row.setAttribute('draggable','false');
+      rows().forEach(item=>item.classList.remove('is-drag-over'));
+      dragging=null;
+      syncOrder();
+    });
+
+    row.addEventListener('dragover',event=>{
+      if(!dragging||dragging===row) return;
+      event.preventDefault();
+      row.classList.add('is-drag-over');
+      const rect=row.getBoundingClientRect();
+      if(event.clientY>rect.top+rect.height/2) row.after(dragging);
+      else row.before(dragging);
+    });
+
+    row.addEventListener('dragleave',()=>row.classList.remove('is-drag-over'));
+
+    row.querySelectorAll('[data-menu-move]').forEach(button=>{
+      button.addEventListener('click',()=>{
+        if(button.dataset.menuMove==='up'){
+          const previous=row.previousElementSibling;
+          if(previous) list.insertBefore(row,previous);
+        }else{
+          const next=row.nextElementSibling;
+          if(next) list.insertBefore(next,row);
+        }
+        syncOrder();
+        row.scrollIntoView({block:'nearest',behavior:'smooth'});
+      });
+    });
+  });
+
+  syncOrder();
+})();
 </script>
 
 <?php require __DIR__.'/_bottom.php'; ?>
