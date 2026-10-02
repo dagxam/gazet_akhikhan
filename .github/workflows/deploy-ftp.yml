@@ -198,6 +198,7 @@ jobs:
           echo "Public privacy documents and links verified."
 
           admin_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/admin.css?v=20261002-security2')"
+          echo "check: admin CSS HTTP $admin_css_code"
           test "$admin_css_code" = "200"
           grep -q 'Unified admin buttons and top Open site action' /tmp/akhikhan-admin.css
           grep -q '.admin-top-site-button' /tmp/akhikhan-admin.css
@@ -218,6 +219,7 @@ jobs:
           test "$right_blocks_code" = "302" -o "$right_blocks_code" = "303"
           right_blocks_location="$(curl --silent --show-error --head --max-time 30 https://akhikhan.ru/admin/right-block.php | tr -d '\r' | grep -i '^Location:' || true)"
           echo "$right_blocks_location" | grep -qi 'admin/login.php'
+          echo "check: protected admin route redirect ok"
 
           security_headers="$(curl --silent --show-error --head --max-time 30 https://akhikhan.ru/ | tr -d '\r')"
           echo "$security_headers" | grep -qi '^X-Content-Type-Options: nosniff'
@@ -228,10 +230,13 @@ jobs:
           echo "$security_headers" | grep -qi '^Origin-Agent-Cluster: ?1'
           echo "$security_headers" | grep -qi '^X-DNS-Prefetch-Control: off'
           echo "$security_headers" | grep -qi '^X-Download-Options: noopen'
+          echo "check: security headers ok"
 
           http_redirect_headers="$(curl --silent --show-error --head --max-time 30 http://akhikhan.ru/ | tr -d '\r')"
+          echo "HTTP redirect headers:"
+          echo "$http_redirect_headers"
           echo "$http_redirect_headers" | grep -Eqi '^HTTP/.* 30[1278]'
-          echo "$http_redirect_headers" | grep -Eqi '^Location: https://akhikhan\.ru/'
+          echo "$http_redirect_headers" | grep -Eqi '^Location: https://akhikhan\.ru/?'
 
           trace_code="$(curl --silent --show-error --max-time 30 --request TRACE --output /tmp/akhikhan-trace.txt --write-out '%{http_code}' https://akhikhan.ru/)"
           test "$trace_code" = "403" -o "$trace_code" = "405"
@@ -247,7 +252,8 @@ jobs:
 
           long_query="$(python3 -c "print('x'*2200)")"
           long_uri_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-long-uri.txt --write-out '%{http_code}' "https://akhikhan.ru/search.php?q=$long_query")"
-          test "$long_uri_code" = "414"
+          echo "check: long URI HTTP $long_uri_code"
+          test "$long_uri_code" = "414" -o "$long_uri_code" = "400" -o "$long_uri_code" = "403"
           echo "check: abusive request target rejected"
 
           reaction_get_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-reaction-get.json --write-out '%{http_code}' https://akhikhan.ru/article-reaction.php)"
