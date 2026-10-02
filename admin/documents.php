@@ -78,6 +78,8 @@ if($id){
 }
 
 $rows=db()->query('SELECT * FROM documents ORDER BY document_date DESC,id DESC')->fetchAll();
+$documentsPager=admin_paginate_array($rows,10,'page');
+$rows=$documentsPager['items'];
 $adminTitle='Документы';
 require __DIR__.'/_top.php';
 ?>
@@ -191,6 +193,7 @@ require __DIR__.'/_top.php';
           </article>
         <?php endforeach;?>
       </div>
+      <?php render_admin_pagination('admin/documents.php',$documentsPager['page'],$documentsPager['total_pages'],[],'page','Страницы документов'); ?>
     <?php else:?>
       <div class="document-admin-empty">
         <b>Документов пока нет</b>
