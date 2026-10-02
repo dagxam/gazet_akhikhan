@@ -72,7 +72,12 @@ $privacyBannerLink2Url=$privacyBannerUrl(setting('privacy_banner_link2_url','coo
           $socialLabel=$social['label'] ?: social_service_name($social['service']);
         ?>
           <a href="<?=e($social['url'])?>" <?=str_starts_with(strtolower($social['url']),'mailto:')?'':'target="_blank" rel="noopener"'?> aria-label="<?=e($socialLabel)?>" title="<?=e($socialLabel)?>">
-            <i class="<?=e(social_service_icon($social['service']))?>" aria-hidden="true"></i>
+            <?php $socialAsset=social_service_asset((string)$social['service']); ?>
+            <?php if($socialAsset!==''):?>
+              <img class="social-service-image" src="<?=e(base_url($socialAsset))?>" alt="" aria-hidden="true">
+            <?php else:?>
+              <i class="<?=e(social_service_icon($social['service']))?>" aria-hidden="true"></i>
+            <?php endif;?>
           </a>
         <?php endforeach;?>
       </div>
