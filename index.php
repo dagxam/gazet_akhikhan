@@ -131,7 +131,10 @@ require __DIR__ . '/partials/header.php';
           <span class="district-magazine-category">Новости района</span>
           <h3><a href="<?=e(article_url($lead))?>"><?=e($lead['title'])?></a></h3>
           <time datetime="<?=e(date('Y-m-d',strtotime($lead['published_at'] ?: $lead['created_at'])))?>"><?=e(ru_date($lead['published_at'] ?: $lead['created_at']))?></time>
-          <?php if(!empty($lead['excerpt'])):?><p><?=e(rich_text_excerpt($lead['excerpt'],260))?></p><?php endif;?>
+          <?php
+            $leadSummary=rich_text_excerpt($lead['excerpt'] ?: $lead['content'],260);
+          ?>
+          <?php if($leadSummary!==''):?><p class="district-news-summary"><?=e($leadSummary)?></p><?php endif;?>
         </div>
       </article>
 
@@ -149,6 +152,8 @@ require __DIR__ . '/partials/header.php';
             <div class="district-magazine-card-copy">
               <span class="district-magazine-category">Новости района</span>
               <h3><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h3>
+              <?php $itemSummary=rich_text_excerpt($item['excerpt'] ?: $item['content'],145); ?>
+              <?php if($itemSummary!==''):?><p class="district-news-summary"><?=e($itemSummary)?></p><?php endif;?>
               <time datetime="<?=e(date('Y-m-d',strtotime($item['published_at'] ?: $item['created_at'])))?>"><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></time>
             </div>
           </article>
@@ -191,6 +196,8 @@ require __DIR__ . '/partials/header.php';
                 <div class="home-news-three-copy">
                   <span class="article-label">Региональные новости</span>
                   <h4><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h4>
+                  <?php $rowSummary=rich_text_excerpt($item['excerpt'] ?: $item['content'],150); ?>
+                  <?php if($rowSummary!==''):?><p class="home-news-summary"><?=e($rowSummary)?></p><?php endif;?>
                   <div class="article-meta"><span><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></span><span>◉ <?=number_format((int)$item['views'],0,'.',' ')?></span></div>
                 </div>
               </article>
@@ -227,6 +234,8 @@ require __DIR__ . '/partials/header.php';
                 <div class="home-news-three-copy">
                   <span class="article-label">Спорт</span>
                   <h4><a href="<?=e(article_url($item))?>"><?=e($item['title'])?></a></h4>
+                  <?php $rowSummary=rich_text_excerpt($item['excerpt'] ?: $item['content'],150); ?>
+                  <?php if($rowSummary!==''):?><p class="home-news-summary"><?=e($rowSummary)?></p><?php endif;?>
                   <div class="article-meta"><span><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></span><span>◉ <?=number_format((int)$item['views'],0,'.',' ')?></span></div>
                 </div>
               </article>
@@ -430,12 +439,21 @@ require __DIR__ . '/partials/header.php';
   <?php endif;?>
 </section>
 
-<section class="heritage-feature">
-  <div class="heritage-visual"></div>
+<section class="heritage-feature editorial-heritage">
+  <figure class="heritage-visual">
+    <img
+      src="https://upload.wikimedia.org/wikipedia/commons/4/49/%D0%9F%D0%BE%D1%81._%D0%A8%D0%B0%D0%BC%D0%B8%D0%BB%D1%8C%D0%BA%D0%B0%D0%BB%D0%B0%2C_%D0%94%D0%B0%D0%B3%D0%B5%D1%81%D1%82%D0%B0%D0%BD.png"
+      alt="Шамилькала, Унцукульский район Дагестана"
+      loading="lazy"
+      referrerpolicy="no-referrer">
+    <figcaption>
+      Фото: Аль-Гимравий / Wikimedia Commons · CC BY-SA 4.0
+    </figcaption>
+  </figure>
   <div class="heritage-feature-copy">
     <span class="heading-kicker">Унцукульский район</span>
     <h2>Традиции, которые остаются живыми</h2>
-    <p>Горный Дагестан, ремёсла, семейная память, история селений и судьбы людей — важная часть редакционной повестки «АХИХЪАН».</p>
+    <p>Люди, ремёсла, семейная память, история селений и современная жизнь района — темы, которые связывают сегодняшние новости с культурой и характером родного края.</p>
     <div class="heritage-links">
       <a href="<?=e(nav_link_for_slug('kultura','Культура'))?>">Культура →</a>
       <a href="<?=e(nav_link_for_slug('istoriya','История'))?>">История →</a>
