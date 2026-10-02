@@ -20,24 +20,55 @@ if(!$category){
 
 $q=db()->prepare("SELECT a.*,? AS category_name,? AS category_slug
 FROM articles a
-INNER JOIN article_categories ac ON ac.article_id=a.id
-WHERE ac.category_id=? AND a.status='published'
+WHERE a.status='published'
 AND (a.published_at IS NULL OR a.published_at<=CURRENT_TIMESTAMP)
+AND (
+  a.category_id=?
+  OR EXISTS (
+    SELECT 1 FROM article_categories ac
+    WHERE ac.article_id=a.id AND ac.category_id=?
+  )
+)
 ORDER BY COALESCE(a.published_at,a.created_at) DESC");
-$q->execute([$category['name'],$category['slug'],$category['id']]);
+$q->execute([$category['name'],$category['slug'],$category['id'],$category['id']]);
 $articles=$q->fetchAll();
 
 $pageTitle=$category['name'];
 $pageDescription=rich_text_excerpt($category['description']??'',260) ?: 'Публикации рубрики «'.$category['name'].'» сетевого издания «АХИХЪАН».';
 $seoCanonical=category_url($category);
-$seoJsonLd=[[
-  '@context'=>'https://schema.org',
-  '@type'=>'BreadcrumbList',
-  'itemListElement'=>[
-    ['@type'=>'ListItem','position'=>1,'name'=>'Главная','item'=>base_url()],
-    ['@type'=>'ListItem','position'=>2,'name'=>(string)$category['name'],'item'=>$seoCanonical],
+$categoryItemList=[];
+foreach(array_slice($articles,0,20) as $index=>$item){
+  $categoryItemList[]=[
+    '@type'=>'ListItem',
+    'position'=>$index+1,
+    'url'=>article_url($item),
+    'name'=>(string)$item['title'],
+  ];
+}
+$seoJsonLd=[
+  [
+    '@context'=>'https://schema.org',
+    '@type'=>'BreadcrumbList',
+    'itemListElement'=>[
+      ['@type'=>'ListItem','position'=>1,'name'=>'Главная','item'=>base_url()],
+      ['@type'=>'ListItem','position'=>2,'name'=>(string)$category['name'],'item'=>$seoCanonical],
+    ],
   ],
-]];
+  [
+    '@context'=>'https://schema.org',
+    '@type'=>'CollectionPage',
+    '@id'=>$seoCanonical.'#collection',
+    'url'=>$seoCanonical,
+    'name'=>(string)$category['name'].' — АХИХЪАН',
+    'description'=>$pageDescription,
+    'isPartOf'=>['@id'=>base_url('#website')],
+    'mainEntity'=>[
+      '@type'=>'ItemList',
+      'numberOfItems'=>count($articles),
+      'itemListElement'=>$categoryItemList,
+    ],
+  ],
+];
 require __DIR__.'/partials/header.php';
 ?>
 <div class="wrap page-shell">
