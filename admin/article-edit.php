@@ -98,7 +98,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 $adminTitle=$id?'Редактирование новости':'Новая новость';
 require __DIR__.'/_top.php';
 
-$currentStatus=$article['status']??'draft';
+$currentStatus=$article['status']??'published';
 $currentTitle=$article['title']??'';
 $currentExcerpt=$article['excerpt']??'';
 $currentLocationRegion=$_SERVER['REQUEST_METHOD']==='POST' ? trim($_POST['location_region']??'') : ($article['location_region']??'');
