@@ -2929,3 +2929,23 @@ body.admin-theme-light .right-block-inner-switch{
   .privacy-banner-admin-preview button{grid-column:1/-1;width:100%}
 }
 
+/* MAX social icon asset — 2026-10-02 */
+.social-service-option .social-service-image{
+  width:22px;
+  height:22px;
+  object-fit:contain;
+  border-radius:6px;
+}
+.social-preview-strip .social-service-image{
+  width:18px;
+  height:18px;
+  object-fit:contain;
+  border-radius:5px;
+}
+.social-link-icon .social-service-image{
+  width:22px;
+  height:22px;
+  object-fit:contain;
+  border-radius:6px;
+}
+
