@@ -9673,6 +9673,23 @@ html.a11y-active .site-topbar-inner{
   padding-bottom:5px;
   flex-wrap:wrap;
 }
+html.a11y-active .reference-site-menu>a{
+  min-height:2.8rem!important;
+  padding:0 .8rem!important;
+  font-size:1rem!important;
+  line-height:1.2!important;
+}
+html.a11y-active .topbar-region,
+html.a11y-active .topbar-weather,
+html.a11y-active .topbar-accessibility,
+html.a11y-active .topbar-age-rating,
+html.a11y-active .topbar-admin-login,
+html.a11y-active .topbar-admin-trigger{
+  min-height:2.2rem!important;
+  height:auto!important;
+  font-size:.82rem!important;
+  line-height:1.2!important;
+}
 html.a11y-active .reference-site-menu>a,
 html.a11y-active main a,
 html.a11y-active button,
@@ -9871,10 +9888,10 @@ html.a11y-active[data-a11y-contrast="yellow-black"] a{
 }
 
 /* In contrast modes, article/home card text is moved onto a solid readable surface. */
-html.a11y-active[data-a11y-contrast!="normal"] .district-magazine-lead-copy,
-html.a11y-active[data-a11y-contrast!="normal"] .district-magazine-card-copy,
-html.a11y-active[data-a11y-contrast!="normal"] .home-news-three-copy,
-html.a11y-active[data-a11y-contrast!="normal"] .best-news-copy{
+html.a11y-active:not([data-a11y-contrast="normal"]) .district-magazine-lead-copy,
+html.a11y-active:not([data-a11y-contrast="normal"]) .district-magazine-card-copy,
+html.a11y-active:not([data-a11y-contrast="normal"]) .home-news-three-copy,
+html.a11y-active:not([data-a11y-contrast="normal"]) .best-news-copy{
   background:inherit!important;
 }
 
@@ -9902,6 +9919,15 @@ html.a11y-active[data-a11y-motion="reduce"] *::after{
 html.a11y-active .accessibility-panel,
 html.a11y-active .accessibility-panel *{
   font-family:Arial,Helvetica,sans-serif!important;
+}
+html.a11y-active .accessibility-panel button,
+html.a11y-active .accessibility-panel legend,
+html.a11y-active .accessibility-panel span{
+  font-size:.88rem!important;
+  line-height:1.35!important;
+}
+html.a11y-active .accessibility-panel h2{
+  font-size:1.6rem!important;
 }
 html.a11y-active[data-a11y-contrast="white-black"] .accessibility-panel,
 html.a11y-active[data-a11y-contrast="yellow-black"] .accessibility-panel{
