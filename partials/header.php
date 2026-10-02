@@ -16,6 +16,13 @@ $publicAdminUser = admin_user();
 
 $ageRatingEnabled=setting('age_rating_enabled','1')==='1';
 $ageRatingLabel=trim(setting('age_rating_label','16+')) ?: '16+';
+$ageRatingText=match($ageRatingLabel){
+    '0+'=>'для детей любого возраста',
+    '6+'=>'для детей старше 6 лет',
+    '12+'=>'для детей старше 12 лет',
+    '18+'=>'запрещено для детей',
+    default=>'для детей старше 16 лет',
+};
 $accessibilityEnabled=setting('accessibility_enabled','1')==='1';
 $accessibilityLabel=trim(setting('accessibility_label','Версия для слабовидящих')) ?: 'Версия для слабовидящих';
 $accessibilityDefaultFont=in_array(setting('accessibility_default_font','100'),['100','125','150','200'],true) ? setting('accessibility_default_font','100') : '100';
@@ -198,9 +205,9 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
       <?php endif;?>
 
       <?php if($ageRatingEnabled):?>
-        <span class="topbar-age-rating" title="Возрастное ограничение: <?=e($ageRatingLabel)?>" aria-label="Возрастное ограничение <?=e($ageRatingLabel)?>">
+        <span class="topbar-age-rating" title="<?=e($ageRatingText)?>" aria-label="Возрастное ограничение <?=e($ageRatingLabel)?>, <?=e($ageRatingText)?>">
           <b><?=e($ageRatingLabel)?></b>
-          <span>для детей старше 16 лет</span>
+          <span><?=e($ageRatingText)?></span>
         </span>
       <?php endif;?>
 
