@@ -33,6 +33,17 @@ $brandDefaults=[
   'admin_logo'=>'',
 ];
 
+$accessibilityDefaults=[
+  'accessibility_enabled'=>'1',
+  'accessibility_label'=>'Версия для слабовидящих',
+  'accessibility_default_font'=>'100',
+  'accessibility_default_contrast'=>'normal',
+  'accessibility_default_spacing'=>'normal',
+  'accessibility_default_reduce_motion'=>'1',
+  'age_rating_enabled'=>'1',
+  'age_rating_label'=>'16+',
+];
+
 if($_SERVER['REQUEST_METHOD']==='POST'){
   verify_csrf();
 
@@ -84,6 +95,39 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     }
     save_setting('privacy_banner_version',$bannerVersion);
 
+    save_setting('accessibility_enabled',!empty($_POST['accessibility_enabled']) ? '1' : '0');
+    save_setting('accessibility_default_reduce_motion',!empty($_POST['accessibility_default_reduce_motion']) ? '1' : '0');
+    save_setting('age_rating_enabled',!empty($_POST['age_rating_enabled']) ? '1' : '0');
+
+    $accessibilityLabel=trim((string)($_POST['accessibility_label']??$accessibilityDefaults['accessibility_label']));
+    if(function_exists('mb_substr')) $accessibilityLabel=mb_substr($accessibilityLabel,0,80,'UTF-8');
+    else $accessibilityLabel=substr($accessibilityLabel,0,80);
+    save_setting('accessibility_label',$accessibilityLabel!==''?$accessibilityLabel:$accessibilityDefaults['accessibility_label']);
+
+    $accessibilityFont=(string)($_POST['accessibility_default_font']??$accessibilityDefaults['accessibility_default_font']);
+    if(!in_array($accessibilityFont,['100','125','150','200'],true)){
+      throw new RuntimeException('Некорректный размер текста для версии повышенной доступности.');
+    }
+    save_setting('accessibility_default_font',$accessibilityFont);
+
+    $accessibilityContrast=(string)($_POST['accessibility_default_contrast']??$accessibilityDefaults['accessibility_default_contrast']);
+    if(!in_array($accessibilityContrast,['normal','black-white','white-black','yellow-black'],true)){
+      throw new RuntimeException('Некорректная контрастная схема.');
+    }
+    save_setting('accessibility_default_contrast',$accessibilityContrast);
+
+    $accessibilitySpacing=(string)($_POST['accessibility_default_spacing']??$accessibilityDefaults['accessibility_default_spacing']);
+    if(!in_array($accessibilitySpacing,['normal','wide'],true)){
+      throw new RuntimeException('Некорректная настройка интервалов.');
+    }
+    save_setting('accessibility_default_spacing',$accessibilitySpacing);
+
+    $ageRating=(string)($_POST['age_rating_label']??$accessibilityDefaults['age_rating_label']);
+    if(!in_array($ageRating,['0+','6+','12+','16+','18+'],true)){
+      throw new RuntimeException('Возрастная маркировка должна быть 0+, 6+, 12+, 16+ или 18+.');
+    }
+    save_setting('age_rating_label',$ageRating);
+
     foreach($textKeys as $k){
       $value=($k==='editor_note') ? sanitize_rich_text($_POST[$k]??'') : trim($_POST[$k]??'');
       save_setting($k,$value);
@@ -129,6 +173,11 @@ $adminLogo=branding_asset('admin_logo','assets/img/akhikhan-logo-transparent.web
 $privacyBanner=[];
 foreach($privacyBannerDefaults as $key=>$default){
   $privacyBanner[$key]=setting($key,$default);
+}
+
+$accessibilitySettings=[];
+foreach($accessibilityDefaults as $key=>$default){
+  $accessibilitySettings[$key]=setting($key,$default);
 }
 
 $adminTitle='Настройки сайта';
@@ -191,6 +240,102 @@ require __DIR__.'/_top.php';
             <span>VK, Одноклассники, MAX, Дзен, Rutube, Telegram и другие ссылки теперь управляются отдельно.</span>
           </div>
           <a href="<?=e(base_url('admin/social-links.php'))?>">Открыть «Мы в соцсетях» →</a>
+        </div>
+      </section>
+
+      <section class="editor-card settings-section-card" id="accessibility-settings">
+        <div class="settings-section-head">
+          <span class="settings-section-icon"><i class="fa-regular fa-eye" aria-hidden="true"></i></span>
+          <div>
+            <h3>Версия для слабовидящих</h3>
+            <p>Настройка режима повышенной доступности и возрастной маркировки сайта.</p>
+          </div>
+        </div>
+
+        <div class="accessibility-admin-intro">
+          <div class="accessibility-admin-badge"><i class="fa-solid fa-universal-access"></i></div>
+          <div>
+            <b>Режим повышенной доступности</b>
+            <p>Кнопка в верхней панели открывает пользовательские настройки размера текста, контраста, интервалов, изображений и анимации. Это техническая помощь для доступности и не заменяет проверку самого контента, PDF-документов и юридического статуса сайта.</p>
+          </div>
+        </div>
+
+        <label class="featured-switch">
+          <input type="checkbox" name="accessibility_enabled" value="1" <?=$accessibilitySettings['accessibility_enabled']==='1'?'checked':''?>>
+          <span class="switch-ui"></span>
+          <span><b>Показывать «Версию для слабовидящих»</b><small>Кнопка с глазом будет доступна в верхней панели сайта на всех публичных страницах.</small></span>
+        </label>
+
+        <div class="settings-two-col">
+          <label class="field-modern compact">
+            <span>Подпись кнопки</span>
+            <input name="accessibility_label" maxlength="80" value="<?=e($accessibilitySettings['accessibility_label'])?>">
+          </label>
+          <label class="field-modern compact">
+            <span>Размер текста по умолчанию</span>
+            <select name="accessibility_default_font">
+              <?php foreach(['100'=>'100%','125'=>'125%','150'=>'150%','200'=>'200%'] as $value=>$label):?>
+                <option value="<?=e($value)?>" <?=$accessibilitySettings['accessibility_default_font']===$value?'selected':''?>><?=e($label)?></option>
+              <?php endforeach;?>
+            </select>
+          </label>
+        </div>
+
+        <div class="settings-two-col">
+          <label class="field-modern compact">
+            <span>Контраст по умолчанию</span>
+            <select name="accessibility_default_contrast">
+              <option value="normal" <?=$accessibilitySettings['accessibility_default_contrast']==='normal'?'selected':''?>>Обычный</option>
+              <option value="black-white" <?=$accessibilitySettings['accessibility_default_contrast']==='black-white'?'selected':''?>>Чёрный текст / белый фон</option>
+              <option value="white-black" <?=$accessibilitySettings['accessibility_default_contrast']==='white-black'?'selected':''?>>Белый текст / чёрный фон</option>
+              <option value="yellow-black" <?=$accessibilitySettings['accessibility_default_contrast']==='yellow-black'?'selected':''?>>Жёлтый текст / чёрный фон</option>
+            </select>
+          </label>
+          <label class="field-modern compact">
+            <span>Интервалы по умолчанию</span>
+            <select name="accessibility_default_spacing">
+              <option value="normal" <?=$accessibilitySettings['accessibility_default_spacing']==='normal'?'selected':''?>>Обычные</option>
+              <option value="wide" <?=$accessibilitySettings['accessibility_default_spacing']==='wide'?'selected':''?>>Увеличенные</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="featured-switch">
+          <input type="checkbox" name="accessibility_default_reduce_motion" value="1" <?=$accessibilitySettings['accessibility_default_reduce_motion']==='1'?'checked':''?>>
+          <span class="switch-ui"></span>
+          <span><b>Минимум анимации по умолчанию</b><small>Отключаются декоративные переходы, масштабирование карточек и смена контента по наведению в доступной версии.</small></span>
+        </label>
+
+        <div class="accessibility-admin-divider"></div>
+
+        <div class="accessibility-age-settings">
+          <div>
+            <span class="heading-kicker">Возрастная маркировка</span>
+            <h4>Ограничение информационной продукции</h4>
+            <p>Для категории 16+ закон допускает знак «16+» и (или) текстовое предупреждение «для детей старше 16 лет». Используйте категорию, которая соответствует фактической классификации материалов редакцией.</p>
+          </div>
+
+          <div class="accessibility-age-controls">
+            <label class="featured-switch">
+              <input type="checkbox" name="age_rating_enabled" value="1" <?=$accessibilitySettings['age_rating_enabled']==='1'?'checked':''?>>
+              <span class="switch-ui"></span>
+              <span><b>Показывать возрастной знак</b><small>Знак размещается в верхней панели рядом с версией для слабовидящих.</small></span>
+            </label>
+
+            <label class="field-modern compact">
+              <span>Категория</span>
+              <select name="age_rating_label">
+                <?php foreach(['0+','6+','12+','16+','18+'] as $age):?>
+                  <option value="<?=e($age)?>" <?=$accessibilitySettings['age_rating_label']===$age?'selected':''?>><?=e($age)?></option>
+                <?php endforeach;?>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-hint-box accessibility-law-note">
+          <b>Технический ориентир</b>
+          <p>Настройки сделаны с учётом требований к доступности: работа с клавиатуры, заметный фокус, возможность увеличения текста, альтернативные контрастные схемы, читаемый шрифт и отключение лишней анимации. Для полного соответствия отдельно проверяются тексты ссылок, alt-описания изображений, формы, видео и доступность загружаемых PDF/документов.</p>
         </div>
       </section>
 
