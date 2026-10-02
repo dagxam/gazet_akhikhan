@@ -157,6 +157,11 @@ jobs:
           fi
           echo "Public privacy documents and links verified."
 
+          admin_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/admin.css?v=20261002-buttons1')"
+          test "$admin_css_code" = "200"
+          grep -q 'Unified admin buttons and top Open site action' /tmp/akhikhan-admin.css
+          grep -q '.admin-top-site-button' /tmp/akhikhan-admin.css
+
           right_blocks_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-right-blocks.html --write-out '%{http_code}' https://akhikhan.ru/admin/right-block.php)"
           test "$right_blocks_code" = "302" -o "$right_blocks_code" = "303"
           right_blocks_location="$(curl --silent --show-error --head --max-time 30 https://akhikhan.ru/admin/right-block.php | tr -d '\r' | grep -i '^Location:' || true)"
@@ -173,7 +178,7 @@ jobs:
           test "$(wc -c < /tmp/akhikhan-ornament.svg)" -gt 7000
           grep -q 'viewBox="0 0 2048 170"' /tmp/akhikhan-ornament.svg
 
-          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-header-max1')"
+          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-buttons1')"
           test "$public_css_code" = "200"
           grep -q 'ornament-footer-premium.svg' /tmp/akhikhan-style.css
           grep -q '.privacy-notice' /tmp/akhikhan-style.css
@@ -183,6 +188,7 @@ jobs:
           grep -q 'Homepage compact rounded refinement' /tmp/akhikhan-style.css
           grep -q 'Public documents page + homepage link' /tmp/akhikhan-style.css
           grep -q 'Header / MAX social polish' /tmp/akhikhan-style.css
+          grep -q 'Unified public buttons and action links' /tmp/akhikhan-style.css
           grep -q '.reference-brand-caption' /tmp/akhikhan-style.css
           grep -q '.social-service-image' /tmp/akhikhan-style.css
           grep -q '.home-news-summary' /tmp/akhikhan-style.css
