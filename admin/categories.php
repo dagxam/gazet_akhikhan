@@ -33,6 +33,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
   }
 }
 $rows=db()->query('SELECT c.*,(SELECT COUNT(*) FROM article_categories ac WHERE ac.category_id=c.id) article_count FROM categories c ORDER BY sort_order,name')->fetchAll();
+$categoriesPager=admin_paginate_array($rows,15,'page');
+$rows=$categoriesPager['items'];
 $adminTitle='Рубрики';
 require __DIR__.'/_top.php';
 ?>
@@ -60,6 +62,7 @@ require __DIR__.'/_top.php';
     <td><?php if((int)$r['article_count']===0):?><form method="post" onsubmit="return confirm('Удалить рубрику?')"><input type="hidden" name="csrf" value="<?=e(csrf_token())?>"><input type="hidden" name="delete_id" value="<?=$r['id']?>"><button class="danger">Удалить</button></form><?php endif;?></td>
   </tr><?php endforeach;?>
   </tbody></table></div>
+  <?php render_admin_pagination('admin/categories.php',$categoriesPager['page'],$categoriesPager['total_pages'],[],'page','Страницы рубрик'); ?>
 </section>
 </div>
 <?php require __DIR__.'/_bottom.php'; ?>
