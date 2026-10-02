@@ -13,14 +13,23 @@ if (is_dir(ROOT_PATH . '/storage')) {
 }
 @ini_set('session.use_strict_mode','1');
 @ini_set('session.use_only_cookies','1');
+@ini_set('session.use_trans_sid','0');
 @ini_set('session.cookie_httponly','1');
 @ini_set('session.cookie_samesite','Lax');
+@ini_set('session.lazy_write','1');
+@ini_set('session.gc_maxlifetime',(string)(4*3600));
+
+if(session_status()===PHP_SESSION_NONE && session_name()==='PHPSESSID'){
+    @session_name('AKHSESSID');
+}
 
 $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
 if ($https) {
     @ini_set('session.cookie_secure','1');
 }
 session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
     'httponly' => true,
     'secure' => $https,
     'samesite' => 'Lax',
