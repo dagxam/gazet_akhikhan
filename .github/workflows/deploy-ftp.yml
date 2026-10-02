@@ -166,7 +166,7 @@ jobs:
           fi
           echo "Public privacy documents and links verified."
 
-          admin_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/admin.css?v=20261002-accessibility2')"
+          admin_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/admin.css?v=20261002-mainmenu1')"
           test "$admin_css_code" = "200"
           grep -q 'Unified admin buttons and top Open site action' /tmp/akhikhan-admin.css
           grep -q '.admin-top-site-button' /tmp/akhikhan-admin.css
@@ -174,7 +174,9 @@ jobs:
           grep -q 'Article multi-image gallery editor' /tmp/akhikhan-admin.css
           grep -q 'Accessibility settings' /tmp/akhikhan-admin.css
           grep -q 'Settings: sortable main menu + accessibility pro' /tmp/akhikhan-admin.css
-          grep -q '.settings-menu-sortable' /tmp/akhikhan-admin.css
+          grep -q 'Main menu editor location fix + dedicated sorting' /tmp/akhikhan-admin.css
+          grep -q '.settings-menu-editor-link' /tmp/akhikhan-admin.css
+          grep -q '.menu-sort-handle' /tmp/akhikhan-admin.css
           grep -q '.accessibility-admin-preview' /tmp/akhikhan-admin.css
           grep -q '#accessibility-settings' /tmp/akhikhan-admin.css
           grep -q '.article-gallery-dropzone' /tmp/akhikhan-admin.css
