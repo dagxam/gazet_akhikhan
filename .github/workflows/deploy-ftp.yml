@@ -241,10 +241,17 @@ jobs:
           test "$storage_code" = "403" -o "$storage_code" = "404"
 
           reaction_get_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-reaction-get.json --write-out '%{http_code}' https://akhikhan.ru/article-reaction.php)"
-          test "$reaction_get_code" = "405"
-
           reaction_cross_code="$(curl --silent --show-error --max-time 30 --request POST --data 'article_id=0&reaction=like&token=0123456789abcdef' --output /tmp/akhikhan-reaction-cross.json --write-out '%{http_code}' https://akhikhan.ru/article-reaction.php)"
-          test "$reaction_cross_code" = "403"
+
+          if [ "$code" = "200" ]; then
+            test "$reaction_get_code" = "405"
+            test "$reaction_cross_code" = "403"
+            echo "check: public reaction endpoint method/origin protection ok"
+          else
+            test "$reaction_get_code" = "503"
+            test "$reaction_cross_code" = "503"
+            echo "check: reaction endpoint correctly hidden by reconstruction mode"
+          fi
 
           echo "Homepage, hardened endpoints and security headers verified."
 
