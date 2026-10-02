@@ -8704,3 +8704,336 @@ svg{
   }
 }
 
+/* Homepage image-overlay news cards — 2026-10-02 */
+.home-news-meta{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:7px 12px;
+  margin-top:12px;
+  color:rgba(255,255,255,.82);
+  font:650 8.5px/1.25 var(--sans,Arial,sans-serif);
+}
+.home-news-meta>span,
+.home-news-meta>time{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  min-width:0;
+}
+.home-news-meta i{
+  font-size:8px;
+  opacity:.88;
+}
+.hero-story-meta{
+  margin:3px 0 17px;
+  color:rgba(255,255,255,.78);
+  font-size:9px;
+}
+.hero-story-copy h1{
+  display:-webkit-box;
+  overflow:hidden;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:3;
+}
+.hero-story-copy>p{
+  display:-webkit-box;
+  overflow:hidden;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:3;
+}
+.latest-item h3{
+  display:-webkit-box;
+  overflow:hidden;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:3;
+}
+.latest-item .tiny-meta{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+/* District cards: copy lives inside the photograph. */
+.home-shell .district-magazine-lead,
+.home-shell .district-magazine-card{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  border:0;
+  background:#2a241f;
+}
+.home-shell .district-magazine-lead{
+  min-height:540px;
+}
+.home-shell .district-magazine-card{
+  min-height:270px;
+}
+.home-shell .district-magazine-lead-image,
+.home-shell .district-magazine-card-image{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  width:100%;
+  height:100%;
+  aspect-ratio:auto!important;
+}
+.home-shell .district-magazine-lead-image img,
+.home-shell .district-magazine-card-image img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.home-shell .district-magazine-lead:after,
+.home-shell .district-magazine-card:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  pointer-events:none;
+  background:linear-gradient(180deg,rgba(17,15,13,.04) 25%,rgba(17,15,13,.38) 58%,rgba(17,15,13,.91) 100%);
+}
+.home-shell .district-magazine-lead-copy,
+.home-shell .district-magazine-card-copy{
+  position:relative;
+  z-index:2;
+  width:100%;
+  min-height:inherit;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  padding:24px!important;
+  color:#fff;
+  background:transparent!important;
+}
+.home-shell .district-magazine-card-copy{
+  padding:17px 18px!important;
+}
+.home-shell .district-magazine-category{
+  margin-bottom:8px;
+  color:#f1c58f!important;
+}
+.home-shell .district-magazine-lead h3,
+.home-shell .district-magazine-card h3{
+  max-width:100%;
+}
+.home-shell .district-magazine-lead h3 a,
+.home-shell .district-magazine-card h3 a{
+  color:#fff!important;
+}
+.home-shell .district-magazine-lead h3{
+  display:-webkit-box;
+  overflow:hidden;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:3;
+  font-size:clamp(27px,2.2vw,36px);
+  line-height:1.06;
+}
+.home-shell .district-magazine-card h3{
+  display:-webkit-box;
+  overflow:hidden;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:3;
+  font-size:17px;
+  line-height:1.16;
+}
+.home-shell .district-news-summary{
+  display:-webkit-box!important;
+  overflow:hidden;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2!important;
+  max-width:95%!important;
+  margin-top:10px!important;
+  color:rgba(255,255,255,.82)!important;
+  font-size:10.5px!important;
+  line-height:1.45!important;
+}
+.home-shell .district-magazine-lead .district-news-summary{
+  max-width:84%!important;
+  font-size:11.5px!important;
+}
+.home-shell .district-news-section .district-magazine-side-grid{
+  grid-template-rows:repeat(2,minmax(270px,1fr));
+  align-items:stretch;
+}
+.home-shell .district-news-section .district-magazine-card{
+  height:100%;
+  min-height:270px;
+}
+.home-shell .district-news-section .district-magazine-side-grid.items-1{
+  grid-template-rows:minmax(360px,1fr);
+}
+.home-shell .district-news-section .district-magazine-side-grid.items-2{
+  grid-template-rows:minmax(340px,1fr);
+}
+.home-shell .district-news-section .district-magazine-side-grid.items-3 .district-magazine-card:last-child{
+  display:block;
+  min-height:270px;
+}
+.home-shell .district-news-section .district-magazine-side-grid.items-3 .district-magazine-card:last-child .district-magazine-card-copy{
+  min-height:270px;
+  justify-content:flex-end;
+  padding:18px 20px!important;
+}
+
+/* Regional and sport cards: same image-first editorial language. */
+.home-shell .home-news-three-card{
+  position:relative;
+  isolation:isolate;
+  min-height:330px;
+  overflow:hidden;
+  border:0;
+  background:#2b2621;
+  box-shadow:var(--shadow-sm);
+}
+.home-shell .home-news-three-image{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  width:100%;
+  height:100%;
+  min-height:0!important;
+  aspect-ratio:auto!important;
+}
+.home-shell .home-news-three-image img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.home-shell .home-news-three-card:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  pointer-events:none;
+  background:linear-gradient(180deg,rgba(18,15,13,.02) 22%,rgba(18,15,13,.28) 50%,rgba(18,15,13,.92) 100%);
+}
+.home-shell .home-news-three-copy{
+  position:relative;
+  z-index:2;
+  min-height:330px;
+  justify-content:flex-end!important;
+  padding:18px!important;
+  color:#fff;
+  background:transparent!important;
+}
+.home-shell .home-news-three-copy .article-label{
+  color:#f0c18a!important;
+}
+.home-shell .home-news-three-copy h4{
+  display:-webkit-box;
+  overflow:hidden;
+  min-height:0!important;
+  margin-top:7px;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:3;
+  color:#fff;
+  font-size:18px;
+  line-height:1.15;
+}
+.home-shell .home-news-three-copy h4 a{
+  color:#fff!important;
+}
+.home-shell .home-news-summary{
+  display:-webkit-box;
+  overflow:hidden;
+  margin-top:9px;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2!important;
+  color:rgba(255,255,255,.8)!important;
+  font-size:10.5px!important;
+  line-height:1.45!important;
+}
+.home-shell .home-news-three-grid.items-1 .home-news-three-card{
+  display:block;
+  min-height:370px;
+}
+.home-shell .home-news-three-grid.items-1 .home-news-three-image{
+  min-height:0!important;
+}
+.home-shell .home-news-three-grid.items-1 .home-news-three-copy{
+  min-height:370px;
+  justify-content:flex-end!important;
+  padding:24px!important;
+}
+.home-shell .home-news-three-grid.items-1 .home-news-three-copy h4{
+  max-width:760px;
+  font-size:26px;
+  -webkit-line-clamp:3;
+}
+.home-shell .home-news-three-grid.items-1 .home-news-summary{
+  max-width:720px;
+  -webkit-line-clamp:2!important;
+  font-size:11.5px!important;
+}
+.home-shell .home-news-three-card:hover img,
+.home-shell .district-magazine-lead:hover img,
+.home-shell .district-magazine-card:hover img{
+  transform:scale(1.025);
+}
+
+/* Placeholder cards remain readable when no image is uploaded. */
+.home-shell .district-magazine-placeholder,
+.home-shell .home-news-three-placeholder{
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(145deg,#786550,#3c3229);
+  color:rgba(255,255,255,.7);
+}
+
+/* Mobile overlay proportions. */
+@media(max-width:900px){
+  .home-shell .district-magazine-lead{
+    min-height:460px;
+  }
+  .home-shell .district-magazine-card{
+    min-height:290px;
+  }
+}
+@media(max-width:680px){
+  .home-shell .district-magazine-card{
+    display:block!important;
+    min-height:300px;
+  }
+  .home-shell .district-magazine-card-image{
+    min-height:0!important;
+    height:100%!important;
+  }
+  .home-shell .district-magazine-lead{
+    min-height:430px;
+  }
+  .home-shell .district-magazine-lead-copy,
+  .home-shell .district-magazine-card-copy{
+    min-height:inherit;
+  }
+  .home-shell .district-magazine-lead-copy{
+    padding:20px!important;
+  }
+  .home-shell .district-magazine-lead h3{
+    font-size:27px;
+  }
+  .home-shell .district-magazine-lead .district-news-summary{
+    max-width:100%!important;
+  }
+  .home-shell .home-news-three-card,
+  .home-shell .home-news-three-grid.items-1 .home-news-three-card{
+    display:block;
+    min-height:320px;
+  }
+  .home-shell .home-news-three-copy,
+  .home-shell .home-news-three-grid.items-1 .home-news-three-copy{
+    min-height:320px;
+    padding:18px!important;
+  }
+  .home-shell .home-news-three-grid.items-1 .home-news-three-copy h4{
+    font-size:21px;
+  }
+  .home-news-meta{
+    gap:6px 10px;
+    font-size:8px;
+  }
+}
+
