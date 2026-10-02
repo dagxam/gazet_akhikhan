@@ -54,6 +54,8 @@ if (APP_INSTALLED) {
     ensure_default_categories();
     ensure_article_categories_schema();
     ensure_article_location_schema();
+    ensure_article_images_schema();
+    ensure_article_reactions_schema();
     ensure_newspapers_schema();
     ensure_documents_schema();
     ensure_main_menu_schema();
