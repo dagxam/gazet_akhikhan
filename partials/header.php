@@ -146,7 +146,7 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@400;500;600;700;800&family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Noto+Serif:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20261002-documents1'))?>">
+<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20261002-header-max1'))?>">
 </head>
 <body>
 <a id="top"></a>
@@ -175,7 +175,12 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
             $socialLabel=$social['label'] ?: social_service_name($social['service']);
           ?>
             <a href="<?=e($social['url'])?>" <?=str_starts_with(strtolower($social['url']),'mailto:')?'':'target="_blank" rel="noopener"'?> aria-label="<?=e($socialLabel)?>" title="<?=e($socialLabel)?>">
-              <i class="<?=e(social_service_icon($social['service']))?>" aria-hidden="true"></i>
+              <?php $socialAsset=social_service_asset((string)$social['service']); ?>
+              <?php if($socialAsset!==''):?>
+                <img class="social-service-image" src="<?=e(base_url($socialAsset))?>" alt="" aria-hidden="true">
+              <?php else:?>
+                <i class="<?=e(social_service_icon($social['service']))?>" aria-hidden="true"></i>
+              <?php endif;?>
             </a>
           <?php endforeach;?>
         </div>
@@ -228,9 +233,15 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 
 <header class="reference-header" data-reference-header>
   <div class="wrap reference-header-inner">
-    <a class="reference-logo" href="<?=e(base_url())?>" aria-label="АХИХЪАН — главная">
-      <img src="<?=e(base_url($siteHeaderLogo))?>" alt="АХИХЪАН — сетевое издание Унцукульского района">
-    </a>
+    <div class="reference-brand">
+      <a class="reference-logo" href="<?=e(base_url())?>" aria-label="АХИХЪАН — главная">
+        <img src="<?=e(base_url($siteHeaderLogo))?>" alt="АХИХЪАН — сетевое издание Унцукульского района">
+      </a>
+      <span class="reference-brand-caption">
+        <b>Сетевое издание</b>
+        <small>Унцукульский район</small>
+      </span>
+    </div>
 
     <button class="menu-toggle reference-mobile-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
       <span></span><span></span><span></span><b>Меню</b>
@@ -238,8 +249,14 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 
     <div class="desktop-menu-shell reference-menu-shell" data-menu-shell>
       <nav class="site-menu reference-site-menu" id="site-menu" aria-label="Основная навигация">
-        <?php foreach($mainMenuItems as $menuItem):?>
-          <a href="<?=e(main_menu_url($menuItem['url']))?>" <?=$menuItem['open_new_tab']?'target="_blank" rel="noopener"':''?>><?=e($menuItem['label'])?></a>
+        <?php foreach($mainMenuItems as $menuItem):
+          $menuHref=main_menu_url((string)$menuItem['url']);
+          $menuPath=(string)(parse_url($menuHref,PHP_URL_PATH) ?: '/');
+          $currentPath=rtrim($requestPath,'/') ?: '/';
+          $normalizedMenuPath=rtrim($menuPath,'/') ?: '/';
+          $isCurrentMenu=$currentPath===$normalizedMenuPath;
+        ?>
+          <a class="<?=$isCurrentMenu?'is-current':''?>" href="<?=e($menuHref)?>" <?=$menuItem['open_new_tab']?'target="_blank" rel="noopener"':''?> <?=$isCurrentMenu?'aria-current="page"':''?>><?=e($menuItem['label'])?></a>
         <?php endforeach;?>
       </nav>
 
