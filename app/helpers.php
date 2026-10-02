@@ -517,6 +517,108 @@ function security_client_ip(): string
     return substr($ip,0,80);
 }
 
+function security_same_origin_post(): bool
+{
+    $siteHost=strtolower((string)(parse_url(base_url(),PHP_URL_HOST) ?: ''));
+    if($siteHost==='') return false;
+
+    foreach(['HTTP_ORIGIN','HTTP_REFERER'] as $key){
+        $raw=trim((string)($_SERVER[$key]??''));
+        if($raw==='') continue;
+        $host=strtolower((string)(parse_url($raw,PHP_URL_HOST) ?: ''));
+        return $host!=='' && hash_equals($siteHost,$host);
+    }
+
+    return false;
+}
+
+function require_same_origin_post(): void
+{
+    if(($_SERVER['REQUEST_METHOD']??'GET')!=='POST' || !security_same_origin_post()){
+        http_response_code(403);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['ok'=>false,'error'=>'Запрос отклонён.'],JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+}
+
+function security_rate_limit(string $namespace, string $identity, int $limit, int $windowSeconds, int $cooldownSeconds = 0, bool $record = true): array
+{
+    $namespace=preg_replace('/[^a-z0-9_-]+/i','-',strtolower($namespace)) ?: 'request';
+    $limit=max(1,min(1000,$limit));
+    $windowSeconds=max(1,min(86400,$windowSeconds));
+    $cooldownSeconds=max(0,min(86400,$cooldownSeconds));
+
+    $dir=ROOT_PATH.'/storage/security';
+    if(!is_dir($dir)) @mkdir($dir,0775,true);
+
+    $key=hash('sha256',$namespace.'|'.$identity);
+    $file=$dir.'/rate-'.$namespace.'-'.$key.'.json';
+    $now=time();
+    $state=['events'=>[],'blocked_until'=>0];
+
+    $fp=@fopen($file,'c+');
+    if(!$fp) return ['blocked'=>false,'remaining'=>0,'count'=>0];
+
+    if(!@flock($fp,LOCK_EX)){
+        fclose($fp);
+        return ['blocked'=>false,'remaining'=>0,'count'=>0];
+    }
+
+    rewind($fp);
+    $raw=stream_get_contents($fp);
+    if(is_string($raw) && trim($raw)!==''){
+        $decoded=json_decode($raw,true);
+        if(is_array($decoded)) $state=array_merge($state,$decoded);
+    }
+
+    $events=[];
+    foreach((array)($state['events']??[]) as $ts){
+        $ts=(int)$ts;
+        if($ts>=$now-$windowSeconds && $ts<=$now+60) $events[]=$ts;
+    }
+    $blockedUntil=(int)($state['blocked_until']??0);
+    if($blockedUntil<=$now) $blockedUntil=0;
+
+    $blocked=$blockedUntil>$now || count($events)>=$limit;
+
+    if($record && !$blocked){
+        $events[]=$now;
+        if(count($events)>=$limit && $cooldownSeconds>0){
+            $blockedUntil=$now+$cooldownSeconds;
+            $blocked=true;
+        }
+    }
+
+    if(count($events)>$limit+4){
+        $events=array_slice($events,-($limit+4));
+    }
+
+    rewind($fp);
+    ftruncate($fp,0);
+    fwrite($fp,json_encode(['events'=>$events,'blocked_until'=>$blockedUntil],JSON_UNESCAPED_SLASHES));
+    fflush($fp);
+    flock($fp,LOCK_UN);
+    fclose($fp);
+
+    $remaining=0;
+    if($blockedUntil>$now){
+        $remaining=$blockedUntil-$now;
+    }elseif(count($events)>=$limit && $events){
+        $remaining=max(1,($events[0]+$windowSeconds)-$now);
+    }
+
+    return ['blocked'=>$blocked,'remaining'=>$remaining,'count'=>count($events)];
+}
+
+function security_once_per_window(string $namespace, string $identity, int $windowSeconds): bool
+{
+    $state=security_rate_limit($namespace,$identity,1,$windowSeconds,0,false);
+    if(!empty($state['blocked'])) return false;
+    security_rate_limit($namespace,$identity,1,$windowSeconds,0,true);
+    return true;
+}
+
 function security_login_bucket_path(): string
 {
     $dir=ROOT_PATH.'/storage/security';
@@ -582,20 +684,68 @@ function security_login_bucket(bool $recordFailure = false): array
     ];
 }
 
-function login_rate_limit_status(): array
+function security_login_account_bucket(string $email, bool $recordFailure = false): array
 {
-    return security_login_bucket(false);
+    $email=strtolower(trim($email));
+    if($email==='') return ['blocked'=>false,'remaining'=>0,'count'=>0];
+
+    return security_rate_limit(
+        'login-account',
+        $email,
+        12,
+        30*60,
+        30*60,
+        $recordFailure
+    );
 }
 
-function login_rate_limit_failure(): array
+function login_rate_limit_status(string $email = ''): array
 {
-    return security_login_bucket(true);
+    $ip=security_login_bucket(false);
+    $account=security_login_account_bucket($email,false);
+    return [
+        'blocked'=>!empty($ip['blocked']) || !empty($account['blocked']),
+        'remaining'=>max((int)($ip['remaining']??0),(int)($account['remaining']??0)),
+        'count'=>max((int)($ip['count']??0),(int)($account['count']??0)),
+    ];
 }
 
-function login_rate_limit_clear(): void
+function login_rate_limit_failure(string $email = ''): array
+{
+    $ip=security_login_bucket(true);
+    $account=security_login_account_bucket($email,true);
+    return [
+        'blocked'=>!empty($ip['blocked']) || !empty($account['blocked']),
+        'remaining'=>max((int)($ip['remaining']??0),(int)($account['remaining']??0)),
+        'count'=>max((int)($ip['count']??0),(int)($account['count']??0)),
+    ];
+}
+
+function login_rate_limit_clear(string $email = ''): void
 {
     $file=security_login_bucket_path();
     if(is_file($file)) @unlink($file);
+
+    $email=strtolower(trim($email));
+    if($email!==''){
+        $dir=ROOT_PATH.'/storage/security';
+        $key=hash('sha256','login-account|'.$email);
+        $accountFile=$dir.'/rate-login-account-'.$key.'.json';
+        if(is_file($accountFile)) @unlink($accountFile);
+    }
+}
+
+function should_count_article_view(int $articleId): bool
+{
+    if($articleId<1) return false;
+
+    $ua=strtolower((string)($_SERVER['HTTP_USER_AGENT']??''));
+    if($ua!=='' && preg_match('/(?:bot|crawler|spider|slurp|bingpreview|facebookexternalhit|telegrambot|whatsapp|yandex)/i',$ua)){
+        return false;
+    }
+
+    $identity=security_client_ip().'|'.$articleId;
+    return security_once_per_window('article-view',$identity,30*60);
 }
 
 function contact_form_bucket_path(): string
