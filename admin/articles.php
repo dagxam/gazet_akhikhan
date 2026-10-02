@@ -7,7 +7,17 @@ $page=max(1,(int)($_GET['page']??1));
 
 if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['delete_id'])){
   verify_csrf();
-  db()->prepare('DELETE FROM articles WHERE id=?')->execute([(int)$_POST['delete_id']]);
+  $deleteId=(int)$_POST['delete_id'];
+  $q=db()->prepare('SELECT cover_image FROM articles WHERE id=? LIMIT 1');
+  $q->execute([$deleteId]);
+  $deleteArticle=$q->fetch();
+  if($deleteArticle){
+    foreach(article_images($deleteId) as $image){
+      safe_delete_article_image($image['image_path']??null);
+    }
+    safe_delete_article_image($deleteArticle['cover_image']??null);
+    db()->prepare('DELETE FROM articles WHERE id=?')->execute([$deleteId]);
+  }
   $returnPage=max(1,(int)($_POST['page']??1));
   header('Location: '.base_url('admin/articles.php?page='.$returnPage));
   exit;
