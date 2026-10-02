@@ -1,4 +1,4 @@
-<?php require_admin(); $me=admin_user(); $maintenanceOn=maintenance_mode_enabled(); $adminTheme=admin_theme_name(); $adminLogo=branding_asset('admin_logo','assets/img/akhikhan-logo-transparent.webp'); $siteFavicon=branding_asset('site_favicon','assets/img/seal.svg'); ?><!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><title><?=e($adminTitle ?? 'Админ-панель')?> — АХИХЪАН</title><link rel="icon" href="<?=e(base_url($siteFavicon))?>"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@400;500;600;700;800&family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Noto+Serif:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"><link rel="stylesheet" href="<?=e(base_url('assets/css/admin.css?v=20261002-max-icon1'))?>"></head><body class="admin-theme-<?=e($adminTheme)?>">
+<?php require_admin(); $me=admin_user(); $maintenanceOn=maintenance_mode_enabled(); $adminTheme=admin_theme_name(); $adminLogo=branding_asset('admin_logo','assets/img/akhikhan-logo-transparent.webp'); $siteFavicon=branding_asset('site_favicon','assets/img/seal.svg'); ?><!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><title><?=e($adminTitle ?? 'Админ-панель')?> — АХИХЪАН</title><link rel="icon" href="<?=e(base_url($siteFavicon))?>"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@400;500;600;700;800&family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Noto+Serif:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"><link rel="stylesheet" href="<?=e(base_url('assets/css/admin.css?v=20261002-buttons1'))?>"></head><body class="admin-theme-<?=e($adminTheme)?>">
 <aside class="admin-side">
   <?php
     $adminPage=basename((string)($_SERVER['PHP_SELF']??''));
@@ -73,11 +73,6 @@
         </a>
       </div>
     </details>
-    <a class="admin-nav-link admin-nav-site" href="<?=e(base_url())?>" target="_blank" rel="noopener">
-      <span class="admin-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19h14V5h-6"></path><path d="M13 4h7v7M20 4l-9 9"></path></svg></span>
-      <span>Открыть сайт</span>
-      <b>↗</b>
-    </a>
   </nav>
 
   <div class="admin-side-bottom">
@@ -111,4 +106,18 @@
     </div>
   </div>
 </aside>
-<div class="admin-main"><header class="admin-top"><button class="menu-toggle">☰</button><div class="admin-top-copy"><span>Редакционная панель</span><h1><?=e($adminTitle ?? 'Админ-панель')?></h1></div></header><main class="admin-content">
+<div class="admin-main">
+  <header class="admin-top">
+    <button class="menu-toggle" type="button" aria-label="Открыть меню">☰</button>
+    <div class="admin-top-copy">
+      <span>Редакционная панель</span>
+      <h1><?=e($adminTitle ?? 'Админ-панель')?></h1>
+    </div>
+    <div class="admin-top-actions">
+      <a class="admin-top-site-button" href="<?=e(base_url())?>" target="_blank" rel="noopener">
+        <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+        <span>Открыть сайт</span>
+      </a>
+    </div>
+  </header>
+  <main class="admin-content">
