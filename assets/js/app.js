@@ -444,27 +444,44 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
   const resetButton=panel.querySelector('[data-accessibility-reset]');
   const standardButton=panel.querySelector('[data-accessibility-standard]');
   const status=panel.querySelector('[data-accessibility-status]');
+  const summary=panel.querySelector('[data-accessibility-summary]');
+  const stateLabel=toggle.querySelector('[data-accessibility-state-label]');
+  const presetButtons=[...panel.querySelectorAll('[data-a11y-preset]')];
   const fontButtons=[...panel.querySelectorAll('[data-a11y-font]')];
   const contrastButtons=[...panel.querySelectorAll('[data-a11y-contrast]')];
   const spacingButton=panel.querySelector('[data-a11y-spacing]');
   const grayscaleButton=panel.querySelector('[data-a11y-grayscale]');
   const motionButton=panel.querySelector('[data-a11y-motion]');
   const root=document.documentElement;
-  const storageKey='akhikhan_accessibility_v1';
+  const storageKey='akhikhan_accessibility_v2';
 
   const defaults={
     active:false,
     font:['100','125','150','200'].includes(panel.dataset.defaultFont)?panel.dataset.defaultFont:'100',
     contrast:['normal','black-white','white-black','yellow-black'].includes(panel.dataset.defaultContrast)?panel.dataset.defaultContrast:'normal',
     spacing:panel.dataset.defaultSpacing==='wide'?'wide':'normal',
-    grayscale:false,
+    grayscale:panel.dataset.defaultGrayscale==='true',
     motion:panel.dataset.defaultMotion==='reduce'?'reduce':'normal'
   };
 
   function readState(){
     try{
       const raw=window.localStorage.getItem(storageKey);
-      if(!raw) return {...defaults};
+      if(!raw){
+        const legacy=window.localStorage.getItem('akhikhan_accessibility_v1');
+        if(legacy){
+          const parsedLegacy=JSON.parse(legacy);
+          return {
+            active:parsedLegacy.active===true,
+            font:['100','125','150','200'].includes(String(parsedLegacy.font))?String(parsedLegacy.font):defaults.font,
+            contrast:['normal','black-white','white-black','yellow-black'].includes(parsedLegacy.contrast)?parsedLegacy.contrast:defaults.contrast,
+            spacing:parsedLegacy.spacing==='wide'?'wide':'normal',
+            grayscale:parsedLegacy.grayscale===true,
+            motion:parsedLegacy.motion==='reduce'?'reduce':'normal'
+          };
+        }
+        return {...defaults};
+      }
       const parsed=JSON.parse(raw);
       return {
         active:parsed.active===true,
@@ -479,11 +496,27 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
     }
   }
 
-  function saveState(state){
-    try{window.localStorage.setItem(storageKey,JSON.stringify(state));}catch(e){}
+  function saveState(nextState){
+    try{window.localStorage.setItem(storageKey,JSON.stringify(nextState));}catch(e){}
   }
 
   let state=readState();
+
+  function summaryText(){
+    const bits=[];
+    bits.push(state.font+'%');
+    const contrastLabels={
+      normal:'обычный контраст',
+      'black-white':'чёрный / белый',
+      'white-black':'белый / чёрный',
+      'yellow-black':'жёлтый / чёрный'
+    };
+    bits.push(contrastLabels[state.contrast]||'обычный контраст');
+    if(state.spacing==='wide') bits.push('увеличенные интервалы');
+    if(state.grayscale) bits.push('ч/б изображения');
+    if(state.motion==='reduce') bits.push('без анимации');
+    return bits.join(' · ');
+  }
 
   function applyState(announce){
     root.classList.toggle('a11y-active',state.active);
@@ -495,6 +528,7 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
 
     toggle.setAttribute('aria-pressed',state.active?'true':'false');
     toggle.classList.toggle('is-active',state.active);
+    if(stateLabel) stateLabel.textContent=state.active?'Вкл.':'Выкл.';
 
     fontButtons.forEach(button=>{
       const active=button.dataset.a11yFont===state.font;
@@ -509,19 +543,48 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
     if(spacingButton) spacingButton.setAttribute('aria-pressed',state.spacing==='wide'?'true':'false');
     if(grayscaleButton) grayscaleButton.setAttribute('aria-pressed',state.grayscale?'true':'false');
     if(motionButton) motionButton.setAttribute('aria-pressed',state.motion==='reduce'?'true':'false');
+    if(summary) summary.textContent=state.active?summaryText():'Обычная версия сайта';
+
+    presetButtons.forEach(button=>button.classList.remove('is-active'));
 
     saveState(state);
     if(announce&&status){
-      status.textContent=state.active?'Настройки доступности применены.':'Обычная версия сайта включена.';
-      window.setTimeout(()=>{status.textContent='';},2200);
+      status.textContent=state.active?'Настройки применены.':'Обычная версия сайта включена.';
+      window.setTimeout(()=>{status.textContent='';},1800);
     }
+  }
+
+  function applyPreset(name){
+    state.active=true;
+    if(name==='comfortable'){
+      state.font='150';
+      state.contrast='normal';
+      state.spacing='wide';
+      state.grayscale=false;
+      state.motion='reduce';
+    }else if(name==='contrast'){
+      state.font='125';
+      state.contrast='white-black';
+      state.spacing='wide';
+      state.grayscale=false;
+      state.motion='reduce';
+    }else if(name==='calm'){
+      state.font='125';
+      state.contrast='normal';
+      state.spacing='normal';
+      state.grayscale=true;
+      state.motion='reduce';
+    }
+    applyState(true);
+    presetButtons.forEach(button=>button.classList.toggle('is-active',button.dataset.a11yPreset===name));
   }
 
   function openPanel(){
     panel.hidden=false;
     toggle.setAttribute('aria-expanded','true');
+    document.body.classList.add('accessibility-panel-open');
     window.requestAnimationFrame(()=>{
-      const target=panel.querySelector('button,select,input,[tabindex]:not([tabindex="-1"])');
+      const target=panel.querySelector('[data-a11y-preset], [data-a11y-font], [data-a11y-contrast], [data-a11y-spacing], [data-a11y-grayscale], [data-a11y-motion], button');
       if(target) target.focus();
     });
   }
@@ -529,6 +592,7 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
   function closePanel(returnFocus){
     panel.hidden=true;
     toggle.setAttribute('aria-expanded','false');
+    document.body.classList.remove('accessibility-panel-open');
     if(returnFocus) toggle.focus();
   }
 
@@ -545,6 +609,10 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
   });
 
   if(closeButton) closeButton.addEventListener('click',()=>closePanel(true));
+
+  presetButtons.forEach(button=>{
+    button.addEventListener('click',()=>applyPreset(button.dataset.a11yPreset||''));
+  });
 
   fontButtons.forEach(button=>{
     button.addEventListener('click',()=>{
@@ -615,5 +683,5 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
   });
 
   applyState(false);
-})();
+})();;
 
