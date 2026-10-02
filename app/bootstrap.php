@@ -77,21 +77,57 @@ require_once ROOT_PATH . '/app/db.php';
 require_once ROOT_PATH . '/app/helpers.php';
 
 if (APP_INSTALLED) {
-    ensure_default_categories();
-    ensure_article_categories_schema();
-    ensure_article_location_schema();
-    ensure_article_images_schema();
-    ensure_article_reactions_schema();
-    ensure_newspapers_schema();
-    ensure_documents_schema();
-    ensure_main_menu_schema();
-    ensure_documents_main_menu_item();
-    ensure_homepage_right_blocks_schema();
-    ensure_right_blocks_area_schema();
-    ensure_photo_gallery_schema();
-    ensure_social_links_schema();
-    ensure_video_gallery_schema();
-    ensure_static_pages_schema();
+    // Keep schema/seed work out of the hot request path. The old bootstrap
+    // re-checked tables and indexes on every public request, which adds DB
+    // metadata locks and becomes fragile under concurrent traffic.
+    //
+    // Bump this value whenever a deployment adds or changes an ensure_* migration.
+    $runtimeSchemaVersion = '2026-10-02-security-v1';
+    $runtimeSchemaKey = 'runtime_schema_version';
+
+    if (setting($runtimeSchemaKey, '') !== $runtimeSchemaVersion) {
+        $securityStorage = ROOT_PATH . '/storage/security';
+        if (!is_dir($securityStorage)) {
+            @mkdir($securityStorage, 0775, true);
+        }
+
+        $schemaLockPath = $securityStorage . '/schema-init.lock';
+        $schemaLock = @fopen($schemaLockPath, 'c+');
+
+        if ($schemaLock && @flock($schemaLock, LOCK_EX)) {
+            try {
+                // Another PHP worker may have completed initialization while
+                // this request was waiting for the lock.
+                if (setting($runtimeSchemaKey, '') !== $runtimeSchemaVersion) {
+                    ensure_default_categories();
+                    ensure_article_categories_schema();
+                    ensure_article_location_schema();
+                    ensure_article_images_schema();
+                    ensure_article_reactions_schema();
+                    ensure_newspapers_schema();
+                    ensure_documents_schema();
+                    ensure_main_menu_schema();
+                    ensure_documents_main_menu_item();
+                    ensure_homepage_right_blocks_schema();
+                    ensure_right_blocks_area_schema();
+                    ensure_photo_gallery_schema();
+                    ensure_social_links_schema();
+                    ensure_video_gallery_schema();
+                    ensure_static_pages_schema();
+
+                    save_setting($runtimeSchemaKey, $runtimeSchemaVersion);
+                }
+            } finally {
+                @flock($schemaLock, LOCK_UN);
+                @fclose($schemaLock);
+            }
+        } else {
+            if (is_resource($schemaLock)) @fclose($schemaLock);
+            // If the lock file cannot be created, fail explicitly rather than
+            // racing database DDL from multiple concurrent requests.
+            throw new RuntimeException('Не удалось получить блокировку инициализации схемы.');
+        }
+    }
 
     $scriptName = str_replace('\\', '/', (string)($_SERVER['SCRIPT_NAME'] ?? ''));
     $scriptBase = basename($scriptName);
