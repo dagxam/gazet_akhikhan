@@ -18,6 +18,22 @@ if(!$category){
   exit;
 }
 
+$countQ=db()->prepare("SELECT COUNT(*) FROM articles a
+WHERE a.status='published'
+AND (a.published_at IS NULL OR a.published_at<=CURRENT_TIMESTAMP)
+AND (
+  a.category_id=?
+  OR EXISTS (
+    SELECT 1 FROM article_categories ac
+    WHERE ac.article_id=a.id AND ac.category_id=?
+  )
+)");
+$countQ->execute([$category['id'],$category['id']]);
+$categoryTotal=(int)$countQ->fetchColumn();
+$categoryPager=public_pagination_state($categoryTotal,18,'page');
+$categoryLimit=(int)$categoryPager['per_page'];
+$categoryOffset=(int)$categoryPager['offset'];
+
 $q=db()->prepare("SELECT a.*,? AS category_name,? AS category_slug
 FROM articles a
 WHERE a.status='published'
@@ -29,7 +45,8 @@ AND (
     WHERE ac.article_id=a.id AND ac.category_id=?
   )
 )
-ORDER BY COALESCE(a.published_at,a.created_at) DESC");
+ORDER BY COALESCE(a.published_at,a.created_at) DESC,a.id DESC
+LIMIT ".$categoryLimit." OFFSET ".$categoryOffset);
 $q->execute([$category['name'],$category['slug'],$category['id'],$category['id']]);
 $articles=$q->fetchAll();
 
@@ -39,7 +56,7 @@ if($category['slug']==='istoriya'){
   $pageTitle='История Унцукульского района';
   $pageDescription='История Унцукульского района: Ахульго, старые изображения Унцукуля и Аракани, народный художественный промысел и историческая память района.';
 }
-$seoCanonical=category_url($category);
+$seoCanonical=$categoryPager['page']>1 ? category_url($category).'?page='.$categoryPager['page'] : category_url($category);
 $categoryItemList=[];
 foreach(array_slice($articles,0,20) as $index=>$item){
   $categoryItemList[]=[
@@ -68,7 +85,7 @@ $seoJsonLd=[
     'isPartOf'=>['@id'=>base_url('#website')],
     'mainEntity'=>[
       '@type'=>'ItemList',
-      'numberOfItems'=>count($articles),
+      'numberOfItems'=>$categoryTotal,
       'itemListElement'=>$categoryItemList,
     ],
   ],
@@ -207,7 +224,7 @@ require __DIR__.'/partials/header.php';
         <span class="heading-kicker">Публикации «АХИХЪАН»</span>
         <h2>Материалы об истории района</h2>
       </div>
-      <p><?=count($articles)?> <?=count($articles)===1?'материал':'материалов'?></p>
+      <p><?=$categoryTotal?> <?=$categoryTotal===1?'материал':'материалов'?></p>
     </div>
   <?php endif;?>
 
@@ -228,6 +245,7 @@ require __DIR__.'/partials/header.php';
       </article>
     <?php endforeach; ?>
   </section>
+  <?php render_public_pagination('category/'.rawurlencode((string)$category['slug']),$categoryPager['page'],$categoryPager['total_pages'],[],'page','Страницы рубрики'); ?>
   <?php else: ?>
     <?php if($category['slug']==='istoriya'):?>
       <div class="empty history-empty">Редакционные материалы об истории района будут появляться здесь по мере публикации.</div>
