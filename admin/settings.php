@@ -36,13 +36,29 @@ $brandDefaults=[
 $accessibilityDefaults=[
   'accessibility_enabled'=>'1',
   'accessibility_label'=>'Версия для слабовидящих',
+  'accessibility_panel_title'=>'Версия для слабовидящих',
+  'accessibility_panel_text'=>'Настройте отображение сайта под себя: размер текста, контраст, интервалы, изображения и анимацию.',
   'accessibility_default_font'=>'100',
   'accessibility_default_contrast'=>'normal',
   'accessibility_default_spacing'=>'normal',
+  'accessibility_default_grayscale'=>'0',
   'accessibility_default_reduce_motion'=>'1',
+  'accessibility_control_font'=>'1',
+  'accessibility_control_contrast'=>'1',
+  'accessibility_control_spacing'=>'1',
+  'accessibility_control_grayscale'=>'1',
+  'accessibility_control_motion'=>'1',
+  'accessibility_panel_bg'=>'#fffdf9',
+  'accessibility_panel_text_color'=>'#302923',
+  'accessibility_panel_accent'=>'#765132',
+  'accessibility_panel_border'=>'#d8c7b4',
+  'accessibility_primary_bg'=>'#5d402a',
+  'accessibility_primary_text'=>'#ffffff',
   'age_rating_enabled'=>'1',
   'age_rating_label'=>'16+',
 ];
+$accessibilityTextKeys=['accessibility_label','accessibility_panel_title','accessibility_panel_text'];
+$accessibilityColorKeys=['accessibility_panel_bg','accessibility_panel_text_color','accessibility_panel_accent','accessibility_panel_border','accessibility_primary_bg','accessibility_primary_text'];
 
 if($_SERVER['REQUEST_METHOD']==='POST'){
   verify_csrf();
@@ -97,12 +113,29 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
     save_setting('accessibility_enabled',!empty($_POST['accessibility_enabled']) ? '1' : '0');
     save_setting('accessibility_default_reduce_motion',!empty($_POST['accessibility_default_reduce_motion']) ? '1' : '0');
+    save_setting('accessibility_default_grayscale',!empty($_POST['accessibility_default_grayscale']) ? '1' : '0');
     save_setting('age_rating_enabled',!empty($_POST['age_rating_enabled']) ? '1' : '0');
 
-    $accessibilityLabel=trim((string)($_POST['accessibility_label']??$accessibilityDefaults['accessibility_label']));
-    if(function_exists('mb_substr')) $accessibilityLabel=mb_substr($accessibilityLabel,0,80,'UTF-8');
-    else $accessibilityLabel=substr($accessibilityLabel,0,80);
-    save_setting('accessibility_label',$accessibilityLabel!==''?$accessibilityLabel:$accessibilityDefaults['accessibility_label']);
+    foreach(['accessibility_control_font','accessibility_control_contrast','accessibility_control_spacing','accessibility_control_grayscale','accessibility_control_motion'] as $toggleKey){
+      save_setting($toggleKey,!empty($_POST[$toggleKey]) ? '1' : '0');
+    }
+
+    foreach($accessibilityTextKeys as $k){
+      $value=trim((string)($_POST[$k]??$accessibilityDefaults[$k]));
+      $limit=$k==='accessibility_panel_text' ? 500 : 120;
+      if(function_exists('mb_substr')) $value=mb_substr($value,0,$limit,'UTF-8');
+      else $value=substr($value,0,$limit);
+      if($value==='') $value=$accessibilityDefaults[$k];
+      save_setting($k,$value);
+    }
+
+    foreach($accessibilityColorKeys as $k){
+      $value=trim((string)($_POST[$k]??$accessibilityDefaults[$k]));
+      if(!preg_match('/^#[0-9a-fA-F]{6}$/',$value)){
+        throw new RuntimeException('Цвета версии для слабовидящих должны быть указаны в формате #RRGGBB.');
+      }
+      save_setting($k,strtolower($value));
+    }
 
     $accessibilityFont=(string)($_POST['accessibility_default_font']??$accessibilityDefaults['accessibility_default_font']);
     if(!in_array($accessibilityFont,['100','125','150','200'],true)){
@@ -127,6 +160,10 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
       throw new RuntimeException('Возрастная маркировка должна быть 0+, 6+, 12+, 16+ или 18+.');
     }
     save_setting('age_rating_label',$ageRating);
+
+    if(isset($_POST['menu_order']) && is_array($_POST['menu_order'])){
+      save_main_menu_order($_POST['menu_order']);
+    }
 
     foreach($textKeys as $k){
       $value=($k==='editor_note') ? sanitize_rich_text($_POST[$k]??'') : trim($_POST[$k]??'');
@@ -179,6 +216,7 @@ $accessibilitySettings=[];
 foreach($accessibilityDefaults as $key=>$default){
   $accessibilitySettings[$key]=setting($key,$default);
 }
+$settingsMenuItems=main_menu_items(false);
 
 $adminTitle='Настройки сайта';
 require __DIR__.'/_top.php';
