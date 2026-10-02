@@ -245,10 +245,7 @@ jobs:
           storage_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-storage.txt --write-out '%{http_code}' https://akhikhan.ru/storage/php-error.log)"
           test "$storage_code" = "403" -o "$storage_code" = "404"
 
-          long_query="$(python3 - <<'PY'
-print('x'*2200)
-PY
-)"
+          long_query="$(python3 -c "print('x'*2200)")"
           long_uri_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-long-uri.txt --write-out '%{http_code}' "https://akhikhan.ru/search.php?q=$long_query")"
           test "$long_uri_code" = "414"
           echo "check: abusive request target rejected"
