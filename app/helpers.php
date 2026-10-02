@@ -424,9 +424,10 @@ function find_or_create_category(string $name, string $description = '', int $so
 function latest_articles_by_category_slug(string $slug, int $limit = 8): array
 {
     if (!APP_INSTALLED) return [];
-    $sql = "SELECT a.*, c.name category_name, c.slug category_slug
+    $sql = "SELECT a.*, c.name category_name, c.slug category_slug, u.name author_name
             FROM articles a
             INNER JOIN categories c ON c.slug=? AND c.is_active=1
+            LEFT JOIN users u ON u.id=a.author_id
             WHERE a.status='published'
               AND (a.published_at IS NULL OR a.published_at<=CURRENT_TIMESTAMP)
               AND (
@@ -452,9 +453,10 @@ function categories(): array
 function latest_main_articles(int $limit = 5, ?int $excludeId = null): array
 {
     if (!APP_INSTALLED) return [];
-    $sql = "SELECT a.*, c.name category_name, c.slug category_slug
+    $sql = "SELECT a.*, c.name category_name, c.slug category_slug, u.name author_name
             FROM articles a
             INNER JOIN categories c ON c.slug='glavnye-novosti' AND c.is_active=1
+            LEFT JOIN users u ON u.id=a.author_id
             WHERE a.status='published'
               AND (a.published_at IS NULL OR a.published_at<=CURRENT_TIMESTAMP)
               AND (
@@ -478,8 +480,10 @@ function latest_main_articles(int $limit = 5, ?int $excludeId = null): array
 function latest_articles(int $limit = 8, ?int $excludeId = null): array
 {
     if (!APP_INSTALLED) return [];
-    $sql = "SELECT a.*, c.name category_name, c.slug category_slug
-            FROM articles a LEFT JOIN categories c ON c.id=a.category_id
+    $sql = "SELECT a.*, c.name category_name, c.slug category_slug, u.name author_name
+            FROM articles a
+            LEFT JOIN categories c ON c.id=a.category_id
+            LEFT JOIN users u ON u.id=a.author_id
             WHERE a.status='published' AND (a.published_at IS NULL OR a.published_at<=CURRENT_TIMESTAMP)";
     $params = [];
     if ($excludeId) { $sql .= ' AND a.id<>?'; $params[] = $excludeId; }
@@ -492,8 +496,10 @@ function latest_articles(int $limit = 8, ?int $excludeId = null): array
 function featured_article(): ?array
 {
     if (!APP_INSTALLED) return null;
-    $q = db()->query("SELECT a.*, c.name category_name, c.slug category_slug
-                     FROM articles a LEFT JOIN categories c ON c.id=a.category_id
+    $q = db()->query("SELECT a.*, c.name category_name, c.slug category_slug, u.name author_name
+                     FROM articles a
+                     LEFT JOIN categories c ON c.id=a.category_id
+                     LEFT JOIN users u ON u.id=a.author_id
                      WHERE a.status='published' AND a.is_featured=1
                      AND (a.published_at IS NULL OR a.published_at<=CURRENT_TIMESTAMP)
                      ORDER BY COALESCE(a.published_at,a.created_at) DESC LIMIT 1");
@@ -2048,3 +2054,70 @@ function ensure_article_location_schema(): void
 
     save_setting('schema_article_location_v1','1');
 }
+
+function admin_paginate_array(array $items, int $perPage = 12, string $pageParam = 'page'): array
+{
+    $perPage=max(1,min(100,$perPage));
+    $total=count($items);
+    $totalPages=max(1,(int)ceil($total/$perPage));
+    $page=max(1,(int)($_GET[$pageParam]??1));
+    if($page>$totalPages) $page=$totalPages;
+    $offset=($page-1)*$perPage;
+
+    return [
+        'items'=>array_slice($items,$offset,$perPage),
+        'page'=>$page,
+        'per_page'=>$perPage,
+        'total'=>$total,
+        'total_pages'=>$totalPages,
+        'offset'=>$offset,
+        'start'=>$total ? $offset+1 : 0,
+        'end'=>min($offset+$perPage,$total),
+        'param'=>$pageParam,
+    ];
+}
+
+function admin_pagination_pages(int $page, int $totalPages): array
+{
+    if($totalPages<=9) return range(1,max(1,$totalPages));
+
+    $pages=[1];
+    $from=max(2,$page-2);
+    $to=min($totalPages-1,$page+2);
+    if($from>2) $pages[]='…';
+    for($i=$from;$i<=$to;$i++) $pages[]=$i;
+    if($to<$totalPages-1) $pages[]='…';
+    $pages[]=$totalPages;
+    return $pages;
+}
+
+function admin_pagination_url(string $path, int $page, array $query = [], string $pageParam = 'page'): string
+{
+    $query[$pageParam]=max(1,$page);
+    return base_url(ltrim($path,'/').'?'.http_build_query($query));
+}
+
+function render_admin_pagination(string $path, int $page, int $totalPages, array $query = [], string $pageParam = 'page', string $label = 'Страницы'): void
+{
+    if($totalPages<=1) return;
+
+    echo '<nav class="admin-pagination" aria-label="'.e($label).'">';
+    if($page>1){
+        echo '<a class="admin-page-arrow" href="'.e(admin_pagination_url($path,$page-1,$query,$pageParam)).'" aria-label="Предыдущая страница">←</a>';
+    }
+
+    foreach(admin_pagination_pages($page,$totalPages) as $p){
+        if($p==='…'){
+            echo '<span class="admin-page-gap">…</span>';
+            continue;
+        }
+        $active=((int)$p===$page) ? ' is-active' : '';
+        echo '<a class="'.$active.'" href="'.e(admin_pagination_url($path,(int)$p,$query,$pageParam)).'">'.e((string)$p).'</a>';
+    }
+
+    if($page<$totalPages){
+        echo '<a class="admin-page-arrow" href="'.e(admin_pagination_url($path,$page+1,$query,$pageParam)).'" aria-label="Следующая страница">→</a>';
+    }
+    echo '</nav>';
+}
+
