@@ -227,6 +227,11 @@ jobs:
           echo "$security_headers" | grep -qi '^Cross-Origin-Opener-Policy: same-origin-allow-popups'
           echo "$security_headers" | grep -qi '^Origin-Agent-Cluster: ?1'
           echo "$security_headers" | grep -qi '^X-DNS-Prefetch-Control: off'
+          echo "$security_headers" | grep -qi '^X-Download-Options: noopen'
+
+          http_redirect_headers="$(curl --silent --show-error --head --max-time 30 http://akhikhan.ru/ | tr -d '\r')"
+          echo "$http_redirect_headers" | grep -Eqi '^HTTP/.* 30[1278]'
+          echo "$http_redirect_headers" | grep -Eqi '^Location: https://akhikhan\.ru/'
 
           trace_code="$(curl --silent --show-error --max-time 30 --request TRACE --output /tmp/akhikhan-trace.txt --write-out '%{http_code}' https://akhikhan.ru/)"
           test "$trace_code" = "403" -o "$trace_code" = "405"
@@ -239,6 +244,14 @@ jobs:
 
           storage_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-storage.txt --write-out '%{http_code}' https://akhikhan.ru/storage/php-error.log)"
           test "$storage_code" = "403" -o "$storage_code" = "404"
+
+          long_query="$(python3 - <<'PY'
+print('x'*2200)
+PY
+)"
+          long_uri_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-long-uri.txt --write-out '%{http_code}' "https://akhikhan.ru/search.php?q=$long_query")"
+          test "$long_uri_code" = "414"
+          echo "check: abusive request target rejected"
 
           reaction_get_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-reaction-get.json --write-out '%{http_code}' https://akhikhan.ru/article-reaction.php)"
           reaction_cross_code="$(curl --silent --show-error --max-time 30 --request POST --data 'article_id=0&reaction=like&token=0123456789abcdef' --output /tmp/akhikhan-reaction-cross.json --write-out '%{http_code}' https://akhikhan.ru/article-reaction.php)"
@@ -260,7 +273,7 @@ jobs:
           test "$(wc -c < /tmp/akhikhan-ornament.svg)" -gt 7000
           grep -q 'viewBox="0 0 2048 170"' /tmp/akhikhan-ornament.svg
 
-          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-history1')"
+          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-security3')"
           test "$public_css_code" = "200"
           grep -q 'ornament-footer-premium.svg' /tmp/akhikhan-style.css
           grep -q '.privacy-notice' /tmp/akhikhan-style.css
@@ -277,6 +290,8 @@ jobs:
           grep -q 'Accessibility panel v2' /tmp/akhikhan-style.css
           grep -q 'Contacts page + feedback form' /tmp/akhikhan-style.css
           grep -q 'History category editorial landing' /tmp/akhikhan-style.css
+          grep -q 'Public pagination for bounded list rendering' /tmp/akhikhan-style.css
+          grep -q '.public-pagination' /tmp/akhikhan-style.css
           grep -q '.history-feature' /tmp/akhikhan-style.css
           grep -q '.history-timeline' /tmp/akhikhan-style.css
           grep -q '.contact-form-card' /tmp/akhikhan-style.css
