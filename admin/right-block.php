@@ -1,6 +1,6 @@
 <?php
 require dirname(__DIR__) . '/app/bootstrap.php';
-require_admin();
+require_site_admin();
 ensure_right_blocks_area_schema();
 
 $error='';
