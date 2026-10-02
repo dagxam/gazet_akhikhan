@@ -8332,3 +8332,213 @@ svg{
   }
 }
 
+/* Header / MAX social polish — 2026-10-02 */
+.social-service-image{
+  display:block;
+  width:15px;
+  height:15px;
+  object-fit:contain;
+  flex:0 0 auto;
+}
+.topbar-socials>a .social-service-image{
+  width:15px;
+  height:15px;
+  border-radius:4px;
+}
+.footer-socials a .social-service-image{
+  width:19px;
+  height:19px;
+  border-radius:5px;
+}
+.topbar-socials>a[aria-label*="MAX"]{
+  color:inherit;
+}
+
+/* Cleaner masthead: brand and navigation read as one deliberate unit. */
+.reference-header{
+  background:rgba(255,255,255,.985);
+  box-shadow:0 9px 28px rgba(47,34,23,.055);
+}
+.reference-header:before{
+  background-position:right center;
+  background-size:auto 72px;
+  opacity:.026;
+}
+.reference-logo:after{
+  display:none;
+}
+.reference-brand{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+.reference-logo{
+  width:220px;
+  height:60px;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  flex:0 0 auto;
+}
+.reference-logo img{
+  display:block;
+  width:auto;
+  max-width:100%;
+  max-height:57px;
+  object-fit:contain;
+}
+.reference-brand-caption{
+  display:grid;
+  gap:4px;
+  min-width:118px;
+  padding-left:15px;
+  border-left:1px solid #e5ddd4;
+  color:#7a6d61;
+  font-family:var(--sans,Arial,sans-serif);
+}
+.reference-brand-caption b{
+  color:#6f5136;
+  font-size:9px;
+  line-height:1.15;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.085em;
+}
+.reference-brand-caption small{
+  color:#94877b;
+  font-size:9px;
+  line-height:1.28;
+  font-weight:650;
+}
+
+@media(min-width:901px){
+  .reference-header-inner{
+    min-height:84px;
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr);
+    align-items:center;
+    gap:24px;
+  }
+  .reference-mobile-toggle{
+    display:none!important;
+  }
+  .reference-menu-shell{
+    min-width:0;
+    display:flex;
+    align-items:center;
+    gap:5px;
+    padding:5px 6px;
+    border:1px solid #e5ddd3;
+    border-radius:15px;
+    background:rgba(251,248,244,.9);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.86),
+      0 5px 18px rgba(53,38,25,.035);
+  }
+  .reference-site-menu{
+    min-width:0;
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:2px;
+    overflow:hidden;
+  }
+  .reference-site-menu>a{
+    position:relative;
+    min-height:42px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 11px!important;
+    border-radius:10px;
+    color:#4f463e!important;
+    background:transparent!important;
+    text-shadow:none!important;
+    font:750 10px/1 var(--sans,Arial,sans-serif)!important;
+    letter-spacing:.005em;
+    white-space:nowrap;
+    transition:background .16s ease,color .16s ease,box-shadow .16s ease,transform .16s ease;
+  }
+  .reference-site-menu>a:hover{
+    transform:translateY(-1px);
+    color:#7b5434!important;
+    background:#fff!important;
+    box-shadow:0 5px 14px rgba(58,41,27,.055);
+  }
+  .reference-site-menu>a.is-current{
+    color:#684325!important;
+    background:#f1e7da!important;
+    box-shadow:inset 0 0 0 1px rgba(150,112,73,.10);
+  }
+  .reference-site-menu>a.is-current:after{
+    content:"";
+    position:absolute;
+    left:12px;
+    right:12px;
+    bottom:5px;
+    height:2px;
+    border-radius:2px;
+    background:linear-gradient(90deg,#c69a67,#7b5434);
+  }
+  .reference-overflow-toggle{
+    width:38px;
+    height:38px;
+    flex:0 0 38px;
+    border:1px solid #e2d8cc!important;
+    border-radius:10px!important;
+    background:#fff!important;
+    box-shadow:none!important;
+  }
+  .reference-overflow-toggle:hover{
+    background:#f6efe7!important;
+    border-color:#ccb79f!important;
+  }
+  .reference-overflow-panel{
+    top:calc(100% + 10px);
+    border:1px solid #e3d9cf;
+    border-radius:14px;
+    background:#fff;
+    box-shadow:0 16px 38px rgba(45,32,21,.12);
+  }
+}
+
+@media(max-width:1160px) and (min-width:901px){
+  .reference-brand-caption{
+    display:none;
+  }
+  .reference-logo{
+    width:205px;
+  }
+  .reference-header-inner{
+    gap:16px;
+  }
+  .reference-site-menu>a{
+    padding-left:9px!important;
+    padding-right:9px!important;
+    font-size:9.5px!important;
+  }
+}
+
+@media(max-width:900px){
+  .reference-brand{
+    flex:1 1 auto;
+  }
+  .reference-brand-caption{
+    display:none;
+  }
+  .reference-logo{
+    width:min(205px,66vw);
+  }
+  .reference-site-menu>a.is-current{
+    color:#70492d!important;
+    background:#f4ece2!important;
+  }
+}
+
+@media(max-width:520px){
+  .reference-logo{
+    width:min(188px,64vw);
+  }
+}
+
