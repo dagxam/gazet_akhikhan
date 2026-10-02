@@ -182,8 +182,10 @@ require __DIR__ . '/partials/header.php';
           <a href="<?=e(isset($catBySlug['regionalnye-novosti']) ? category_url($catBySlug['regionalnye-novosti']) : base_url('news.php'))?>">Все новости →</a>
         </div>
 
-        <?php if($regionalNews):?>
-          <div class="home-news-three-grid">
+        <?php if($regionalNews):
+          $regionalCount=min(3,count($regionalNews));
+        ?>
+          <div class="home-news-three-grid items-<?=e((string)$regionalCount)?>">
             <?php foreach(array_slice($regionalNews,0,3) as $item):?>
               <article class="home-news-three-card">
                 <a class="home-news-three-image" href="<?=e(article_url($item))?>">
@@ -220,8 +222,10 @@ require __DIR__ . '/partials/header.php';
           <a href="<?=e(isset($catBySlug['sport']) ? category_url($catBySlug['sport']) : base_url('news.php'))?>">Все новости →</a>
         </div>
 
-        <?php if($sportNews):?>
-          <div class="home-news-three-grid">
+        <?php if($sportNews):
+          $sportCount=min(3,count($sportNews));
+        ?>
+          <div class="home-news-three-grid items-<?=e((string)$sportCount)?>">
             <?php foreach(array_slice($sportNews,0,3) as $item):?>
               <article class="home-news-three-card">
                 <a class="home-news-three-image" href="<?=e(article_url($item))?>">
