@@ -368,7 +368,10 @@ require __DIR__ . '/partials/header.php';
       <span class="heading-kicker">Официальные материалы</span>
       <h2>Последние документы</h2>
     </div>
-    <span class="block-note">PDF · Word · Excel · PowerPoint</span>
+    <div class="documents-heading-actions">
+      <span class="block-note">PDF · Word · Excel · PowerPoint</span>
+      <a href="<?=e(base_url('documents.php'))?>">Все документы →</a>
+    </div>
   </div>
 
   <?php if($documents):?>
