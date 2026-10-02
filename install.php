@@ -2,7 +2,10 @@
 require __DIR__ . '/app/bootstrap.php';
 
 if (APP_INSTALLED) {
-    exit('<h2>AKHIKHAN.RU уже установлен.</h2><p><a href="/">Открыть сайт</a></p>');
+    http_response_code(404);
+    header('Cache-Control: no-store');
+    header('X-Robots-Tag: noindex, nofollow, noarchive');
+    exit('Not Found');
 }
 
 $error = '';
@@ -21,8 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $adminPass = (string)($_POST['admin_pass'] ?? '');
 
     try {
-        if (!filter_var($adminEmail, FILTER_VALIDATE_EMAIL) || strlen($adminPass) < 8) {
-            throw new RuntimeException('Укажите корректный e-mail. Пароль администратора — минимум 8 символов.');
+        if (!filter_var($adminEmail, FILTER_VALIDATE_EMAIL) || strlen($adminPass) < 12) {
+            throw new RuntimeException('Укажите корректный e-mail. Пароль администратора — минимум 12 символов.');
         }
 
         if ($driver === 'sqlite') {
@@ -228,7 +231,7 @@ button{background:#6f4d25;color:#fff;border:0;padding:13px 20px;border-radius:8p
 <div class="full"><label>Адрес сайта</label><input name="base_url" value="<?=e($_POST['base_url'] ?? 'https://akhikhan.ru')?>" required></div>
 <div><label>Имя администратора</label><input name="admin_name" value="<?=e($_POST['admin_name'] ?? 'Администратор')?>" required></div>
 <div><label>E-mail администратора</label><input type="email" name="admin_email" value="<?=e($_POST['admin_email'] ?? '')?>" required></div>
-<div class="full"><label>Пароль администратора</label><input type="password" name="admin_pass" minlength="8" required></div>
+<div class="full"><label>Пароль администратора</label><input type="password" name="admin_pass" minlength="12" required></div>
 <div class="full"><button>Установить сайт</button></div>
 </div>
 </form>
