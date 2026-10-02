@@ -119,6 +119,7 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
 
   items.forEach(function(item){
     item.addEventListener('mouseenter',function(){
+      if(document.documentElement.classList.contains('a11y-active')) return;
       if(window.matchMedia('(hover:hover) and (pointer:fine)').matches) selectItem(item);
     });
     item.addEventListener('focusin',function(){
@@ -432,5 +433,187 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
       }
     });
   });
+})();
+
+(function(){
+  const panel=document.querySelector('[data-accessibility-panel]');
+  const toggle=document.querySelector('[data-accessibility-toggle]');
+  if(!panel||!toggle) return;
+
+  const closeButton=panel.querySelector('[data-accessibility-close]');
+  const resetButton=panel.querySelector('[data-accessibility-reset]');
+  const standardButton=panel.querySelector('[data-accessibility-standard]');
+  const status=panel.querySelector('[data-accessibility-status]');
+  const fontButtons=[...panel.querySelectorAll('[data-a11y-font]')];
+  const contrastButtons=[...panel.querySelectorAll('[data-a11y-contrast]')];
+  const spacingButton=panel.querySelector('[data-a11y-spacing]');
+  const grayscaleButton=panel.querySelector('[data-a11y-grayscale]');
+  const motionButton=panel.querySelector('[data-a11y-motion]');
+  const root=document.documentElement;
+  const storageKey='akhikhan_accessibility_v1';
+
+  const defaults={
+    active:false,
+    font:['100','125','150','200'].includes(panel.dataset.defaultFont)?panel.dataset.defaultFont:'100',
+    contrast:['normal','black-white','white-black','yellow-black'].includes(panel.dataset.defaultContrast)?panel.dataset.defaultContrast:'normal',
+    spacing:panel.dataset.defaultSpacing==='wide'?'wide':'normal',
+    grayscale:false,
+    motion:panel.dataset.defaultMotion==='reduce'?'reduce':'normal'
+  };
+
+  function readState(){
+    try{
+      const raw=window.localStorage.getItem(storageKey);
+      if(!raw) return {...defaults};
+      const parsed=JSON.parse(raw);
+      return {
+        active:parsed.active===true,
+        font:['100','125','150','200'].includes(String(parsed.font))?String(parsed.font):defaults.font,
+        contrast:['normal','black-white','white-black','yellow-black'].includes(parsed.contrast)?parsed.contrast:defaults.contrast,
+        spacing:parsed.spacing==='wide'?'wide':'normal',
+        grayscale:parsed.grayscale===true,
+        motion:parsed.motion==='reduce'?'reduce':'normal'
+      };
+    }catch(e){
+      return {...defaults};
+    }
+  }
+
+  function saveState(state){
+    try{window.localStorage.setItem(storageKey,JSON.stringify(state));}catch(e){}
+  }
+
+  let state=readState();
+
+  function applyState(announce){
+    root.classList.toggle('a11y-active',state.active);
+    root.dataset.a11yFont=state.font;
+    root.dataset.a11yContrast=state.contrast;
+    root.dataset.a11ySpacing=state.spacing;
+    root.dataset.a11yGrayscale=state.grayscale?'true':'false';
+    root.dataset.a11yMotion=state.motion;
+
+    toggle.setAttribute('aria-pressed',state.active?'true':'false');
+    toggle.classList.toggle('is-active',state.active);
+
+    fontButtons.forEach(button=>{
+      const active=button.dataset.a11yFont===state.font;
+      button.classList.toggle('is-active',active);
+      button.setAttribute('aria-pressed',active?'true':'false');
+    });
+    contrastButtons.forEach(button=>{
+      const active=button.dataset.a11yContrast===state.contrast;
+      button.classList.toggle('is-active',active);
+      button.setAttribute('aria-pressed',active?'true':'false');
+    });
+    if(spacingButton) spacingButton.setAttribute('aria-pressed',state.spacing==='wide'?'true':'false');
+    if(grayscaleButton) grayscaleButton.setAttribute('aria-pressed',state.grayscale?'true':'false');
+    if(motionButton) motionButton.setAttribute('aria-pressed',state.motion==='reduce'?'true':'false');
+
+    saveState(state);
+    if(announce&&status){
+      status.textContent=state.active?'Настройки доступности применены.':'Обычная версия сайта включена.';
+      window.setTimeout(()=>{status.textContent='';},2200);
+    }
+  }
+
+  function openPanel(){
+    panel.hidden=false;
+    toggle.setAttribute('aria-expanded','true');
+    window.requestAnimationFrame(()=>{
+      const target=panel.querySelector('button,select,input,[tabindex]:not([tabindex="-1"])');
+      if(target) target.focus();
+    });
+  }
+
+  function closePanel(returnFocus){
+    panel.hidden=true;
+    toggle.setAttribute('aria-expanded','false');
+    if(returnFocus) toggle.focus();
+  }
+
+  toggle.addEventListener('click',function(){
+    if(panel.hidden){
+      if(!state.active){
+        state={...defaults,active:true};
+        applyState(true);
+      }
+      openPanel();
+    }else{
+      closePanel(true);
+    }
+  });
+
+  if(closeButton) closeButton.addEventListener('click',()=>closePanel(true));
+
+  fontButtons.forEach(button=>{
+    button.addEventListener('click',()=>{
+      state.active=true;
+      state.font=button.dataset.a11yFont||defaults.font;
+      applyState(true);
+    });
+  });
+
+  contrastButtons.forEach(button=>{
+    button.addEventListener('click',()=>{
+      state.active=true;
+      state.contrast=button.dataset.a11yContrast||defaults.contrast;
+      applyState(true);
+    });
+  });
+
+  if(spacingButton){
+    spacingButton.addEventListener('click',()=>{
+      state.active=true;
+      state.spacing=state.spacing==='wide'?'normal':'wide';
+      applyState(true);
+    });
+  }
+
+  if(grayscaleButton){
+    grayscaleButton.addEventListener('click',()=>{
+      state.active=true;
+      state.grayscale=!state.grayscale;
+      applyState(true);
+    });
+  }
+
+  if(motionButton){
+    motionButton.addEventListener('click',()=>{
+      state.active=true;
+      state.motion=state.motion==='reduce'?'normal':'reduce';
+      applyState(true);
+    });
+  }
+
+  if(resetButton){
+    resetButton.addEventListener('click',()=>{
+      state={...defaults,active:true};
+      applyState(true);
+    });
+  }
+
+  if(standardButton){
+    standardButton.addEventListener('click',()=>{
+      state={...defaults,active:false};
+      applyState(true);
+      closePanel(true);
+    });
+  }
+
+  panel.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){
+      e.preventDefault();
+      closePanel(true);
+    }
+  });
+
+  document.addEventListener('click',function(e){
+    if(panel.hidden) return;
+    if(panel.contains(e.target)||toggle.contains(e.target)) return;
+    closePanel(false);
+  });
+
+  applyState(false);
 })();
 
