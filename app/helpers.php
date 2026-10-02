@@ -598,6 +598,152 @@ function login_rate_limit_clear(): void
     if(is_file($file)) @unlink($file);
 }
 
+function contact_form_bucket_path(): string
+{
+    $dir=ROOT_PATH.'/storage/security';
+    if(!is_dir($dir)) @mkdir($dir,0775,true);
+    return $dir.'/contact-'.hash('sha256',security_client_ip()).'.json';
+}
+
+function contact_form_rate_limit(bool $record = false): array
+{
+    $now=time();
+    $window=15*60;
+    $limit=4;
+    $cooldown=45;
+    $file=contact_form_bucket_path();
+    $state=['events'=>[]];
+
+    $fp=@fopen($file,'c+');
+    if(!$fp) return ['blocked'=>false,'remaining'=>0,'count'=>0];
+
+    if(!@flock($fp,LOCK_EX)){
+        fclose($fp);
+        return ['blocked'=>false,'remaining'=>0,'count'=>0];
+    }
+
+    rewind($fp);
+    $raw=stream_get_contents($fp);
+    if(is_string($raw) && trim($raw)!==''){
+        $decoded=json_decode($raw,true);
+        if(is_array($decoded)) $state=array_merge($state,$decoded);
+    }
+
+    $events=[];
+    foreach((array)($state['events']??[]) as $ts){
+        $ts=(int)$ts;
+        if($ts>=$now-$window && $ts<=$now+60) $events[]=$ts;
+    }
+
+    $last=$events ? max($events) : 0;
+    $remainingCooldown=max(0,($last+$cooldown)-$now);
+    $blocked=count($events)>=$limit || $remainingCooldown>0;
+
+    if($record && !$blocked){
+        $events[]=$now;
+        $last=$now;
+        $remainingCooldown=$cooldown;
+    }
+
+    rewind($fp);
+    ftruncate($fp,0);
+    fwrite($fp,json_encode(['events'=>$events],JSON_UNESCAPED_SLASHES));
+    fflush($fp);
+    flock($fp,LOCK_UN);
+    fclose($fp);
+
+    $remainingWindow=0;
+    if(count($events)>=$limit){
+        sort($events);
+        $remainingWindow=max(0,($events[0]+$window)-$now);
+    }
+
+    return [
+        'blocked'=>$blocked,
+        'remaining'=>max($remainingCooldown,$remainingWindow),
+        'count'=>count($events),
+    ];
+}
+
+function contact_mail_header_encode(string $value): string
+{
+    $value=preg_replace('/[\r\n]+/',' ',trim($value)) ?? trim($value);
+    if(function_exists('mb_encode_mimeheader')){
+        return mb_encode_mimeheader($value,'UTF-8','B',"\r\n");
+    }
+    return $value;
+}
+
+function send_contact_email(array $message): bool
+{
+    $to='info@akhikhan.ru';
+    $from='info@akhikhan.ru';
+
+    $name=trim((string)($message['name']??''));
+    $email=trim((string)($message['email']??''));
+    $phone=trim((string)($message['phone']??''));
+    $topic=trim((string)($message['topic']??'Обращение в редакцию'));
+    $text=trim((string)($message['message']??''));
+    $reference=trim((string)($message['reference']??''));
+    $sentAt=trim((string)($message['sent_at']??date('d.m.Y H:i')));
+
+    $subject='АХИХЪАН · '.$topic;
+    if($name!=='') $subject.=' · '.$name;
+
+    $safeName=e($name);
+    $safeEmail=e($email);
+    $safePhone=e($phone);
+    $safeTopic=e($topic);
+    $safeText=nl2br(e($text));
+    $safeReference=e($reference);
+    $safeSentAt=e($sentAt);
+
+    $html='<!doctype html><html lang="ru"><head><meta charset="UTF-8"></head>'
+        .'<body style="margin:0;background:#f2eee8;font-family:Arial,Helvetica,sans-serif;color:#302923;">'
+        .'<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f2eee8;padding:28px 12px;"><tr><td align="center">'
+        .'<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:680px;background:#fff;border:1px solid #ded2c4;border-radius:18px;overflow:hidden;">'
+        .'<tr><td style="padding:26px 30px;background:#2b211a;color:#fff;">'
+        .'<div style="font-family:Georgia,serif;font-size:30px;font-weight:700;letter-spacing:.03em;">АХИХЪАН</div>'
+        .'<div style="margin-top:6px;color:#d5b589;font-size:11px;letter-spacing:.14em;text-transform:uppercase;">Обращение с сайта</div>'
+        .'</td></tr>'
+        .'<tr><td style="padding:28px 30px;">'
+        .'<div style="color:#9a6b3f;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">'.$safeTopic.'</div>'
+        .'<h1 style="margin:8px 0 20px;font-family:Georgia,serif;font-size:27px;line-height:1.15;color:#2e2823;">Новое сообщение в редакцию</h1>'
+        .'<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">'
+        .'<tr><td style="width:130px;padding:9px 0;color:#8b7d70;font-size:12px;border-bottom:1px solid #eee7df;">Имя</td><td style="padding:9px 0;font-size:13px;font-weight:700;border-bottom:1px solid #eee7df;">'.$safeName.'</td></tr>'
+        .'<tr><td style="padding:9px 0;color:#8b7d70;font-size:12px;border-bottom:1px solid #eee7df;">E-mail</td><td style="padding:9px 0;font-size:13px;border-bottom:1px solid #eee7df;"><a href="mailto:'.$safeEmail.'" style="color:#7b5434;">'.$safeEmail.'</a></td></tr>'
+        .($safePhone!==''?'<tr><td style="padding:9px 0;color:#8b7d70;font-size:12px;border-bottom:1px solid #eee7df;">Телефон</td><td style="padding:9px 0;font-size:13px;border-bottom:1px solid #eee7df;">'.$safePhone.'</td></tr>':'')
+        .'<tr><td style="padding:9px 0;color:#8b7d70;font-size:12px;">Дата</td><td style="padding:9px 0;font-size:13px;">'.$safeSentAt.'</td></tr>'
+        .'</table>'
+        .'<div style="margin-top:22px;padding:20px 22px;border-left:4px solid #9b6a3d;background:#faf6f1;border-radius:0 12px 12px 0;font-size:14px;line-height:1.65;">'.$safeText.'</div>'
+        .'<div style="margin-top:24px;padding:13px 15px;background:#f5f0ea;border-radius:11px;color:#7a6e63;font-size:11px;line-height:1.45;">'
+        .'Номер обращения: <strong style="color:#4c4036;">'.$safeReference.'</strong><br>'
+        .'Чтобы ответить посетителю, нажмите «Ответить» в почтовой программе — адрес посетителя указан в Reply-To.'
+        .'</div>'
+        .'</td></tr>'
+        .'<tr><td style="padding:16px 30px;background:#f8f4ef;color:#96887b;font-size:10px;line-height:1.5;">'
+        .'Сообщение отправлено через форму обратной связи на сайте akhikhan.ru. Получатель: info@akhikhan.ru.'
+        .'</td></tr>'
+        .'</table>'
+        .'</td></tr></table></body></html>';
+
+    $headers=[
+        'MIME-Version: 1.0',
+        'Content-Type: text/html; charset=UTF-8',
+        'Content-Transfer-Encoding: 8bit',
+        'From: '.contact_mail_header_encode('АХИХЪАН').' <'.$from.'>',
+        'Reply-To: '.$email,
+        'X-Mailer: AKHIKHAN Contact Form',
+    ];
+
+    return @mail(
+        $to,
+        contact_mail_header_encode($subject),
+        $html,
+        implode("\r\n",$headers)
+    );
+}
+
 function csrf_token(): string
 {
     if (function_exists('app_start_session')) app_start_session();
