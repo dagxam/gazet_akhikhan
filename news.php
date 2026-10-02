@@ -2,16 +2,22 @@
 require __DIR__ . '/app/bootstrap.php';
 if (!APP_INSTALLED) { header('Location: install.php'); exit; }
 
+$newsTotal=(int)db()->query("SELECT COUNT(*) FROM articles WHERE status='published' AND (published_at IS NULL OR published_at<=CURRENT_TIMESTAMP)")->fetchColumn();
+$newsPager=public_pagination_state($newsTotal,18,'page');
+$newsLimit=(int)$newsPager['per_page'];
+$newsOffset=(int)$newsPager['offset'];
+
 $q=db()->query("SELECT a.*,c.name category_name,c.slug category_slug
 FROM articles a LEFT JOIN categories c ON c.id=a.category_id
 WHERE a.status='published'
 AND (a.published_at IS NULL OR a.published_at<=CURRENT_TIMESTAMP)
-ORDER BY COALESCE(a.published_at,a.created_at) DESC LIMIT 100");
+ORDER BY COALESCE(a.published_at,a.created_at) DESC,id DESC
+LIMIT ".$newsLimit." OFFSET ".$newsOffset);
 $articles=$q->fetchAll();
 
 $pageTitle='Новости Унцукульского района';
 $pageDescription='Последние новости Унцукульского района Республики Дагестан: события, общество, культура, спорт и важные публикации сетевого издания «АХИХЪАН».';
-$seoCanonical=base_url('news.php');
+$seoCanonical=public_pagination_url('news.php',$newsPager['page']);
 $newsItemList=[];
 foreach(array_slice($articles,0,20) as $index=>$item){
   $newsItemList[]=[
@@ -31,7 +37,7 @@ $seoJsonLd=[[
   'isPartOf'=>['@id'=>base_url('#website')],
   'mainEntity'=>[
     '@type'=>'ItemList',
-    'numberOfItems'=>count($articles),
+    'numberOfItems'=>$newsTotal,
     'itemListElement'=>$newsItemList,
   ],
 ]];
@@ -61,6 +67,7 @@ require __DIR__.'/partials/header.php';
       </article>
     <?php endforeach; ?>
   </section>
+  <?php render_public_pagination('news.php',$newsPager['page'],$newsPager['total_pages'],[],'page','Страницы новостей'); ?>
   <?php else: ?>
     <div class="empty">Пока нет опубликованных новостей. После публикации материалов они появятся здесь автоматически.</div>
   <?php endif; ?>
