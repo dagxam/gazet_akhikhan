@@ -9,7 +9,8 @@ $topbarRegion = setting('topbar_region_label','Унцукульский райо
 $siteSocialLinks = social_links(true);
 $publicAdminUser = admin_user();
 
-$seoSiteName = 'АХИХЪАН';
+$seoSiteName = trim(setting('site_name','АХИХЪАН')) ?: 'АХИХЪАН';
+$seoSiteAlternateName = 'Сетевое издание Унцукульского района';
 $seoDefaultDescription = 'Сетевое издание Унцукульского района Республики Дагестан: новости, общество, культура, спорт, люди и история.';
 $seoTitleText = trim((string)($pageTitle ?? ''));
 $seoFullTitle = $seoTitleText !== ''
@@ -36,7 +37,24 @@ $seoRobots = trim((string)($seoRobots ?? 'index,follow,max-image-preview:large,m
 $seoAuthor = trim((string)($seoAuthor ?? ''));
 $seoPublishedTime = trim((string)($seoPublishedTime ?? ''));
 $seoModifiedTime = trim((string)($seoModifiedTime ?? ''));
+$seoArticleSection = trim((string)($seoArticleSection ?? ''));
 $seoJsonLd = isset($seoJsonLd) && is_array($seoJsonLd) ? $seoJsonLd : [];
+
+$seoImageWidth = 0;
+$seoImageHeight = 0;
+$seoImageMime = '';
+$seoImagePath = '';
+if (!preg_match('~^https?://~i', trim((string)($seoImage ?? '')))) {
+    $seoImagePath = ROOT_PATH . '/' . ltrim((string)($seoImage ?? ''), '/');
+}
+if ($seoImagePath !== '' && is_file($seoImagePath)) {
+    $imageInfo = @getimagesize($seoImagePath);
+    if (is_array($imageInfo)) {
+        $seoImageWidth = (int)($imageInfo[0] ?? 0);
+        $seoImageHeight = (int)($imageInfo[1] ?? 0);
+        $seoImageMime = trim((string)($imageInfo['mime'] ?? ''));
+    }
+}
 
 $seoSameAs = [];
 foreach ($siteSocialLinks as $social) {
@@ -49,10 +67,11 @@ $seoOrganization = [
     '@type' => 'NewsMediaOrganization',
     '@id' => base_url('#organization'),
     'name' => $seoSiteName,
-    'alternateName' => 'Сетевое издание Унцукульского района',
+    'alternateName' => $seoSiteAlternateName,
     'url' => base_url(),
     'logo' => [
         '@type' => 'ImageObject',
+        '@id' => base_url('#logo'),
         'url' => base_url($siteHeaderLogo),
     ],
 ];
@@ -64,6 +83,7 @@ $seoWebsite = [
     '@id' => base_url('#website'),
     'url' => base_url(),
     'name' => $seoSiteName,
+    'alternateName' => $seoSiteAlternateName,
     'description' => $seoDefaultDescription,
     'inLanguage' => 'ru-RU',
     'publisher' => ['@id' => base_url('#organization')],
@@ -83,7 +103,10 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#231d18">
+<meta name="application-name" content="<?=e($seoSiteName)?>">
 <link rel="icon" href="<?=e(base_url($siteFavicon))?>">
+<link rel="shortcut icon" href="<?=e(base_url($siteFavicon))?>">
+<link rel="sitemap" type="application/xml" title="Sitemap" href="<?=e(base_url('sitemap.xml'))?>">
 <title><?=e($seoFullTitle)?></title>
 <meta name="description" content="<?=e($seoDescription)?>">
 <meta name="robots" content="<?=e($seoRobots)?>">
@@ -95,14 +118,20 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 <meta property="og:description" content="<?=e($seoDescription)?>">
 <meta property="og:url" content="<?=e($seoCanonical)?>">
 <meta property="og:image" content="<?=e($seoImage)?>">
+<meta property="og:image:secure_url" content="<?=e($seoImage)?>">
 <meta property="og:image:alt" content="<?=e($seoTitleText !== '' ? $seoTitleText : $seoSiteName)?>">
+<?php if($seoImageWidth>0):?><meta property="og:image:width" content="<?=e((string)$seoImageWidth)?>"><?php endif;?>
+<?php if($seoImageHeight>0):?><meta property="og:image:height" content="<?=e((string)$seoImageHeight)?>"><?php endif;?>
+<?php if($seoImageMime!==''):?><meta property="og:image:type" content="<?=e($seoImageMime)?>"><?php endif;?>
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="<?=e($seoFullTitle)?>">
 <meta name="twitter:description" content="<?=e($seoDescription)?>">
 <meta name="twitter:image" content="<?=e($seoImage)?>">
+<meta name="twitter:image:alt" content="<?=e($seoTitleText !== '' ? $seoTitleText : $seoSiteName)?>">
 <?php if($seoAuthor!==''):?><meta name="author" content="<?=e($seoAuthor)?>"><?php endif;?>
 <?php if($seoPublishedTime!==''):?><meta property="article:published_time" content="<?=e($seoPublishedTime)?>"><?php endif;?>
 <?php if($seoModifiedTime!==''):?><meta property="article:modified_time" content="<?=e($seoModifiedTime)?>"><?php endif;?>
+<?php if($seoArticleSection!==''):?><meta property="article:section" content="<?=e($seoArticleSection)?>"><?php endif;?>
 <?php foreach($seoJsonLd as $jsonLd):?>
 <script type="application/ld+json"><?=json_encode($jsonLd,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?></script>
 <?php endforeach;?>
@@ -110,7 +139,7 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@400;500;600;700;800&family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Noto+Serif:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20261001-admin-account1'))?>">
+<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20261002-district-seo1'))?>">
 </head>
 <body>
 <a id="top"></a>
