@@ -1441,7 +1441,7 @@ function social_service_catalog(): array
     return [
         'vk'       => ['name'=>'ВКонтакте',      'icon'=>'fa-brands fa-vk'],
         'ok'       => ['name'=>'Одноклассники',  'icon'=>'fa-brands fa-odnoklassniki'],
-        'max'      => ['name'=>'MAX',            'icon'=>'fa-solid fa-message'],
+        'max'      => ['name'=>'MAX',            'icon'=>'fa-solid fa-message','asset'=>'assets/img/social-max.svg'],
         'telegram' => ['name'=>'Telegram',       'icon'=>'fa-brands fa-telegram'],
         'dzen'     => ['name'=>'Дзен',           'icon'=>'fa-solid fa-circle-nodes'],
         'rutube'   => ['name'=>'Rutube',         'icon'=>'fa-solid fa-play'],
@@ -1460,6 +1460,12 @@ function social_service_icon(string $service): string
 {
     $catalog=social_service_catalog();
     return $catalog[$service]['icon'] ?? 'fa-solid fa-link';
+}
+
+function social_service_asset(string $service): string
+{
+    $catalog=social_service_catalog();
+    return trim((string)($catalog[$service]['asset'] ?? ''));
 }
 
 function normalize_social_url(string $service, string $url): string
