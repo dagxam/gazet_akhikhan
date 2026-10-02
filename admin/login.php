@@ -16,7 +16,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
   $email=trim($_POST['email']??'');
   $pass=(string)($_POST['password']??'');
 
-  $limitState=login_rate_limit_status();
+  $limitState=login_rate_limit_status($email);
   if(!empty($limitState['blocked'])){
     $retry=max(60,(int)$limitState['remaining']);
     http_response_code(429);
@@ -27,19 +27,31 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     $q->execute([$email]);
     $u=$q->fetch();
 
-    if($u && password_verify($pass,$u['password_hash'])){
+    $passwordOk=false;
+    if($u){
+      $passwordOk=password_verify($pass,$u['password_hash']);
+    }else{
+      // Keep the failure path closer in cost to a real password verification.
+      password_verify($pass,'$2y$10$wHh0w6mLVuVwRzOeYtW8GuS8h1U40DC4qD9QIFRMvQqLJZc2jta.G');
+    }
+
+    if($u && $passwordOk){
+      if(password_needs_rehash($u['password_hash'],PASSWORD_DEFAULT)){
+        $newHash=password_hash($pass,PASSWORD_DEFAULT);
+        db()->prepare('UPDATE users SET password_hash=? WHERE id=?')->execute([$newHash,$u['id']]);
+      }
       unset($u['password_hash']);
       session_regenerate_id(true);
       $_SESSION['admin_user']=$u;
       $_SESSION['admin_login_at']=time();
       $_SESSION['admin_last_activity']=time();
       $_SESSION['admin_last_regen']=time();
-      login_rate_limit_clear();
+      login_rate_limit_clear($email);
       header('Location: '.base_url('admin/'));
       exit;
     }
 
-    $limitState=login_rate_limit_failure();
+    $limitState=login_rate_limit_failure($email);
     usleep(random_int(250000,450000));
     if(!empty($limitState['blocked'])){
       http_response_code(429);
