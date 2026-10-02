@@ -234,6 +234,690 @@ jobs:
           install_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-install.txt --write-out '%{http_code}' https://akhikhan.ru/install.php)"
           test "$install_code" = "404"
 
+          security_txt_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-security.txt --write-out '%{http_code}' https://akhikhan.ru/.well-known/security.txt)"
+          test "$security_txt_code" = "200"
+          grep -q '^Contact: mailto:info@akhikhan.ru"$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-config.txt --write-out '%{http_code}' https://akhikhan.ru/config.php)"
+          test "$config_code" = "403" -o "$config_code" = "404"
+
+          storage_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-storage.txt --write-out '%{http_code}' https://akhikhan.ru/storage/php-error.log)"
+          test "$storage_code" = "403" -o "$storage_code" = "404"
+
+          reaction_get_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-reaction-get.json --write-out '%{http_code}' https://akhikhan.ru/article-reaction.php)"
+          reaction_cross_code="$(curl --silent --show-error --max-time 30 --request POST --data 'article_id=0&reaction=like&token=0123456789abcdef' --output /tmp/akhikhan-reaction-cross.json --write-out '%{http_code}' https://akhikhan.ru/article-reaction.php)"
+
+          if [ "$code" = "200" ]; then
+            test "$reaction_get_code" = "405"
+            test "$reaction_cross_code" = "403"
+            echo "check: public reaction endpoint method/origin protection ok"
+          else
+            test "$reaction_get_code" = "503"
+            test "$reaction_cross_code" = "503"
+            echo "check: reaction endpoint correctly hidden by reconstruction mode"
+          fi
+
+          echo "Homepage, hardened endpoints and security headers verified."
+
+          # Controlled production burst smoke test: enough to catch obvious concurrency/resource failures
+          # without turning deployment verification into a destructive load test.
+          seq 1 30 | xargs -I{} -P5 sh -c 'curl --silent --show-error --max-time 15 --output /dev/null --write-out "%{http_code}\n" "https://akhikhan.ru/privacy.php?security-smoke={}"' > /tmp/akhikhan-burst-codes.txt
+          test "$(wc -l < /tmp/akhikhan-burst-codes.txt)" -eq 30
+          test "$(grep -c '^200"$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-ornament.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/ornament-footer-premium.svg)"
+          test "$ornament_code" = "200"
+          test "$(wc -c < /tmp/akhikhan-ornament.svg)" -gt 7000
+          grep -q 'viewBox="0 0 2048 170"' /tmp/akhikhan-ornament.svg
+
+          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-history1')"
+          test "$public_css_code" = "200"
+          grep -q 'ornament-footer-premium.svg' /tmp/akhikhan-style.css
+          grep -q '.privacy-notice' /tmp/akhikhan-style.css
+          grep -q 'District news balanced editorial grid' /tmp/akhikhan-style.css
+          grep -q '.district-magazine-side-grid.items-3' /tmp/akhikhan-style.css
+          grep -q 'Homepage editorial redesign' /tmp/akhikhan-style.css
+          grep -q 'Homepage compact rounded refinement' /tmp/akhikhan-style.css
+          grep -q 'Public documents page + homepage link' /tmp/akhikhan-style.css
+          grep -q 'Header / MAX social polish' /tmp/akhikhan-style.css
+          grep -q 'Unified public buttons and action links' /tmp/akhikhan-style.css
+          grep -q 'Homepage image-overlay news cards' /tmp/akhikhan-style.css
+          grep -q 'Navigation, social icons, article engagement and best news' /tmp/akhikhan-style.css
+          grep -q 'Age rating + accessible version' /tmp/akhikhan-style.css
+          grep -q 'Accessibility panel v2' /tmp/akhikhan-style.css
+          grep -q 'Contacts page + feedback form' /tmp/akhikhan-style.css
+          grep -q 'History category editorial landing' /tmp/akhikhan-style.css
+          grep -q '.history-feature' /tmp/akhikhan-style.css
+          grep -q '.history-timeline' /tmp/akhikhan-style.css
+          grep -q '.contact-form-card' /tmp/akhikhan-style.css
+          grep -q '.accessibility-quick-presets' /tmp/akhikhan-style.css
+          grep -q '.topbar-accessibility-state' /tmp/akhikhan-style.css
+          grep -q '.topbar-accessibility' /tmp/akhikhan-style.css
+          grep -q '.accessibility-panel' /tmp/akhikhan-style.css
+          grep -q 'a11y-active' /tmp/akhikhan-style.css
+          grep -q '.article-community-card' /tmp/akhikhan-style.css
+          grep -q '.best-news-grid' /tmp/akhikhan-style.css
+          grep -q '.home-news-meta' /tmp/akhikhan-style.css
+          grep -q '.reference-brand-caption' /tmp/akhikhan-style.css
+          grep -q '.social-service-image' /tmp/akhikhan-style.css
+          grep -q '.home-news-summary' /tmp/akhikhan-style.css
+          grep -q '.home-news-three-grid.items-1' /tmp/akhikhan-style.css
+          grep -q '.editorial-heritage' /tmp/akhikhan-style.css
+
+          max_icon_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-social-max.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/social-max.svg)"
+          test "$max_icon_code" = "200"
+          grep -q '<svg' /tmp/akhikhan-social-max.svg
+          grep -q 'linearGradient' /tmp/akhikhan-social-max.svg
+
+          max_black_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-social-max-black.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/social-max-black.svg)"
+          test "$max_black_code" = "200"
+          grep -q '#0a0b0b' /tmp/akhikhan-social-max-black.svg
+
+          max_white_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-social-max-white.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/social-max-white.svg)"
+          test "$max_white_code" = "200"
+          grep -q '#fff' /tmp/akhikhan-social-max-white.svg
+
+          search_favicon_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-favicon-search.png --write-out '%{http_code}' https://akhikhan.ru/assets/img/favicon-search.png)"
+          test "$search_favicon_code" = "200"
+          test "$(wc -c < /tmp/akhikhan-favicon-search.png)" -gt 1000
+
+          privacy_js_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-app.js --write-out '%{http_code}' 'https://akhikhan.ru/assets/js/app.js?v=20261002-accessibility2')"
+          test "$privacy_js_code" = "200"
+          grep -q 'data-privacy-notice' /tmp/akhikhan-app.js
+          grep -q 'privacyVersion' /tmp/akhikhan-app.js
+          grep -q 'data-topbar-admin-account' /tmp/akhikhan-app.js
+          grep -q 'akhikhan_article_reaction_' /tmp/akhikhan-app.js
+          grep -q 'akhikhan_accessibility_v2' /tmp/akhikhan-app.js
+          grep -q 'applyPreset' /tmp/akhikhan-app.js
+          grep -q 'data-accessibility-panel' /tmp/akhikhan-app.js
+          grep -q 'data-copy-article-link' /tmp/akhikhan-app.js
+          if [ "$code" = "200" ]; then
+            grep -q 'target="_blank" rel="noopener"' /tmp/akhikhan.html
+            grep -q 'Вход в редакцию' /tmp/akhikhan.html
+          fi
+          echo "Public styles, privacy banner assets and admin topbar behavior verified."
+
+          robots_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-robots.txt --write-out '%{http_code}' https://akhikhan.ru/robots.txt)"
+          test "$robots_code" = "200"
+          grep -q '^Sitemap: https://akhikhan.ru/sitemap.xml' /tmp/akhikhan-robots.txt
+          grep -q '^Sitemap: https://akhikhan.ru/news-sitemap.xml' /tmp/akhikhan-robots.txt
+
+          if [ "$code" = "200" ]; then
+            grep -q '<link rel="canonical" href="https://akhikhan.ru/' /tmp/akhikhan.html
+            grep -q '<meta name="description"' /tmp/akhikhan.html
+            grep -q '<meta property="og:site_name"' /tmp/akhikhan.html
+            grep -q '<meta property="og:image:secure_url"' /tmp/akhikhan.html
+            grep -q '<meta name="twitter:image:alt"' /tmp/akhikhan.html
+            grep -q '<link rel="sitemap" type="application/xml"' /tmp/akhikhan.html
+            grep -q '<link rel="icon"' /tmp/akhikhan.html
+            grep -q 'application/ld+json' /tmp/akhikhan.html
+            grep -q '"@type":"WebSite"' /tmp/akhikhan.html
+
+            sitemap_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-sitemap.xml --write-out '%{http_code}' https://akhikhan.ru/sitemap.xml)"
+            test "$sitemap_code" = "200"
+            grep -q 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' /tmp/akhikhan-sitemap.xml
+            grep -q 'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"' /tmp/akhikhan-sitemap.xml
+            grep -q '<loc>https://akhikhan.ru/</loc>' /tmp/akhikhan-sitemap.xml
+            grep -q '<loc>https://akhikhan.ru/documents.php</loc>' /tmp/akhikhan-sitemap.xml
+
+            article_url="$(grep -oE '<loc>https://akhikhan\.ru/article/[^<]+' /tmp/akhikhan-sitemap.xml | head -n 1 | sed 's#<loc>##' || true)"
+            if [ -n "$article_url" ]; then
+              article_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-article.html --write-out '%{http_code}' "$article_url")"
+              test "$article_code" = "200"
+              grep -q '"@type":"NewsArticle"' /tmp/akhikhan-article.html
+              grep -q '<meta property="article:published_time"' /tmp/akhikhan-article.html
+              grep -q 'article-community-card' /tmp/akhikhan-article.html
+              grep -q 'data-article-reaction-widget' /tmp/akhikhan-article.html
+              grep -q 'Поделиться' /tmp/akhikhan-article.html
+              grep -q 'max.ru/:share' /tmp/akhikhan-article.html
+              grep -q '<meta property="article:section"' /tmp/akhikhan-article.html
+            fi
+
+            news_sitemap_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-news-sitemap.xml --write-out '%{http_code}' https://akhikhan.ru/news-sitemap.xml)"
+            test "$news_sitemap_code" = "200"
+            grep -q 'xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"' /tmp/akhikhan-news-sitemap.xml
+            echo "SEO metadata, robots.txt and XML sitemaps verified."
+          fi
+ /tmp/akhikhan-security.txt
+          grep -q '^Expires:' /tmp/akhikhan-security.txt
+          grep -q '^Canonical: https://akhikhan.ru/.well-known/security.txt"$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-config.txt --write-out '%{http_code}' https://akhikhan.ru/config.php)"
+          test "$config_code" = "403" -o "$config_code" = "404"
+
+          storage_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-storage.txt --write-out '%{http_code}' https://akhikhan.ru/storage/php-error.log)"
+          test "$storage_code" = "403" -o "$storage_code" = "404"
+
+          reaction_get_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-reaction-get.json --write-out '%{http_code}' https://akhikhan.ru/article-reaction.php)"
+          reaction_cross_code="$(curl --silent --show-error --max-time 30 --request POST --data 'article_id=0&reaction=like&token=0123456789abcdef' --output /tmp/akhikhan-reaction-cross.json --write-out '%{http_code}' https://akhikhan.ru/article-reaction.php)"
+
+          if [ "$code" = "200" ]; then
+            test "$reaction_get_code" = "405"
+            test "$reaction_cross_code" = "403"
+            echo "check: public reaction endpoint method/origin protection ok"
+          else
+            test "$reaction_get_code" = "503"
+            test "$reaction_cross_code" = "503"
+            echo "check: reaction endpoint correctly hidden by reconstruction mode"
+          fi
+
+          echo "Homepage, hardened endpoints and security headers verified."
+
+          ornament_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-ornament.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/ornament-footer-premium.svg)"
+          test "$ornament_code" = "200"
+          test "$(wc -c < /tmp/akhikhan-ornament.svg)" -gt 7000
+          grep -q 'viewBox="0 0 2048 170"' /tmp/akhikhan-ornament.svg
+
+          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-history1')"
+          test "$public_css_code" = "200"
+          grep -q 'ornament-footer-premium.svg' /tmp/akhikhan-style.css
+          grep -q '.privacy-notice' /tmp/akhikhan-style.css
+          grep -q 'District news balanced editorial grid' /tmp/akhikhan-style.css
+          grep -q '.district-magazine-side-grid.items-3' /tmp/akhikhan-style.css
+          grep -q 'Homepage editorial redesign' /tmp/akhikhan-style.css
+          grep -q 'Homepage compact rounded refinement' /tmp/akhikhan-style.css
+          grep -q 'Public documents page + homepage link' /tmp/akhikhan-style.css
+          grep -q 'Header / MAX social polish' /tmp/akhikhan-style.css
+          grep -q 'Unified public buttons and action links' /tmp/akhikhan-style.css
+          grep -q 'Homepage image-overlay news cards' /tmp/akhikhan-style.css
+          grep -q 'Navigation, social icons, article engagement and best news' /tmp/akhikhan-style.css
+          grep -q 'Age rating + accessible version' /tmp/akhikhan-style.css
+          grep -q 'Accessibility panel v2' /tmp/akhikhan-style.css
+          grep -q 'Contacts page + feedback form' /tmp/akhikhan-style.css
+          grep -q 'History category editorial landing' /tmp/akhikhan-style.css
+          grep -q '.history-feature' /tmp/akhikhan-style.css
+          grep -q '.history-timeline' /tmp/akhikhan-style.css
+          grep -q '.contact-form-card' /tmp/akhikhan-style.css
+          grep -q '.accessibility-quick-presets' /tmp/akhikhan-style.css
+          grep -q '.topbar-accessibility-state' /tmp/akhikhan-style.css
+          grep -q '.topbar-accessibility' /tmp/akhikhan-style.css
+          grep -q '.accessibility-panel' /tmp/akhikhan-style.css
+          grep -q 'a11y-active' /tmp/akhikhan-style.css
+          grep -q '.article-community-card' /tmp/akhikhan-style.css
+          grep -q '.best-news-grid' /tmp/akhikhan-style.css
+          grep -q '.home-news-meta' /tmp/akhikhan-style.css
+          grep -q '.reference-brand-caption' /tmp/akhikhan-style.css
+          grep -q '.social-service-image' /tmp/akhikhan-style.css
+          grep -q '.home-news-summary' /tmp/akhikhan-style.css
+          grep -q '.home-news-three-grid.items-1' /tmp/akhikhan-style.css
+          grep -q '.editorial-heritage' /tmp/akhikhan-style.css
+
+          max_icon_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-social-max.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/social-max.svg)"
+          test "$max_icon_code" = "200"
+          grep -q '<svg' /tmp/akhikhan-social-max.svg
+          grep -q 'linearGradient' /tmp/akhikhan-social-max.svg
+
+          max_black_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-social-max-black.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/social-max-black.svg)"
+          test "$max_black_code" = "200"
+          grep -q '#0a0b0b' /tmp/akhikhan-social-max-black.svg
+
+          max_white_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-social-max-white.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/social-max-white.svg)"
+          test "$max_white_code" = "200"
+          grep -q '#fff' /tmp/akhikhan-social-max-white.svg
+
+          search_favicon_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-favicon-search.png --write-out '%{http_code}' https://akhikhan.ru/assets/img/favicon-search.png)"
+          test "$search_favicon_code" = "200"
+          test "$(wc -c < /tmp/akhikhan-favicon-search.png)" -gt 1000
+
+          privacy_js_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-app.js --write-out '%{http_code}' 'https://akhikhan.ru/assets/js/app.js?v=20261002-accessibility2')"
+          test "$privacy_js_code" = "200"
+          grep -q 'data-privacy-notice' /tmp/akhikhan-app.js
+          grep -q 'privacyVersion' /tmp/akhikhan-app.js
+          grep -q 'data-topbar-admin-account' /tmp/akhikhan-app.js
+          grep -q 'akhikhan_article_reaction_' /tmp/akhikhan-app.js
+          grep -q 'akhikhan_accessibility_v2' /tmp/akhikhan-app.js
+          grep -q 'applyPreset' /tmp/akhikhan-app.js
+          grep -q 'data-accessibility-panel' /tmp/akhikhan-app.js
+          grep -q 'data-copy-article-link' /tmp/akhikhan-app.js
+          if [ "$code" = "200" ]; then
+            grep -q 'target="_blank" rel="noopener"' /tmp/akhikhan.html
+            grep -q 'Вход в редакцию' /tmp/akhikhan.html
+          fi
+          echo "Public styles, privacy banner assets and admin topbar behavior verified."
+
+          robots_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-robots.txt --write-out '%{http_code}' https://akhikhan.ru/robots.txt)"
+          test "$robots_code" = "200"
+          grep -q '^Sitemap: https://akhikhan.ru/sitemap.xml' /tmp/akhikhan-robots.txt
+          grep -q '^Sitemap: https://akhikhan.ru/news-sitemap.xml' /tmp/akhikhan-robots.txt
+
+          if [ "$code" = "200" ]; then
+            grep -q '<link rel="canonical" href="https://akhikhan.ru/' /tmp/akhikhan.html
+            grep -q '<meta name="description"' /tmp/akhikhan.html
+            grep -q '<meta property="og:site_name"' /tmp/akhikhan.html
+            grep -q '<meta property="og:image:secure_url"' /tmp/akhikhan.html
+            grep -q '<meta name="twitter:image:alt"' /tmp/akhikhan.html
+            grep -q '<link rel="sitemap" type="application/xml"' /tmp/akhikhan.html
+            grep -q '<link rel="icon"' /tmp/akhikhan.html
+            grep -q 'application/ld+json' /tmp/akhikhan.html
+            grep -q '"@type":"WebSite"' /tmp/akhikhan.html
+
+            sitemap_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-sitemap.xml --write-out '%{http_code}' https://akhikhan.ru/sitemap.xml)"
+            test "$sitemap_code" = "200"
+            grep -q 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' /tmp/akhikhan-sitemap.xml
+            grep -q 'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"' /tmp/akhikhan-sitemap.xml
+            grep -q '<loc>https://akhikhan.ru/</loc>' /tmp/akhikhan-sitemap.xml
+            grep -q '<loc>https://akhikhan.ru/documents.php</loc>' /tmp/akhikhan-sitemap.xml
+
+            article_url="$(grep -oE '<loc>https://akhikhan\.ru/article/[^<]+' /tmp/akhikhan-sitemap.xml | head -n 1 | sed 's#<loc>##' || true)"
+            if [ -n "$article_url" ]; then
+              article_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-article.html --write-out '%{http_code}' "$article_url")"
+              test "$article_code" = "200"
+              grep -q '"@type":"NewsArticle"' /tmp/akhikhan-article.html
+              grep -q '<meta property="article:published_time"' /tmp/akhikhan-article.html
+              grep -q 'article-community-card' /tmp/akhikhan-article.html
+              grep -q 'data-article-reaction-widget' /tmp/akhikhan-article.html
+              grep -q 'Поделиться' /tmp/akhikhan-article.html
+              grep -q 'max.ru/:share' /tmp/akhikhan-article.html
+              grep -q '<meta property="article:section"' /tmp/akhikhan-article.html
+            fi
+
+            news_sitemap_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-news-sitemap.xml --write-out '%{http_code}' https://akhikhan.ru/news-sitemap.xml)"
+            test "$news_sitemap_code" = "200"
+            grep -q 'xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"' /tmp/akhikhan-news-sitemap.xml
+            echo "SEO metadata, robots.txt and XML sitemaps verified."
+          fi
+ /tmp/akhikhan-security.txt
+
+          login_headers="$(curl --silent --show-error --head --max-time 30 https://akhikhan.ru/admin/login.php | tr -d '\r')"
+          echo "$login_headers" | grep -qi '^Set-Cookie: AKHSESSID='
+          echo "$login_headers" | grep -qi 'httponly'
+          echo "$login_headers" | grep -qi 'samesite=Lax'
+          echo "$login_headers" | grep -qi 'secure'
+
+          logout_get_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-logout-get.txt --write-out '%{http_code}' https://akhikhan.ru/admin/logout.php)"
+          test "$logout_get_code" = "405"
+
+          config_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-config.txt --write-out '%{http_code}' https://akhikhan.ru/config.php)"
+          test "$config_code" = "403" -o "$config_code" = "404"
+
+          storage_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-storage.txt --write-out '%{http_code}' https://akhikhan.ru/storage/php-error.log)"
+          test "$storage_code" = "403" -o "$storage_code" = "404"
+
+          reaction_get_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-reaction-get.json --write-out '%{http_code}' https://akhikhan.ru/article-reaction.php)"
+          reaction_cross_code="$(curl --silent --show-error --max-time 30 --request POST --data 'article_id=0&reaction=like&token=0123456789abcdef' --output /tmp/akhikhan-reaction-cross.json --write-out '%{http_code}' https://akhikhan.ru/article-reaction.php)"
+
+          if [ "$code" = "200" ]; then
+            test "$reaction_get_code" = "405"
+            test "$reaction_cross_code" = "403"
+            echo "check: public reaction endpoint method/origin protection ok"
+          else
+            test "$reaction_get_code" = "503"
+            test "$reaction_cross_code" = "503"
+            echo "check: reaction endpoint correctly hidden by reconstruction mode"
+          fi
+
+          echo "Homepage, hardened endpoints and security headers verified."
+
+          ornament_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-ornament.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/ornament-footer-premium.svg)"
+          test "$ornament_code" = "200"
+          test "$(wc -c < /tmp/akhikhan-ornament.svg)" -gt 7000
+          grep -q 'viewBox="0 0 2048 170"' /tmp/akhikhan-ornament.svg
+
+          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-history1')"
+          test "$public_css_code" = "200"
+          grep -q 'ornament-footer-premium.svg' /tmp/akhikhan-style.css
+          grep -q '.privacy-notice' /tmp/akhikhan-style.css
+          grep -q 'District news balanced editorial grid' /tmp/akhikhan-style.css
+          grep -q '.district-magazine-side-grid.items-3' /tmp/akhikhan-style.css
+          grep -q 'Homepage editorial redesign' /tmp/akhikhan-style.css
+          grep -q 'Homepage compact rounded refinement' /tmp/akhikhan-style.css
+          grep -q 'Public documents page + homepage link' /tmp/akhikhan-style.css
+          grep -q 'Header / MAX social polish' /tmp/akhikhan-style.css
+          grep -q 'Unified public buttons and action links' /tmp/akhikhan-style.css
+          grep -q 'Homepage image-overlay news cards' /tmp/akhikhan-style.css
+          grep -q 'Navigation, social icons, article engagement and best news' /tmp/akhikhan-style.css
+          grep -q 'Age rating + accessible version' /tmp/akhikhan-style.css
+          grep -q 'Accessibility panel v2' /tmp/akhikhan-style.css
+          grep -q 'Contacts page + feedback form' /tmp/akhikhan-style.css
+          grep -q 'History category editorial landing' /tmp/akhikhan-style.css
+          grep -q '.history-feature' /tmp/akhikhan-style.css
+          grep -q '.history-timeline' /tmp/akhikhan-style.css
+          grep -q '.contact-form-card' /tmp/akhikhan-style.css
+          grep -q '.accessibility-quick-presets' /tmp/akhikhan-style.css
+          grep -q '.topbar-accessibility-state' /tmp/akhikhan-style.css
+          grep -q '.topbar-accessibility' /tmp/akhikhan-style.css
+          grep -q '.accessibility-panel' /tmp/akhikhan-style.css
+          grep -q 'a11y-active' /tmp/akhikhan-style.css
+          grep -q '.article-community-card' /tmp/akhikhan-style.css
+          grep -q '.best-news-grid' /tmp/akhikhan-style.css
+          grep -q '.home-news-meta' /tmp/akhikhan-style.css
+          grep -q '.reference-brand-caption' /tmp/akhikhan-style.css
+          grep -q '.social-service-image' /tmp/akhikhan-style.css
+          grep -q '.home-news-summary' /tmp/akhikhan-style.css
+          grep -q '.home-news-three-grid.items-1' /tmp/akhikhan-style.css
+          grep -q '.editorial-heritage' /tmp/akhikhan-style.css
+
+          max_icon_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-social-max.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/social-max.svg)"
+          test "$max_icon_code" = "200"
+          grep -q '<svg' /tmp/akhikhan-social-max.svg
+          grep -q 'linearGradient' /tmp/akhikhan-social-max.svg
+
+          max_black_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-social-max-black.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/social-max-black.svg)"
+          test "$max_black_code" = "200"
+          grep -q '#0a0b0b' /tmp/akhikhan-social-max-black.svg
+
+          max_white_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-social-max-white.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/social-max-white.svg)"
+          test "$max_white_code" = "200"
+          grep -q '#fff' /tmp/akhikhan-social-max-white.svg
+
+          search_favicon_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-favicon-search.png --write-out '%{http_code}' https://akhikhan.ru/assets/img/favicon-search.png)"
+          test "$search_favicon_code" = "200"
+          test "$(wc -c < /tmp/akhikhan-favicon-search.png)" -gt 1000
+
+          privacy_js_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-app.js --write-out '%{http_code}' 'https://akhikhan.ru/assets/js/app.js?v=20261002-accessibility2')"
+          test "$privacy_js_code" = "200"
+          grep -q 'data-privacy-notice' /tmp/akhikhan-app.js
+          grep -q 'privacyVersion' /tmp/akhikhan-app.js
+          grep -q 'data-topbar-admin-account' /tmp/akhikhan-app.js
+          grep -q 'akhikhan_article_reaction_' /tmp/akhikhan-app.js
+          grep -q 'akhikhan_accessibility_v2' /tmp/akhikhan-app.js
+          grep -q 'applyPreset' /tmp/akhikhan-app.js
+          grep -q 'data-accessibility-panel' /tmp/akhikhan-app.js
+          grep -q 'data-copy-article-link' /tmp/akhikhan-app.js
+          if [ "$code" = "200" ]; then
+            grep -q 'target="_blank" rel="noopener"' /tmp/akhikhan.html
+            grep -q 'Вход в редакцию' /tmp/akhikhan.html
+          fi
+          echo "Public styles, privacy banner assets and admin topbar behavior verified."
+
+          robots_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-robots.txt --write-out '%{http_code}' https://akhikhan.ru/robots.txt)"
+          test "$robots_code" = "200"
+          grep -q '^Sitemap: https://akhikhan.ru/sitemap.xml' /tmp/akhikhan-robots.txt
+          grep -q '^Sitemap: https://akhikhan.ru/news-sitemap.xml' /tmp/akhikhan-robots.txt
+
+          if [ "$code" = "200" ]; then
+            grep -q '<link rel="canonical" href="https://akhikhan.ru/' /tmp/akhikhan.html
+            grep -q '<meta name="description"' /tmp/akhikhan.html
+            grep -q '<meta property="og:site_name"' /tmp/akhikhan.html
+            grep -q '<meta property="og:image:secure_url"' /tmp/akhikhan.html
+            grep -q '<meta name="twitter:image:alt"' /tmp/akhikhan.html
+            grep -q '<link rel="sitemap" type="application/xml"' /tmp/akhikhan.html
+            grep -q '<link rel="icon"' /tmp/akhikhan.html
+            grep -q 'application/ld+json' /tmp/akhikhan.html
+            grep -q '"@type":"WebSite"' /tmp/akhikhan.html
+
+            sitemap_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-sitemap.xml --write-out '%{http_code}' https://akhikhan.ru/sitemap.xml)"
+            test "$sitemap_code" = "200"
+            grep -q 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' /tmp/akhikhan-sitemap.xml
+            grep -q 'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"' /tmp/akhikhan-sitemap.xml
+            grep -q '<loc>https://akhikhan.ru/</loc>' /tmp/akhikhan-sitemap.xml
+            grep -q '<loc>https://akhikhan.ru/documents.php</loc>' /tmp/akhikhan-sitemap.xml
+
+            article_url="$(grep -oE '<loc>https://akhikhan\.ru/article/[^<]+' /tmp/akhikhan-sitemap.xml | head -n 1 | sed 's#<loc>##' || true)"
+            if [ -n "$article_url" ]; then
+              article_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-article.html --write-out '%{http_code}' "$article_url")"
+              test "$article_code" = "200"
+              grep -q '"@type":"NewsArticle"' /tmp/akhikhan-article.html
+              grep -q '<meta property="article:published_time"' /tmp/akhikhan-article.html
+              grep -q 'article-community-card' /tmp/akhikhan-article.html
+              grep -q 'data-article-reaction-widget' /tmp/akhikhan-article.html
+              grep -q 'Поделиться' /tmp/akhikhan-article.html
+              grep -q 'max.ru/:share' /tmp/akhikhan-article.html
+              grep -q '<meta property="article:section"' /tmp/akhikhan-article.html
+            fi
+
+            news_sitemap_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-news-sitemap.xml --write-out '%{http_code}' https://akhikhan.ru/news-sitemap.xml)"
+            test "$news_sitemap_code" = "200"
+            grep -q 'xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"' /tmp/akhikhan-news-sitemap.xml
+            echo "SEO metadata, robots.txt and XML sitemaps verified."
+          fi
+ /tmp/akhikhan-burst-codes.txt)" -eq 30
+          echo "Controlled concurrent PHP burst (30 requests, concurrency 5) passed."
+
+          ornament_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-ornament.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/ornament-footer-premium.svg)"
+          test "$ornament_code" = "200"
+          test "$(wc -c < /tmp/akhikhan-ornament.svg)" -gt 7000
+          grep -q 'viewBox="0 0 2048 170"' /tmp/akhikhan-ornament.svg
+
+          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-history1')"
+          test "$public_css_code" = "200"
+          grep -q 'ornament-footer-premium.svg' /tmp/akhikhan-style.css
+          grep -q '.privacy-notice' /tmp/akhikhan-style.css
+          grep -q 'District news balanced editorial grid' /tmp/akhikhan-style.css
+          grep -q '.district-magazine-side-grid.items-3' /tmp/akhikhan-style.css
+          grep -q 'Homepage editorial redesign' /tmp/akhikhan-style.css
+          grep -q 'Homepage compact rounded refinement' /tmp/akhikhan-style.css
+          grep -q 'Public documents page + homepage link' /tmp/akhikhan-style.css
+          grep -q 'Header / MAX social polish' /tmp/akhikhan-style.css
+          grep -q 'Unified public buttons and action links' /tmp/akhikhan-style.css
+          grep -q 'Homepage image-overlay news cards' /tmp/akhikhan-style.css
+          grep -q 'Navigation, social icons, article engagement and best news' /tmp/akhikhan-style.css
+          grep -q 'Age rating + accessible version' /tmp/akhikhan-style.css
+          grep -q 'Accessibility panel v2' /tmp/akhikhan-style.css
+          grep -q 'Contacts page + feedback form' /tmp/akhikhan-style.css
+          grep -q 'History category editorial landing' /tmp/akhikhan-style.css
+          grep -q '.history-feature' /tmp/akhikhan-style.css
+          grep -q '.history-timeline' /tmp/akhikhan-style.css
+          grep -q '.contact-form-card' /tmp/akhikhan-style.css
+          grep -q '.accessibility-quick-presets' /tmp/akhikhan-style.css
+          grep -q '.topbar-accessibility-state' /tmp/akhikhan-style.css
+          grep -q '.topbar-accessibility' /tmp/akhikhan-style.css
+          grep -q '.accessibility-panel' /tmp/akhikhan-style.css
+          grep -q 'a11y-active' /tmp/akhikhan-style.css
+          grep -q '.article-community-card' /tmp/akhikhan-style.css
+          grep -q '.best-news-grid' /tmp/akhikhan-style.css
+          grep -q '.home-news-meta' /tmp/akhikhan-style.css
+          grep -q '.reference-brand-caption' /tmp/akhikhan-style.css
+          grep -q '.social-service-image' /tmp/akhikhan-style.css
+          grep -q '.home-news-summary' /tmp/akhikhan-style.css
+          grep -q '.home-news-three-grid.items-1' /tmp/akhikhan-style.css
+          grep -q '.editorial-heritage' /tmp/akhikhan-style.css
+
+          max_icon_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-social-max.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/social-max.svg)"
+          test "$max_icon_code" = "200"
+          grep -q '<svg' /tmp/akhikhan-social-max.svg
+          grep -q 'linearGradient' /tmp/akhikhan-social-max.svg
+
+          max_black_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-social-max-black.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/social-max-black.svg)"
+          test "$max_black_code" = "200"
+          grep -q '#0a0b0b' /tmp/akhikhan-social-max-black.svg
+
+          max_white_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-social-max-white.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/social-max-white.svg)"
+          test "$max_white_code" = "200"
+          grep -q '#fff' /tmp/akhikhan-social-max-white.svg
+
+          search_favicon_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-favicon-search.png --write-out '%{http_code}' https://akhikhan.ru/assets/img/favicon-search.png)"
+          test "$search_favicon_code" = "200"
+          test "$(wc -c < /tmp/akhikhan-favicon-search.png)" -gt 1000
+
+          privacy_js_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-app.js --write-out '%{http_code}' 'https://akhikhan.ru/assets/js/app.js?v=20261002-accessibility2')"
+          test "$privacy_js_code" = "200"
+          grep -q 'data-privacy-notice' /tmp/akhikhan-app.js
+          grep -q 'privacyVersion' /tmp/akhikhan-app.js
+          grep -q 'data-topbar-admin-account' /tmp/akhikhan-app.js
+          grep -q 'akhikhan_article_reaction_' /tmp/akhikhan-app.js
+          grep -q 'akhikhan_accessibility_v2' /tmp/akhikhan-app.js
+          grep -q 'applyPreset' /tmp/akhikhan-app.js
+          grep -q 'data-accessibility-panel' /tmp/akhikhan-app.js
+          grep -q 'data-copy-article-link' /tmp/akhikhan-app.js
+          if [ "$code" = "200" ]; then
+            grep -q 'target="_blank" rel="noopener"' /tmp/akhikhan.html
+            grep -q 'Вход в редакцию' /tmp/akhikhan.html
+          fi
+          echo "Public styles, privacy banner assets and admin topbar behavior verified."
+
+          robots_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-robots.txt --write-out '%{http_code}' https://akhikhan.ru/robots.txt)"
+          test "$robots_code" = "200"
+          grep -q '^Sitemap: https://akhikhan.ru/sitemap.xml' /tmp/akhikhan-robots.txt
+          grep -q '^Sitemap: https://akhikhan.ru/news-sitemap.xml' /tmp/akhikhan-robots.txt
+
+          if [ "$code" = "200" ]; then
+            grep -q '<link rel="canonical" href="https://akhikhan.ru/' /tmp/akhikhan.html
+            grep -q '<meta name="description"' /tmp/akhikhan.html
+            grep -q '<meta property="og:site_name"' /tmp/akhikhan.html
+            grep -q '<meta property="og:image:secure_url"' /tmp/akhikhan.html
+            grep -q '<meta name="twitter:image:alt"' /tmp/akhikhan.html
+            grep -q '<link rel="sitemap" type="application/xml"' /tmp/akhikhan.html
+            grep -q '<link rel="icon"' /tmp/akhikhan.html
+            grep -q 'application/ld+json' /tmp/akhikhan.html
+            grep -q '"@type":"WebSite"' /tmp/akhikhan.html
+
+            sitemap_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-sitemap.xml --write-out '%{http_code}' https://akhikhan.ru/sitemap.xml)"
+            test "$sitemap_code" = "200"
+            grep -q 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' /tmp/akhikhan-sitemap.xml
+            grep -q 'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"' /tmp/akhikhan-sitemap.xml
+            grep -q '<loc>https://akhikhan.ru/</loc>' /tmp/akhikhan-sitemap.xml
+            grep -q '<loc>https://akhikhan.ru/documents.php</loc>' /tmp/akhikhan-sitemap.xml
+
+            article_url="$(grep -oE '<loc>https://akhikhan\.ru/article/[^<]+' /tmp/akhikhan-sitemap.xml | head -n 1 | sed 's#<loc>##' || true)"
+            if [ -n "$article_url" ]; then
+              article_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-article.html --write-out '%{http_code}' "$article_url")"
+              test "$article_code" = "200"
+              grep -q '"@type":"NewsArticle"' /tmp/akhikhan-article.html
+              grep -q '<meta property="article:published_time"' /tmp/akhikhan-article.html
+              grep -q 'article-community-card' /tmp/akhikhan-article.html
+              grep -q 'data-article-reaction-widget' /tmp/akhikhan-article.html
+              grep -q 'Поделиться' /tmp/akhikhan-article.html
+              grep -q 'max.ru/:share' /tmp/akhikhan-article.html
+              grep -q '<meta property="article:section"' /tmp/akhikhan-article.html
+            fi
+
+            news_sitemap_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-news-sitemap.xml --write-out '%{http_code}' https://akhikhan.ru/news-sitemap.xml)"
+            test "$news_sitemap_code" = "200"
+            grep -q 'xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"' /tmp/akhikhan-news-sitemap.xml
+            echo "SEO metadata, robots.txt and XML sitemaps verified."
+          fi
+ /tmp/akhikhan-security.txt
+          grep -q '^Expires:' /tmp/akhikhan-security.txt
+          grep -q '^Canonical: https://akhikhan.ru/.well-known/security.txt"$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-config.txt --write-out '%{http_code}' https://akhikhan.ru/config.php)"
+          test "$config_code" = "403" -o "$config_code" = "404"
+
+          storage_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-storage.txt --write-out '%{http_code}' https://akhikhan.ru/storage/php-error.log)"
+          test "$storage_code" = "403" -o "$storage_code" = "404"
+
+          reaction_get_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-reaction-get.json --write-out '%{http_code}' https://akhikhan.ru/article-reaction.php)"
+          reaction_cross_code="$(curl --silent --show-error --max-time 30 --request POST --data 'article_id=0&reaction=like&token=0123456789abcdef' --output /tmp/akhikhan-reaction-cross.json --write-out '%{http_code}' https://akhikhan.ru/article-reaction.php)"
+
+          if [ "$code" = "200" ]; then
+            test "$reaction_get_code" = "405"
+            test "$reaction_cross_code" = "403"
+            echo "check: public reaction endpoint method/origin protection ok"
+          else
+            test "$reaction_get_code" = "503"
+            test "$reaction_cross_code" = "503"
+            echo "check: reaction endpoint correctly hidden by reconstruction mode"
+          fi
+
+          echo "Homepage, hardened endpoints and security headers verified."
+
+          ornament_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-ornament.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/ornament-footer-premium.svg)"
+          test "$ornament_code" = "200"
+          test "$(wc -c < /tmp/akhikhan-ornament.svg)" -gt 7000
+          grep -q 'viewBox="0 0 2048 170"' /tmp/akhikhan-ornament.svg
+
+          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-history1')"
+          test "$public_css_code" = "200"
+          grep -q 'ornament-footer-premium.svg' /tmp/akhikhan-style.css
+          grep -q '.privacy-notice' /tmp/akhikhan-style.css
+          grep -q 'District news balanced editorial grid' /tmp/akhikhan-style.css
+          grep -q '.district-magazine-side-grid.items-3' /tmp/akhikhan-style.css
+          grep -q 'Homepage editorial redesign' /tmp/akhikhan-style.css
+          grep -q 'Homepage compact rounded refinement' /tmp/akhikhan-style.css
+          grep -q 'Public documents page + homepage link' /tmp/akhikhan-style.css
+          grep -q 'Header / MAX social polish' /tmp/akhikhan-style.css
+          grep -q 'Unified public buttons and action links' /tmp/akhikhan-style.css
+          grep -q 'Homepage image-overlay news cards' /tmp/akhikhan-style.css
+          grep -q 'Navigation, social icons, article engagement and best news' /tmp/akhikhan-style.css
+          grep -q 'Age rating + accessible version' /tmp/akhikhan-style.css
+          grep -q 'Accessibility panel v2' /tmp/akhikhan-style.css
+          grep -q 'Contacts page + feedback form' /tmp/akhikhan-style.css
+          grep -q 'History category editorial landing' /tmp/akhikhan-style.css
+          grep -q '.history-feature' /tmp/akhikhan-style.css
+          grep -q '.history-timeline' /tmp/akhikhan-style.css
+          grep -q '.contact-form-card' /tmp/akhikhan-style.css
+          grep -q '.accessibility-quick-presets' /tmp/akhikhan-style.css
+          grep -q '.topbar-accessibility-state' /tmp/akhikhan-style.css
+          grep -q '.topbar-accessibility' /tmp/akhikhan-style.css
+          grep -q '.accessibility-panel' /tmp/akhikhan-style.css
+          grep -q 'a11y-active' /tmp/akhikhan-style.css
+          grep -q '.article-community-card' /tmp/akhikhan-style.css
+          grep -q '.best-news-grid' /tmp/akhikhan-style.css
+          grep -q '.home-news-meta' /tmp/akhikhan-style.css
+          grep -q '.reference-brand-caption' /tmp/akhikhan-style.css
+          grep -q '.social-service-image' /tmp/akhikhan-style.css
+          grep -q '.home-news-summary' /tmp/akhikhan-style.css
+          grep -q '.home-news-three-grid.items-1' /tmp/akhikhan-style.css
+          grep -q '.editorial-heritage' /tmp/akhikhan-style.css
+
+          max_icon_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-social-max.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/social-max.svg)"
+          test "$max_icon_code" = "200"
+          grep -q '<svg' /tmp/akhikhan-social-max.svg
+          grep -q 'linearGradient' /tmp/akhikhan-social-max.svg
+
+          max_black_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-social-max-black.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/social-max-black.svg)"
+          test "$max_black_code" = "200"
+          grep -q '#0a0b0b' /tmp/akhikhan-social-max-black.svg
+
+          max_white_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-social-max-white.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/social-max-white.svg)"
+          test "$max_white_code" = "200"
+          grep -q '#fff' /tmp/akhikhan-social-max-white.svg
+
+          search_favicon_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-favicon-search.png --write-out '%{http_code}' https://akhikhan.ru/assets/img/favicon-search.png)"
+          test "$search_favicon_code" = "200"
+          test "$(wc -c < /tmp/akhikhan-favicon-search.png)" -gt 1000
+
+          privacy_js_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-app.js --write-out '%{http_code}' 'https://akhikhan.ru/assets/js/app.js?v=20261002-accessibility2')"
+          test "$privacy_js_code" = "200"
+          grep -q 'data-privacy-notice' /tmp/akhikhan-app.js
+          grep -q 'privacyVersion' /tmp/akhikhan-app.js
+          grep -q 'data-topbar-admin-account' /tmp/akhikhan-app.js
+          grep -q 'akhikhan_article_reaction_' /tmp/akhikhan-app.js
+          grep -q 'akhikhan_accessibility_v2' /tmp/akhikhan-app.js
+          grep -q 'applyPreset' /tmp/akhikhan-app.js
+          grep -q 'data-accessibility-panel' /tmp/akhikhan-app.js
+          grep -q 'data-copy-article-link' /tmp/akhikhan-app.js
+          if [ "$code" = "200" ]; then
+            grep -q 'target="_blank" rel="noopener"' /tmp/akhikhan.html
+            grep -q 'Вход в редакцию' /tmp/akhikhan.html
+          fi
+          echo "Public styles, privacy banner assets and admin topbar behavior verified."
+
+          robots_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-robots.txt --write-out '%{http_code}' https://akhikhan.ru/robots.txt)"
+          test "$robots_code" = "200"
+          grep -q '^Sitemap: https://akhikhan.ru/sitemap.xml' /tmp/akhikhan-robots.txt
+          grep -q '^Sitemap: https://akhikhan.ru/news-sitemap.xml' /tmp/akhikhan-robots.txt
+
+          if [ "$code" = "200" ]; then
+            grep -q '<link rel="canonical" href="https://akhikhan.ru/' /tmp/akhikhan.html
+            grep -q '<meta name="description"' /tmp/akhikhan.html
+            grep -q '<meta property="og:site_name"' /tmp/akhikhan.html
+            grep -q '<meta property="og:image:secure_url"' /tmp/akhikhan.html
+            grep -q '<meta name="twitter:image:alt"' /tmp/akhikhan.html
+            grep -q '<link rel="sitemap" type="application/xml"' /tmp/akhikhan.html
+            grep -q '<link rel="icon"' /tmp/akhikhan.html
+            grep -q 'application/ld+json' /tmp/akhikhan.html
+            grep -q '"@type":"WebSite"' /tmp/akhikhan.html
+
+            sitemap_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-sitemap.xml --write-out '%{http_code}' https://akhikhan.ru/sitemap.xml)"
+            test "$sitemap_code" = "200"
+            grep -q 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' /tmp/akhikhan-sitemap.xml
+            grep -q 'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"' /tmp/akhikhan-sitemap.xml
+            grep -q '<loc>https://akhikhan.ru/</loc>' /tmp/akhikhan-sitemap.xml
+            grep -q '<loc>https://akhikhan.ru/documents.php</loc>' /tmp/akhikhan-sitemap.xml
+
+            article_url="$(grep -oE '<loc>https://akhikhan\.ru/article/[^<]+' /tmp/akhikhan-sitemap.xml | head -n 1 | sed 's#<loc>##' || true)"
+            if [ -n "$article_url" ]; then
+              article_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-article.html --write-out '%{http_code}' "$article_url")"
+              test "$article_code" = "200"
+              grep -q '"@type":"NewsArticle"' /tmp/akhikhan-article.html
+              grep -q '<meta property="article:published_time"' /tmp/akhikhan-article.html
+              grep -q 'article-community-card' /tmp/akhikhan-article.html
+              grep -q 'data-article-reaction-widget' /tmp/akhikhan-article.html
+              grep -q 'Поделиться' /tmp/akhikhan-article.html
+              grep -q 'max.ru/:share' /tmp/akhikhan-article.html
+              grep -q '<meta property="article:section"' /tmp/akhikhan-article.html
+            fi
+
+            news_sitemap_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-news-sitemap.xml --write-out '%{http_code}' https://akhikhan.ru/news-sitemap.xml)"
+            test "$news_sitemap_code" = "200"
+            grep -q 'xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"' /tmp/akhikhan-news-sitemap.xml
+            echo "SEO metadata, robots.txt and XML sitemaps verified."
+          fi
+ /tmp/akhikhan-security.txt
+
+          login_headers="$(curl --silent --show-error --head --max-time 30 https://akhikhan.ru/admin/login.php | tr -d '\r')"
+          echo "$login_headers" | grep -qi '^Set-Cookie: AKHSESSID='
+          echo "$login_headers" | grep -qi 'httponly'
+          echo "$login_headers" | grep -qi 'samesite=Lax'
+          echo "$login_headers" | grep -qi 'secure'
+
+          logout_get_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-logout-get.txt --write-out '%{http_code}' https://akhikhan.ru/admin/logout.php)"
+          test "$logout_get_code" = "405"
+
           config_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-config.txt --write-out '%{http_code}' https://akhikhan.ru/config.php)"
           test "$config_code" = "403" -o "$config_code" = "404"
 
