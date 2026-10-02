@@ -106,7 +106,14 @@ jobs:
             grep -q 'home-news-three-grid items-' /tmp/akhikhan.html
             grep -q 'editorial-heritage' /tmp/akhikhan.html
             grep -q 'Wikimedia Commons' /tmp/akhikhan.html
+            grep -q 'href="https://akhikhan.ru/documents.php"' /tmp/akhikhan.html
+            grep -q 'Все документы' /tmp/akhikhan.html
           fi
+
+          documents_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-documents.html --write-out '%{http_code}' https://akhikhan.ru/documents.php)"
+          test "$documents_code" = "200"
+          grep -q '<h1>Документы</h1>' /tmp/akhikhan-documents.html
+          grep -q 'public-documents-page' /tmp/akhikhan-documents.html
 
           login_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin-login.html --write-out '%{http_code}' https://akhikhan.ru/admin/login.php)"
           test "$login_code" = "200"
@@ -147,7 +154,7 @@ jobs:
           test "$(wc -c < /tmp/akhikhan-ornament.svg)" -gt 7000
           grep -q 'viewBox="0 0 2048 170"' /tmp/akhikhan-ornament.svg
 
-          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-compact-rounded1')"
+          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-documents1')"
           test "$public_css_code" = "200"
           grep -q 'ornament-footer-premium.svg' /tmp/akhikhan-style.css
           grep -q '.privacy-notice' /tmp/akhikhan-style.css
@@ -155,6 +162,7 @@ jobs:
           grep -q '.district-magazine-side-grid.items-3' /tmp/akhikhan-style.css
           grep -q 'Homepage editorial redesign' /tmp/akhikhan-style.css
           grep -q 'Homepage compact rounded refinement' /tmp/akhikhan-style.css
+          grep -q 'Public documents page + homepage link' /tmp/akhikhan-style.css
           grep -q '.home-news-summary' /tmp/akhikhan-style.css
           grep -q '.home-news-three-grid.items-1' /tmp/akhikhan-style.css
           grep -q '.editorial-heritage' /tmp/akhikhan-style.css
@@ -195,6 +203,7 @@ jobs:
             grep -q 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' /tmp/akhikhan-sitemap.xml
             grep -q 'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"' /tmp/akhikhan-sitemap.xml
             grep -q '<loc>https://akhikhan.ru/</loc>' /tmp/akhikhan-sitemap.xml
+            grep -q '<loc>https://akhikhan.ru/documents.php</loc>' /tmp/akhikhan-sitemap.xml
 
             article_url="$(grep -oE '<loc>https://akhikhan\.ru/article/[^<]+' /tmp/akhikhan-sitemap.xml | head -n 1 | sed 's#<loc>##' || true)"
             if [ -n "$article_url" ]; then
