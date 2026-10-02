@@ -7892,3 +7892,249 @@ svg{
   }
 }
 
+/* Homepage compact rounded refinement — 2026-10-02 */
+.home-shell .hero-story,
+.home-shell .latest-panel,
+.home-shell .district-magazine-lead,
+.home-shell .district-magazine-card,
+.home-shell .right-feature-card,
+.home-shell .heritage-feature{
+  border-radius:var(--radius,20px)!important;
+}
+.home-shell .hero-story:before{
+  border-radius:12px!important;
+}
+.home-shell .district-ribbon{
+  border-radius:16px!important;
+}
+.home-shell .home-news-three-card{
+  border-radius:14px!important;
+}
+.home-shell .home-photo-gallery-grid{
+  border-radius:var(--radius,20px)!important;
+}
+.home-shell .home-photo-tile{
+  border-radius:12px!important;
+}
+.home-shell .newspaper-cover-frame{
+  border-radius:8px!important;
+}
+.home-shell .document-card{
+  border-radius:15px!important;
+}
+.home-shell .section-card,
+.home-shell .home-video-section-card{
+  border-radius:var(--radius,20px)!important;
+}
+.home-shell .editorial-heritage .heritage-visual{
+  border-radius:0!important;
+}
+
+/* Do not stretch district cards just to make both columns the same height. */
+.home-shell .district-magazine-grid{
+  align-items:start;
+}
+.home-shell .district-magazine-lead{
+  min-height:0;
+  height:auto;
+  overflow:hidden;
+}
+.home-shell .district-news-section .district-magazine-side-grid{
+  min-height:0;
+  grid-template-rows:auto auto;
+  align-items:start;
+}
+.home-shell .district-news-section .district-magazine-card{
+  height:auto;
+  min-height:0;
+  overflow:hidden;
+}
+.home-shell .district-news-section .district-magazine-side-grid.items-1{
+  grid-template-rows:auto;
+}
+.home-shell .district-news-section .district-magazine-side-grid.items-2{
+  grid-template-rows:auto;
+}
+.home-shell .district-magazine-lead-copy,
+.home-shell .district-magazine-card-copy{
+  flex:0 0 auto;
+}
+.home-shell .district-magazine-card-copy time{
+  margin-top:10px;
+  padding-top:0;
+}
+
+/* Use the full row when a section currently has fewer than three articles. */
+.home-shell .home-news-three-grid{
+  gap:14px;
+  border:0;
+}
+.home-shell .home-news-three-card{
+  border:1px solid #d9cec1;
+  box-shadow:0 7px 20px rgba(44,32,22,.045);
+}
+.home-shell .home-news-three-grid.items-2{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+.home-shell .home-news-three-grid.items-1{
+  grid-template-columns:1fr;
+}
+.home-shell .home-news-three-grid.items-1 .home-news-three-card{
+  display:grid;
+  grid-template-columns:minmax(240px,.78fr) minmax(0,1.22fr);
+  min-height:250px;
+}
+.home-shell .home-news-three-grid.items-1 .home-news-three-image{
+  height:100%;
+  min-height:250px;
+  aspect-ratio:auto;
+}
+.home-shell .home-news-three-grid.items-1 .home-news-three-copy{
+  justify-content:center;
+  padding:22px 24px;
+}
+.home-shell .home-news-three-grid.items-1 .home-news-three-copy h4{
+  max-width:720px;
+  font-size:22px;
+  line-height:1.16;
+}
+.home-shell .home-news-three-grid.items-1 .home-news-summary{
+  max-width:720px;
+  -webkit-line-clamp:4;
+  font-size:12px;
+  line-height:1.55;
+}
+.home-shell .home-news-three-grid.items-1 .article-meta{
+  margin-top:18px;
+}
+
+/* Tighten the vertical rhythm below district news. */
+.home-shell .regional-sport-sidebar-section{
+  margin-top:24px;
+  padding-top:24px;
+}
+.home-shell .regional-sport-main{
+  gap:18px;
+  align-content:start;
+}
+.home-shell .home-news-row-section + .home-news-row-section{
+  margin-top:18px;
+  padding-top:20px;
+}
+.home-shell .home-photo-gallery{
+  margin-top:2px;
+}
+.home-shell .documents-strip-section{
+  margin-top:26px;
+}
+.home-shell .categories-section.home-video-showcase{
+  margin-top:30px;
+}
+.home-shell .documents-empty{
+  min-height:112px;
+  padding:18px 20px;
+}
+.home-shell .home-video-empty{
+  min-height:112px;
+}
+.home-shell .editorial-heritage{
+  margin-top:30px;
+  border-radius:var(--radius,20px)!important;
+  border-top-width:1px;
+  box-shadow:var(--shadow-sm);
+}
+.home-shell .editorial-heritage .heritage-visual img{
+  min-height:340px;
+}
+.home-shell .editorial-heritage .heritage-visual{
+  min-height:340px;
+}
+.home-shell .editorial-heritage .heritage-feature-copy{
+  padding:38px 36px;
+}
+
+/* Bring back the softer card feel while keeping the denser layout. */
+.home-shell .district-magazine-lead,
+.home-shell .district-magazine-card,
+.home-shell .home-news-three-card,
+.home-shell .right-feature-card,
+.home-shell .document-card,
+.home-shell .section-card,
+.home-shell .home-video-section-card{
+  box-shadow:var(--shadow-sm);
+}
+.home-shell .home-photo-gallery{
+  border:0;
+  box-shadow:none;
+}
+.home-shell .home-photo-gallery-grid{
+  gap:7px;
+  padding:7px;
+  background:var(--paper-white);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow-sm);
+}
+
+/* Prevent the sidebar height from creating visual gaps in the left flow. */
+.home-shell .regional-sport-layout{
+  align-items:start;
+}
+.home-shell .home-right-sidebar{
+  align-content:start;
+}
+
+/* Tablet / phone density. */
+@media(max-width:900px){
+  .home-shell .district-magazine-card{
+    border-radius:14px!important;
+  }
+  .home-shell .home-news-three-grid.items-1 .home-news-three-card{
+    grid-template-columns:minmax(190px,.72fr) minmax(0,1.28fr);
+    min-height:220px;
+  }
+  .home-shell .home-news-three-grid.items-1 .home-news-three-image{
+    min-height:220px;
+  }
+}
+@media(max-width:680px){
+  .home-shell .home-news-three-grid.items-2,
+  .home-shell .home-news-three-grid.items-1{
+    grid-template-columns:1fr;
+  }
+  .home-shell .home-news-three-grid.items-1 .home-news-three-card{
+    display:flex;
+    min-height:0;
+  }
+  .home-shell .home-news-three-grid.items-1 .home-news-three-image{
+    height:auto;
+    min-height:0;
+    aspect-ratio:16/9;
+  }
+  .home-shell .home-news-three-grid.items-1 .home-news-three-copy{
+    padding:15px 15px 16px;
+  }
+  .home-shell .home-news-three-grid.items-1 .home-news-three-copy h4{
+    font-size:17px;
+  }
+  .home-shell .regional-sport-sidebar-section{
+    margin-top:18px;
+    padding-top:18px;
+  }
+  .home-shell .home-news-row-section + .home-news-row-section{
+    margin-top:14px;
+    padding-top:16px;
+  }
+  .home-shell .documents-strip-section,
+  .home-shell .categories-section.home-video-showcase,
+  .home-shell .editorial-heritage{
+    margin-top:22px;
+  }
+  .home-shell .editorial-heritage .heritage-visual,
+  .home-shell .editorial-heritage .heritage-visual img{
+    min-height:235px;
+  }
+  .home-shell .editorial-heritage .heritage-feature-copy{
+    padding:28px 21px 30px;
+  }
+}
+
