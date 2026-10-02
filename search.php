@@ -2,16 +2,37 @@
 require __DIR__ . '/app/bootstrap.php';
 if (!APP_INSTALLED) { header('Location: install.php'); exit; }
 
-$term = trim($_GET['q'] ?? '');
-$articles = [];
+$term=trim((string)($_GET['q']??''));
+if(function_exists('mb_substr')) $term=mb_substr($term,0,80,'UTF-8');
+else $term=substr($term,0,80);
+$term=preg_replace('/[%_]+/u',' ',$term) ?? $term;
+$term=preg_replace('/\s+/u',' ',trim($term)) ?? trim($term);
+
+$articles=[];
+$searchError='';
+$termLength=function_exists('mb_strlen') ? mb_strlen($term,'UTF-8') : strlen($term);
+
 if($term!==''){
-  $q=db()->prepare("SELECT a.*,c.name category_name,c.slug category_slug
-  FROM articles a LEFT JOIN categories c ON c.id=a.category_id
-  WHERE a.status='published' AND (a.title LIKE ? OR a.excerpt LIKE ? OR a.content LIKE ?)
-  ORDER BY COALESCE(a.published_at,a.created_at) DESC LIMIT 50");
-  $like='%'.$term.'%';
-  $q->execute([$like,$like,$like]);
-  $articles=$q->fetchAll();
+  if($termLength<2){
+    $searchError='Введите не менее двух символов.';
+  }else{
+    $rate=security_rate_limit('public-search',security_client_ip(),25,60,60,true);
+    if(!empty($rate['blocked'])){
+      http_response_code(429);
+      header('Retry-After: '.max(1,(int)$rate['remaining']));
+      $searchError='Слишком много поисковых запросов. Повторите немного позже.';
+    }else{
+      $q=db()->prepare("SELECT a.*,c.name category_name,c.slug category_slug
+      FROM articles a LEFT JOIN categories c ON c.id=a.category_id
+      WHERE a.status='published'
+        AND (a.published_at IS NULL OR a.published_at<=CURRENT_TIMESTAMP)
+        AND (a.title LIKE ? OR a.excerpt LIKE ? OR a.content LIKE ?)
+      ORDER BY COALESCE(a.published_at,a.created_at) DESC LIMIT 30");
+      $like='%'.$term.'%';
+      $q->execute([$like,$like,$like]);
+      $articles=$q->fetchAll();
+    }
+  }
 }
 
 $pageTitle='Поиск';
@@ -31,11 +52,13 @@ require __DIR__.'/partials/header.php';
   </div>
 
   <form class="big-search" method="get">
-    <input name="q" value="<?=e($term)?>" placeholder="Например: культура, школа, спорт">
+    <input name="q" value="<?=e($term)?>" minlength="2" maxlength="80" autocomplete="off" placeholder="Например: культура, школа, спорт">
     <button>Найти</button>
   </form>
 
-  <?php if($articles): ?>
+  <?php if($searchError!==''):?>
+    <div class="empty"><?=e($searchError)?></div>
+  <?php elseif($articles): ?>
     <section class="listing-grid">
       <?php foreach($articles as $a): ?>
         <article class="list-card">
