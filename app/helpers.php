@@ -1447,7 +1447,7 @@ function social_service_catalog(): array
     return [
         'vk'       => ['name'=>'ВКонтакте',      'icon'=>'fa-brands fa-vk'],
         'ok'       => ['name'=>'Одноклассники',  'icon'=>'fa-brands fa-odnoklassniki'],
-        'max'      => ['name'=>'MAX',            'icon'=>'fa-solid fa-message','asset'=>'assets/img/social-max.svg'],
+        'max'      => ['name'=>'MAX',            'icon'=>'fa-solid fa-message','asset'=>'assets/img/social-max.svg','asset_black'=>'assets/img/social-max-black.svg','asset_white'=>'assets/img/social-max-white.svg'],
         'telegram' => ['name'=>'Telegram',       'icon'=>'fa-brands fa-telegram'],
         'dzen'     => ['name'=>'Дзен',           'icon'=>'fa-solid fa-circle-nodes'],
         'rutube'   => ['name'=>'Rutube',         'icon'=>'fa-solid fa-play'],
@@ -1468,10 +1468,18 @@ function social_service_icon(string $service): string
     return $catalog[$service]['icon'] ?? 'fa-solid fa-link';
 }
 
-function social_service_asset(string $service): string
+function social_service_asset(string $service, string $variant = 'color'): string
 {
     $catalog=social_service_catalog();
-    return trim((string)($catalog[$service]['asset'] ?? ''));
+    $meta=$catalog[$service] ?? [];
+    $key=match($variant){
+        'black'=>'asset_black',
+        'white'=>'asset_white',
+        default=>'asset',
+    };
+    $asset=trim((string)($meta[$key] ?? ''));
+    if($asset==='') $asset=trim((string)($meta['asset'] ?? ''));
+    return $asset;
 }
 
 function normalize_social_url(string $service, string $url): string
@@ -2053,6 +2061,202 @@ function ensure_article_location_schema(): void
     }
 
     save_setting('schema_article_location_v1','1');
+}
+
+
+function ensure_article_images_schema(): void
+{
+    if(!APP_INSTALLED) return;
+    if(setting('schema_article_images_v1','')==='1') return;
+
+    $pdo=db();
+    $driver=(string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    if($driver==='sqlite'){
+        $pdo->exec("CREATE TABLE IF NOT EXISTS article_images (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            article_id INTEGER NOT NULL,
+            image_path TEXT NOT NULL,
+            caption TEXT,
+            sort_order INTEGER NOT NULL DEFAULT 100,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(article_id) REFERENCES articles(id) ON DELETE CASCADE
+        )");
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_article_images_article ON article_images(article_id,sort_order,id)');
+    }else{
+        $pdo->exec("CREATE TABLE IF NOT EXISTS article_images (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            article_id INT UNSIGNED NOT NULL,
+            image_path VARCHAR(500) NOT NULL,
+            caption VARCHAR(500) NULL,
+            sort_order INT NOT NULL DEFAULT 100,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_article_images_article (article_id,sort_order,id),
+            CONSTRAINT fk_article_images_article FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    }
+    save_setting('schema_article_images_v1','1');
+}
+
+function article_images(int $articleId): array
+{
+    if(!APP_INSTALLED || $articleId<1) return [];
+    $q=db()->prepare('SELECT * FROM article_images WHERE article_id=? ORDER BY sort_order,id');
+    $q->execute([$articleId]);
+    return $q->fetchAll();
+}
+
+function safe_delete_article_image(?string $relativePath): void
+{
+    if(!$relativePath || !str_starts_with($relativePath,'uploads/')) return;
+    $full=ROOT_PATH.'/'.ltrim($relativePath,'/');
+    if(is_file($full)) @unlink($full);
+}
+
+function handle_article_image_uploads(int $articleId, array $files, int $maxTotal = 12): int
+{
+    if($articleId<1 || empty($files['name']) || !is_array($files['name'])) return 0;
+
+    $existing=article_images($articleId);
+    $remaining=max(0,$maxTotal-count($existing));
+    if($remaining===0) return 0;
+
+    $insert=db()->prepare('INSERT INTO article_images(article_id,image_path,caption,sort_order) VALUES(?,?,NULL,?)');
+    $added=0;
+    $count=count($files['name']);
+
+    for($i=0;$i<$count && $added<$remaining;$i++){
+        if(($files['error'][$i]??UPLOAD_ERR_NO_FILE)===UPLOAD_ERR_NO_FILE) continue;
+        $single=[
+            'name'=>$files['name'][$i]??'image',
+            'type'=>$files['type'][$i]??'',
+            'tmp_name'=>$files['tmp_name'][$i]??'',
+            'error'=>$files['error'][$i]??UPLOAD_ERR_NO_FILE,
+            'size'=>$files['size'][$i]??0,
+        ];
+        $path=handle_cover_upload($single,null);
+        if(!$path) continue;
+        $insert->execute([$articleId,$path,100+$i]);
+        $added++;
+    }
+    return $added;
+}
+
+function remove_article_images(int $articleId, array $ids): void
+{
+    $ids=array_values(array_unique(array_filter(array_map('intval',$ids),fn($id)=>$id>0)));
+    if(!$ids) return;
+
+    $select=db()->prepare('SELECT id,image_path FROM article_images WHERE article_id=? AND id=? LIMIT 1');
+    $delete=db()->prepare('DELETE FROM article_images WHERE article_id=? AND id=?');
+    foreach($ids as $id){
+        $select->execute([$articleId,$id]);
+        $row=$select->fetch();
+        if(!$row) continue;
+        safe_delete_article_image($row['image_path']??null);
+        $delete->execute([$articleId,$id]);
+    }
+}
+
+function ensure_article_reactions_schema(): void
+{
+    if(!APP_INSTALLED) return;
+    if(setting('schema_article_reactions_v1','')==='1') return;
+
+    $pdo=db();
+    $driver=(string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    if($driver==='sqlite'){
+        $pdo->exec("CREATE TABLE IF NOT EXISTS article_reactions (
+            article_id INTEGER NOT NULL,
+            voter_hash TEXT NOT NULL,
+            reaction TEXT NOT NULL CHECK (reaction IN ('like','dislike')),
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY(article_id,voter_hash),
+            FOREIGN KEY(article_id) REFERENCES articles(id) ON DELETE CASCADE
+        )");
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_article_reactions_score ON article_reactions(article_id,reaction)');
+    }else{
+        $pdo->exec("CREATE TABLE IF NOT EXISTS article_reactions (
+            article_id INT UNSIGNED NOT NULL,
+            voter_hash CHAR(64) NOT NULL,
+            reaction ENUM('like','dislike') NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY(article_id,voter_hash),
+            INDEX idx_article_reactions_score (article_id,reaction),
+            CONSTRAINT fk_article_reactions_article FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    }
+    save_setting('schema_article_reactions_v1','1');
+}
+
+function article_reaction_counts(int $articleId): array
+{
+    if($articleId<1) return ['likes'=>0,'dislikes'=>0,'score'=>0];
+    $q=db()->prepare("SELECT
+        SUM(CASE WHEN reaction='like' THEN 1 ELSE 0 END) likes,
+        SUM(CASE WHEN reaction='dislike' THEN 1 ELSE 0 END) dislikes
+        FROM article_reactions WHERE article_id=?");
+    $q->execute([$articleId]);
+    $row=$q->fetch() ?: [];
+    $likes=(int)($row['likes']??0);
+    $dislikes=(int)($row['dislikes']??0);
+    return ['likes'=>$likes,'dislikes'=>$dislikes,'score'=>$likes-$dislikes];
+}
+
+function update_article_reaction(int $articleId, string $reaction, string $token): array
+{
+    $reaction=in_array($reaction,['like','dislike','none'],true)?$reaction:'';
+    $token=trim($token);
+    if($articleId<1 || $reaction==='' || strlen($token)<16 || strlen($token)>160){
+        throw new RuntimeException('Некорректная оценка новости.');
+    }
+
+    $q=db()->prepare("SELECT id FROM articles WHERE id=? AND status='published' LIMIT 1");
+    $q->execute([$articleId]);
+    if(!$q->fetchColumn()) throw new RuntimeException('Новость не найдена.');
+
+    $hash=hash('sha256',$token);
+    $pdo=db();
+    if($reaction==='none'){
+        $pdo->prepare('DELETE FROM article_reactions WHERE article_id=? AND voter_hash=?')->execute([$articleId,$hash]);
+    }elseif((string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite'){
+        $q=$pdo->prepare("INSERT INTO article_reactions(article_id,voter_hash,reaction,updated_at)
+            VALUES(?,?,?,CURRENT_TIMESTAMP)
+            ON CONFLICT(article_id,voter_hash) DO UPDATE SET reaction=excluded.reaction,updated_at=CURRENT_TIMESTAMP");
+        $q->execute([$articleId,$hash,$reaction]);
+    }else{
+        $q=$pdo->prepare("INSERT INTO article_reactions(article_id,voter_hash,reaction)
+            VALUES(?,?,?)
+            ON DUPLICATE KEY UPDATE reaction=VALUES(reaction),updated_at=CURRENT_TIMESTAMP");
+        $q->execute([$articleId,$hash,$reaction]);
+    }
+
+    return article_reaction_counts($articleId);
+}
+
+function top_rated_articles(int $limit = 4): array
+{
+    if(!APP_INSTALLED) return [];
+    $limit=max(1,min(12,$limit));
+    $sql="SELECT a.*,c.name category_name,c.slug category_slug,u.name author_name,
+        COALESCE(r.likes,0) likes,COALESCE(r.dislikes,0) dislikes,
+        COALESCE(r.likes,0)-COALESCE(r.dislikes,0) reaction_score
+        FROM articles a
+        LEFT JOIN categories c ON c.id=a.category_id
+        LEFT JOIN users u ON u.id=a.author_id
+        LEFT JOIN (
+          SELECT article_id,
+            SUM(CASE WHEN reaction='like' THEN 1 ELSE 0 END) likes,
+            SUM(CASE WHEN reaction='dislike' THEN 1 ELSE 0 END) dislikes
+          FROM article_reactions
+          GROUP BY article_id
+        ) r ON r.article_id=a.id
+        WHERE a.status='published'
+          AND (a.published_at IS NULL OR a.published_at<=CURRENT_TIMESTAMP)
+        ORDER BY reaction_score DESC,likes DESC,a.views DESC,COALESCE(a.published_at,a.created_at) DESC
+        LIMIT ".$limit;
+    return db()->query($sql)->fetchAll();
 }
 
 function admin_paginate_array(array $items, int $perPage = 12, string $pageParam = 'page'): array
