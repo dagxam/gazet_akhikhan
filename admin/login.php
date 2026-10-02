@@ -19,6 +19,10 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
   $limitState=login_rate_limit_status($email);
   if(!empty($limitState['blocked'])){
     $retry=max(60,(int)$limitState['remaining']);
+    security_log_event('login-blocked',[
+      'email_hash'=>hash('sha256',strtolower($email)),
+      'retry_after'=>$retry,
+    ]);
     http_response_code(429);
     header('Retry-After: '.$retry);
     $error='Слишком много попыток входа. Повторите позже.';
@@ -47,11 +51,20 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
       $_SESSION['admin_last_activity']=time();
       $_SESSION['admin_last_regen']=time();
       login_rate_limit_clear($email);
+      security_log_event('login-success',[
+        'user_id'=>(int)$u['id'],
+        'role'=>(string)($u['role']??''),
+      ]);
       header('Location: '.base_url('admin/'));
       exit;
     }
 
     $limitState=login_rate_limit_failure($email);
+    security_log_event('login-failed',[
+      'email_hash'=>hash('sha256',strtolower($email)),
+      'count'=>(int)($limitState['count']??0),
+      'blocked'=>!empty($limitState['blocked']),
+    ]);
     usleep(random_int(250000,450000));
     if(!empty($limitState['blocked'])){
       http_response_code(429);
