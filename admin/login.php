@@ -73,7 +73,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="<?=e(base_url('assets/css/admin.css?v=20260929-security1'))?>">
+<link rel="stylesheet" href="<?=e(base_url('assets/css/admin.css?v=20261002-security2'))?>">
 </head>
 <body class="login-page login-page-premium admin-theme-<?=e($adminTheme)?>">
   <div class="login-page-ornament login-page-ornament-left" aria-hidden="true"></div>
