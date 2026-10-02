@@ -79,20 +79,29 @@ try {
 }
 
 try {
-    $articles = db()->query("SELECT slug,published_at,created_at,updated_at
+    $articles = db()->query("SELECT title,slug,cover_image,published_at,created_at,updated_at
         FROM articles
         WHERE status='published'
           AND (published_at IS NULL OR published_at<=CURRENT_TIMESTAMP)
         ORDER BY COALESCE(published_at,created_at) DESC")->fetchAll();
 
     foreach ($articles as $article) {
+        $articleLoc=base_url('article/' . rawurlencode((string)$article['slug']));
         sitemap_add(
             $urls,
-            base_url('article/' . rawurlencode((string)$article['slug'])),
+            $articleLoc,
             (string)($article['updated_at'] ?: $article['published_at'] ?: $article['created_at']),
             'weekly',
             '0.9'
         );
+        if(!empty($article['cover_image'])){
+            $urls[$articleLoc]['images'][]=[
+                'loc'=>preg_match('~^https?://~i',(string)$article['cover_image'])
+                    ? (string)$article['cover_image']
+                    : base_url(ltrim((string)$article['cover_image'],'/')),
+                'title'=>(string)$article['title'],
+            ];
+        }
     }
 } catch (Throwable $e) {
 }
@@ -126,13 +135,21 @@ try {
 }
 
 echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">' . "\n";
 foreach ($urls as $entry) {
     echo "  <url>\n";
     echo '    <loc>' . sitemap_xml_escape($entry['loc']) . "</loc>\n";
     if (!empty($entry['lastmod'])) echo '    <lastmod>' . sitemap_xml_escape($entry['lastmod']) . "</lastmod>\n";
     if (!empty($entry['changefreq'])) echo '    <changefreq>' . sitemap_xml_escape($entry['changefreq']) . "</changefreq>\n";
     if (!empty($entry['priority'])) echo '    <priority>' . sitemap_xml_escape($entry['priority']) . "</priority>\n";
+    foreach((array)($entry['images']??[]) as $image){
+        $imageLoc=trim((string)($image['loc']??''));
+        if($imageLoc==='') continue;
+        echo "    <image:image>\n";
+        echo '      <image:loc>' . sitemap_xml_escape($imageLoc) . "</image:loc>\n";
+        if(!empty($image['title'])) echo '      <image:title>' . sitemap_xml_escape((string)$image['title']) . "</image:title>\n";
+        echo "    </image:image>\n";
+    }
     echo "  </url>\n";
 }
 echo "</urlset>\n";
