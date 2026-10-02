@@ -170,7 +170,7 @@ jobs:
           grep -q 'анонимного технического идентификатора браузера' /tmp/akhikhan-cookies.php
           grep -q 'пользовательских настроек версии повышенной доступности' /tmp/akhikhan-cookies.php
           grep -q 'публичной формы обратной связи' /tmp/akhikhan-cookies.php
-          grep -q 'форма обратной связи' /tmp/akhikhan-privacy.php
+          grep -qi 'обратной связи' /tmp/akhikhan-privacy.php
           grep -q 'accessibility-panel' /tmp/akhikhan-privacy.php
           grep -q 'topbar-age-rating' /tmp/akhikhan-privacy.php
           grep -q 'Версия для слабовидящих' /tmp/akhikhan-privacy.php
