@@ -319,3 +319,118 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
   });
 })();
 
+(function(){
+  const copyButtons=[...document.querySelectorAll('[data-copy-article-link]')];
+  copyButtons.forEach(function(button){
+    button.addEventListener('click',async function(){
+      const url=button.dataset.copyArticleLink||window.location.href;
+      try{
+        await navigator.clipboard.writeText(url);
+      }catch(e){
+        const input=document.createElement('textarea');
+        input.value=url;
+        input.setAttribute('readonly','');
+        input.style.position='fixed';
+        input.style.opacity='0';
+        document.body.appendChild(input);
+        input.select();
+        try{ document.execCommand('copy'); }catch(err){}
+        input.remove();
+      }
+      button.classList.add('is-copied');
+      const label=button.querySelector('span');
+      const previous=label?label.textContent:'';
+      if(label) label.textContent='Скопировано';
+      window.setTimeout(function(){
+        button.classList.remove('is-copied');
+        if(label) label.textContent=previous||'Ссылка';
+      },1600);
+    });
+  });
+})();
+
+(function(){
+  const widget=document.querySelector('[data-article-reaction-widget]');
+  if(!widget) return;
+
+  const articleId=String(widget.dataset.articleId||'').replace(/[^0-9]/g,'');
+  const endpoint=widget.dataset.endpoint||'';
+  if(!articleId||!endpoint) return;
+
+  const buttons=[...widget.querySelectorAll('[data-reaction]')];
+  const storageKey='akhikhan_article_reaction_'+articleId;
+  const tokenKey='akhikhan_reader_token_v1';
+
+  function readLocal(key){
+    try{return window.localStorage.getItem(key)||'';}catch(e){return '';}
+  }
+  function writeLocal(key,value){
+    try{
+      if(value) window.localStorage.setItem(key,value);
+      else window.localStorage.removeItem(key);
+    }catch(e){}
+  }
+  function createToken(){
+    let token=readLocal(tokenKey);
+    if(token.length>=16) return token;
+    if(window.crypto&&typeof window.crypto.randomUUID==='function'){
+      token=window.crypto.randomUUID().replace(/-/g,'')+Date.now().toString(36);
+    }else{
+      token=Date.now().toString(36)+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);
+    }
+    writeLocal(tokenKey,token);
+    return token;
+  }
+  function setActive(value){
+    buttons.forEach(function(button){
+      button.classList.toggle('is-active',button.dataset.reaction===value);
+      button.setAttribute('aria-pressed',button.dataset.reaction===value?'true':'false');
+    });
+  }
+
+  setActive(readLocal(storageKey));
+
+  buttons.forEach(function(button){
+    button.addEventListener('click',async function(){
+      if(widget.classList.contains('is-loading')) return;
+
+      const requested=button.dataset.reaction||'';
+      const current=readLocal(storageKey);
+      const next=current===requested?'none':requested;
+      const body=new URLSearchParams();
+      body.set('article_id',articleId);
+      body.set('reaction',next);
+      body.set('token',createToken());
+
+      widget.classList.add('is-loading');
+      buttons.forEach(btn=>btn.disabled=true);
+
+      try{
+        const response=await fetch(endpoint,{
+          method:'POST',
+          headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8','Accept':'application/json'},
+          body:body.toString(),
+          credentials:'same-origin'
+        });
+        const data=await response.json();
+        if(!response.ok||!data.ok) throw new Error(data.error||'reaction');
+
+        const likeCount=widget.querySelector('[data-reaction-count="like"]');
+        const dislikeCount=widget.querySelector('[data-reaction-count="dislike"]');
+        if(likeCount) likeCount.textContent=Number(data.likes||0).toLocaleString('ru-RU');
+        if(dislikeCount) dislikeCount.textContent=Number(data.dislikes||0).toLocaleString('ru-RU');
+
+        const active=next==='none'?'':next;
+        writeLocal(storageKey,active);
+        setActive(active);
+      }catch(e){
+        widget.classList.add('has-error');
+        window.setTimeout(()=>widget.classList.remove('has-error'),1200);
+      }finally{
+        widget.classList.remove('is-loading');
+        buttons.forEach(btn=>btn.disabled=false);
+      }
+    });
+  });
+})();
+
