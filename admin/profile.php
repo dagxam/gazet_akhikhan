@@ -43,7 +43,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             }
 
             if($password!==''){
-                if(strlen($password)<8) throw new RuntimeException('Новый пароль должен содержать минимум 8 символов.');
+                if(strlen($password)<12) throw new RuntimeException('Новый пароль должен содержать минимум 12 символов.');
                 if($password!==$passwordConfirm) throw new RuntimeException('Пароли не совпадают.');
                 $hash=password_hash($password,PASSWORD_DEFAULT);
                 $q=db()->prepare('UPDATE users SET name=?,email=?,role=?,password_hash=? WHERE id=?');
@@ -74,7 +74,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
             if($name==='') throw new RuntimeException('Введите имя нового пользователя.');
             if(!filter_var($email,FILTER_VALIDATE_EMAIL)) throw new RuntimeException('Введите корректный e-mail нового пользователя.');
-            if(strlen($password)<8) throw new RuntimeException('Пароль нового пользователя должен содержать минимум 8 символов.');
+            if(strlen($password)<12) throw new RuntimeException('Пароль нового пользователя должен содержать минимум 12 символов.');
             if(empty($_POST['basis_confirmed'])) throw new RuntimeException('Подтвердите наличие основания для создания учётной записи и уведомление сотрудника об обработке его данных.');
 
             $q=db()->prepare('SELECT id FROM users WHERE email=? LIMIT 1');
@@ -196,11 +196,11 @@ require __DIR__.'/_top.php';
       <div class="profile-password-grid">
         <label class="field-modern compact">
           <span>Новый пароль</span>
-          <input type="password" name="password" minlength="8" autocomplete="new-password" placeholder="Оставьте пустым, если не меняете">
+          <input type="password" name="password" minlength="12" autocomplete="new-password" placeholder="Оставьте пустым, если не меняете">
         </label>
         <label class="field-modern compact">
           <span>Повторите пароль</span>
-          <input type="password" name="password_confirm" minlength="8" autocomplete="new-password">
+          <input type="password" name="password_confirm" minlength="12" autocomplete="new-password">
         </label>
       </div>
 
@@ -244,7 +244,7 @@ require __DIR__.'/_top.php';
 
       <label class="field-modern compact"><span>Имя</span><input name="new_name" required maxlength="120"></label>
       <label class="field-modern compact"><span>E-mail</span><input type="email" name="new_email" required maxlength="190"></label>
-      <label class="field-modern compact"><span>Пароль</span><input type="password" name="new_password" required minlength="8" autocomplete="new-password"></label>
+      <label class="field-modern compact"><span>Пароль</span><input type="password" name="new_password" required minlength="12" autocomplete="new-password"></label>
       <label class="field-modern compact">
         <span>Должность</span>
         <select name="new_role">
