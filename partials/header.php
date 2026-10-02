@@ -25,10 +25,24 @@ $ageRatingText=match($ageRatingLabel){
 };
 $accessibilityEnabled=setting('accessibility_enabled','1')==='1';
 $accessibilityLabel=trim(setting('accessibility_label','Версия для слабовидящих')) ?: 'Версия для слабовидящих';
+$accessibilityPanelTitle=trim(setting('accessibility_panel_title','Версия для слабовидящих')) ?: 'Версия для слабовидящих';
+$accessibilityPanelText=trim(setting('accessibility_panel_text','Настройте отображение сайта под себя: размер текста, контраст, интервалы, изображения и анимацию.')) ?: 'Настройте отображение сайта под себя.';
 $accessibilityDefaultFont=in_array(setting('accessibility_default_font','100'),['100','125','150','200'],true) ? setting('accessibility_default_font','100') : '100';
 $accessibilityDefaultContrast=in_array(setting('accessibility_default_contrast','normal'),['normal','black-white','white-black','yellow-black'],true) ? setting('accessibility_default_contrast','normal') : 'normal';
 $accessibilityDefaultSpacing=in_array(setting('accessibility_default_spacing','normal'),['normal','wide'],true) ? setting('accessibility_default_spacing','normal') : 'normal';
+$accessibilityDefaultGrayscale=setting('accessibility_default_grayscale','0')==='1' ? 'true' : 'false';
 $accessibilityDefaultMotion=setting('accessibility_default_reduce_motion','1')==='1' ? 'reduce' : 'normal';
+$accessibilityShowFont=setting('accessibility_control_font','1')==='1';
+$accessibilityShowContrast=setting('accessibility_control_contrast','1')==='1';
+$accessibilityShowSpacing=setting('accessibility_control_spacing','1')==='1';
+$accessibilityShowGrayscale=setting('accessibility_control_grayscale','1')==='1';
+$accessibilityShowMotion=setting('accessibility_control_motion','1')==='1';
+$accessibilityPanelBg=setting('accessibility_panel_bg','#fffdf9');
+$accessibilityPanelTextColor=setting('accessibility_panel_text_color','#302923');
+$accessibilityPanelAccent=setting('accessibility_panel_accent','#765132');
+$accessibilityPanelBorder=setting('accessibility_panel_border','#d8c7b4');
+$accessibilityPrimaryBg=setting('accessibility_primary_bg','#5d402a');
+$accessibilityPrimaryText=setting('accessibility_primary_text','#ffffff');
 
 $seoSiteName = trim(setting('site_name','АХИХЪАН')) ?: 'АХИХЪАН';
 $seoSiteAlternateName = 'Сетевое издание Унцукульского района';
@@ -212,9 +226,10 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
       <?php endif;?>
 
       <?php if($accessibilityEnabled):?>
-        <button class="topbar-accessibility" type="button" data-accessibility-toggle aria-expanded="false" aria-controls="accessibility-panel">
-          <i class="fa-regular fa-eye" aria-hidden="true"></i>
+        <button class="topbar-accessibility" type="button" data-accessibility-toggle aria-expanded="false" aria-controls="accessibility-panel" style="--a11y-accent:<?=e($accessibilityPanelAccent)?>;">
+          <span class="topbar-accessibility-icon"><i class="fa-regular fa-eye" aria-hidden="true"></i></span>
           <span><?=e($accessibilityLabel)?></span>
+          <b class="topbar-accessibility-state" data-accessibility-state-label>Выкл.</b>
         </button>
       <?php endif;?>
 
@@ -269,56 +284,88 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
          data-default-font="<?=e($accessibilityDefaultFont)?>"
          data-default-contrast="<?=e($accessibilityDefaultContrast)?>"
          data-default-spacing="<?=e($accessibilityDefaultSpacing)?>"
+         data-default-grayscale="<?=e($accessibilityDefaultGrayscale)?>"
          data-default-motion="<?=e($accessibilityDefaultMotion)?>"
          hidden
          role="dialog"
          aria-modal="false"
-         aria-labelledby="accessibility-panel-title">
+         aria-labelledby="accessibility-panel-title"
+         style="--a11y-panel-bg:<?=e($accessibilityPanelBg)?>;--a11y-panel-text:<?=e($accessibilityPanelTextColor)?>;--a11y-panel-accent:<?=e($accessibilityPanelAccent)?>;--a11y-panel-border:<?=e($accessibilityPanelBorder)?>;--a11y-primary-bg:<?=e($accessibilityPrimaryBg)?>;--a11y-primary-text:<?=e($accessibilityPrimaryText)?>;">
   <div class="wrap accessibility-panel-inner">
-    <div class="accessibility-panel-head">
-      <div>
-        <span class="heading-kicker">Доступность</span>
-        <h2 id="accessibility-panel-title">Версия для слабовидящих</h2>
+    <div class="accessibility-panel-hero">
+      <div class="accessibility-panel-symbol"><i class="fa-regular fa-eye" aria-hidden="true"></i></div>
+      <div class="accessibility-panel-copy">
+        <span class="accessibility-panel-kicker">Доступная версия</span>
+        <h2 id="accessibility-panel-title"><?=e($accessibilityPanelTitle)?></h2>
+        <p><?=e($accessibilityPanelText)?></p>
       </div>
       <button class="accessibility-close" type="button" data-accessibility-close aria-label="Закрыть настройки доступности">
         <i class="fa-solid fa-xmark" aria-hidden="true"></i>
       </button>
     </div>
 
+    <div class="accessibility-quick-presets" aria-label="Быстрые режимы">
+      <button type="button" data-a11y-preset="comfortable">
+        <i class="fa-solid fa-font"></i><span><b>Крупный текст</b><small>150% · больше интервал</small></span>
+      </button>
+      <button type="button" data-a11y-preset="contrast">
+        <i class="fa-solid fa-circle-half-stroke"></i><span><b>Высокий контраст</b><small>белый текст на чёрном</small></span>
+      </button>
+      <button type="button" data-a11y-preset="calm">
+        <i class="fa-solid fa-eye-low-vision"></i><span><b>Спокойный режим</b><small>125% · без анимации</small></span>
+      </button>
+    </div>
+
     <div class="accessibility-controls">
-      <fieldset class="accessibility-control-group">
-        <legend>Размер текста</legend>
-        <div class="accessibility-choice-row" data-a11y-font-group>
-          <button type="button" data-a11y-font="100">100%</button>
-          <button type="button" data-a11y-font="125">125%</button>
-          <button type="button" data-a11y-font="150">150%</button>
-          <button type="button" data-a11y-font="200">200%</button>
+      <?php if($accessibilityShowFont):?>
+      <fieldset class="accessibility-control-group accessibility-control-font">
+        <legend><i class="fa-solid fa-font"></i> Размер текста</legend>
+        <div class="accessibility-choice-row accessibility-font-row" data-a11y-font-group>
+          <button type="button" data-a11y-font="100"><b>A</b><span>100%</span></button>
+          <button type="button" data-a11y-font="125"><b>A+</b><span>125%</span></button>
+          <button type="button" data-a11y-font="150"><b>A++</b><span>150%</span></button>
+          <button type="button" data-a11y-font="200"><b>A+++</b><span>200%</span></button>
         </div>
       </fieldset>
+      <?php endif;?>
 
-      <fieldset class="accessibility-control-group">
-        <legend>Контраст</legend>
+      <?php if($accessibilityShowContrast):?>
+      <fieldset class="accessibility-control-group accessibility-control-contrast">
+        <legend><i class="fa-solid fa-circle-half-stroke"></i> Цвет и контраст</legend>
         <div class="accessibility-choice-row accessibility-contrast-row" data-a11y-contrast-group>
-          <button type="button" data-a11y-contrast="normal">Обычный</button>
-          <button type="button" data-a11y-contrast="black-white">Чёрный / белый</button>
-          <button type="button" data-a11y-contrast="white-black">Белый / чёрный</button>
-          <button type="button" data-a11y-contrast="yellow-black">Жёлтый / чёрный</button>
+          <button type="button" data-a11y-contrast="normal"><span class="a11y-swatch is-normal">А</span><span>Обычный</span></button>
+          <button type="button" data-a11y-contrast="black-white"><span class="a11y-swatch is-black-white">А</span><span>Чёрный / белый</span></button>
+          <button type="button" data-a11y-contrast="white-black"><span class="a11y-swatch is-white-black">А</span><span>Белый / чёрный</span></button>
+          <button type="button" data-a11y-contrast="yellow-black"><span class="a11y-swatch is-yellow-black">А</span><span>Жёлтый / чёрный</span></button>
         </div>
       </fieldset>
+      <?php endif;?>
 
-      <fieldset class="accessibility-control-group">
-        <legend>Отображение</legend>
+      <?php if($accessibilityShowSpacing||$accessibilityShowGrayscale||$accessibilityShowMotion):?>
+      <fieldset class="accessibility-control-group accessibility-control-display">
+        <legend><i class="fa-solid fa-sliders"></i> Дополнительно</legend>
         <div class="accessibility-toggle-row">
-          <button type="button" data-a11y-spacing aria-pressed="false"><i class="fa-solid fa-text-width"></i><span>Увеличенный интервал</span></button>
-          <button type="button" data-a11y-grayscale aria-pressed="false"><i class="fa-regular fa-image"></i><span>Чёрно-белые изображения</span></button>
-          <button type="button" data-a11y-motion aria-pressed="false"><i class="fa-solid fa-person-walking"></i><span>Без анимации</span></button>
+          <?php if($accessibilityShowSpacing):?>
+            <button type="button" data-a11y-spacing aria-pressed="false"><i class="fa-solid fa-text-width"></i><span><b>Интервалы</b><small>увеличить расстояние между словами и строками</small></span></button>
+          <?php endif;?>
+          <?php if($accessibilityShowGrayscale):?>
+            <button type="button" data-a11y-grayscale aria-pressed="false"><i class="fa-regular fa-image"></i><span><b>Ч/б изображения</b><small>убрать цвет с фотографий</small></span></button>
+          <?php endif;?>
+          <?php if($accessibilityShowMotion):?>
+            <button type="button" data-a11y-motion aria-pressed="false"><i class="fa-solid fa-person-walking"></i><span><b>Без анимации</b><small>отключить декоративное движение</small></span></button>
+          <?php endif;?>
         </div>
       </fieldset>
+      <?php endif;?>
     </div>
 
     <div class="accessibility-panel-actions">
-      <button class="accessibility-reset" type="button" data-accessibility-reset>Сбросить настройки</button>
-      <button class="accessibility-standard" type="button" data-accessibility-standard>Обычная версия сайта</button>
+      <div class="accessibility-current-mode">
+        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+        <span><b>Режим активен</b><small data-accessibility-summary>Настройки применены</small></span>
+      </div>
+      <button class="accessibility-reset" type="button" data-accessibility-reset><i class="fa-solid fa-arrow-rotate-left"></i> Сбросить настройки</button>
+      <button class="accessibility-standard" type="button" data-accessibility-standard><i class="fa-regular fa-eye"></i> Обычная версия сайта</button>
       <span class="accessibility-status" data-accessibility-status aria-live="polite"></span>
     </div>
   </div>
