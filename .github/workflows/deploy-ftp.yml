@@ -197,7 +197,7 @@ jobs:
           fi
           echo "Public privacy documents and links verified."
 
-          admin_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/admin.css?v=20261002-mainmenu1')"
+          admin_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/admin.css?v=20261002-security2')"
           test "$admin_css_code" = "200"
           grep -q 'Unified admin buttons and top Open site action' /tmp/akhikhan-admin.css
           grep -q '.admin-top-site-button' /tmp/akhikhan-admin.css
@@ -211,6 +211,8 @@ jobs:
           grep -q '.accessibility-admin-preview' /tmp/akhikhan-admin.css
           grep -q '#accessibility-settings' /tmp/akhikhan-admin.css
           grep -q '.article-gallery-dropzone' /tmp/akhikhan-admin.css
+          grep -q 'Security: POST logout control' /tmp/akhikhan-admin.css
+          grep -q '.admin-logout-form' /tmp/akhikhan-admin.css
 
           right_blocks_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-right-blocks.html --write-out '%{http_code}' https://akhikhan.ru/admin/right-block.php)"
           test "$right_blocks_code" = "302" -o "$right_blocks_code" = "303"
@@ -221,7 +223,30 @@ jobs:
           echo "$security_headers" | grep -qi '^X-Content-Type-Options: nosniff'
           echo "$security_headers" | grep -qi '^X-Frame-Options: SAMEORIGIN'
           echo "$security_headers" | grep -qi '^Content-Security-Policy:'
-          echo "Homepage content, admin login and security headers verified."
+          echo "$security_headers" | grep -qi '^Strict-Transport-Security: max-age=31536000'
+          echo "$security_headers" | grep -qi '^Cross-Origin-Opener-Policy: same-origin-allow-popups'
+          echo "$security_headers" | grep -qi '^Origin-Agent-Cluster: ?1'
+          echo "$security_headers" | grep -qi '^X-DNS-Prefetch-Control: off'
+
+          trace_code="$(curl --silent --show-error --max-time 30 --request TRACE --output /tmp/akhikhan-trace.txt --write-out '%{http_code}' https://akhikhan.ru/)"
+          test "$trace_code" = "403" -o "$trace_code" = "405"
+
+          install_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-install.txt --write-out '%{http_code}' https://akhikhan.ru/install.php)"
+          test "$install_code" = "404"
+
+          config_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-config.txt --write-out '%{http_code}' https://akhikhan.ru/config.php)"
+          test "$config_code" = "403" -o "$config_code" = "404"
+
+          storage_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-storage.txt --write-out '%{http_code}' https://akhikhan.ru/storage/php-error.log)"
+          test "$storage_code" = "403" -o "$storage_code" = "404"
+
+          reaction_get_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-reaction-get.json --write-out '%{http_code}' https://akhikhan.ru/article-reaction.php)"
+          test "$reaction_get_code" = "405"
+
+          reaction_cross_code="$(curl --silent --show-error --max-time 30 --request POST --data 'article_id=0&reaction=like&token=0123456789abcdef' --output /tmp/akhikhan-reaction-cross.json --write-out '%{http_code}' https://akhikhan.ru/article-reaction.php)"
+          test "$reaction_cross_code" = "403"
+
+          echo "Homepage, hardened endpoints and security headers verified."
 
           ornament_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-ornament.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/ornament-footer-premium.svg)"
           test "$ornament_code" = "200"
