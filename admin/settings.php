@@ -798,6 +798,134 @@ require __DIR__.'/_top.php';
     sync();
   });
 })();
+
+(function(){
+  const list=document.querySelector('[data-settings-menu-sortable]');
+  if(!list) return;
+
+  const preview=document.querySelector('[data-menu-preview]');
+  let dragging=null;
+
+  function items(){
+    return [...list.querySelectorAll('[data-menu-sort-item]')];
+  }
+
+  function sync(){
+    items().forEach((item,index)=>{
+      const number=item.querySelector('[data-menu-number]');
+      if(number) number.textContent=String(index+1).padStart(2,'0');
+      const up=item.querySelector('[data-menu-move="up"]');
+      const down=item.querySelector('[data-menu-move="down"]');
+      if(up) up.disabled=index===0;
+      if(down) down.disabled=index===items().length-1;
+    });
+
+    if(preview){
+      const previewMap=new Map(
+        [...preview.querySelectorAll('[data-menu-preview-id]')].map(el=>[el.dataset.menuPreviewId,el])
+      );
+      items().forEach(item=>{
+        const id=item.querySelector('input[name="menu_order[]"]')?.value||'';
+        const previewItem=previewMap.get(id);
+        if(previewItem) preview.appendChild(previewItem);
+      });
+    }
+  }
+
+  items().forEach(item=>{
+    const drag=item.querySelector('[data-menu-drag]');
+    if(drag){
+      drag.addEventListener('mousedown',()=>item.setAttribute('draggable','true'));
+      drag.addEventListener('touchstart',()=>item.setAttribute('draggable','true'),{passive:true});
+      drag.addEventListener('mouseup',()=>item.setAttribute('draggable','false'));
+      drag.addEventListener('touchend',()=>item.setAttribute('draggable','false'));
+    }
+
+    item.addEventListener('dragstart',event=>{
+      dragging=item;
+      item.classList.add('is-dragging');
+      event.dataTransfer.effectAllowed='move';
+      try{event.dataTransfer.setData('text/plain',item.querySelector('input[name="menu_order[]"]')?.value||'');}catch(e){}
+    });
+
+    item.addEventListener('dragend',()=>{
+      item.classList.remove('is-dragging');
+      item.setAttribute('draggable','false');
+      items().forEach(row=>row.classList.remove('is-drag-over'));
+      dragging=null;
+      sync();
+    });
+
+    item.addEventListener('dragover',event=>{
+      if(!dragging||dragging===item) return;
+      event.preventDefault();
+      item.classList.add('is-drag-over');
+      const rect=item.getBoundingClientRect();
+      const after=event.clientY>rect.top+rect.height/2;
+      if(after) item.after(dragging);
+      else item.before(dragging);
+    });
+
+    item.addEventListener('dragleave',()=>item.classList.remove('is-drag-over'));
+
+    item.querySelectorAll('[data-menu-move]').forEach(button=>{
+      button.addEventListener('click',()=>{
+        const direction=button.dataset.menuMove;
+        if(direction==='up'){
+          const previous=item.previousElementSibling;
+          if(previous) list.insertBefore(item,previous);
+        }else{
+          const next=item.nextElementSibling;
+          if(next) list.insertBefore(next,item);
+        }
+        sync();
+        item.scrollIntoView({block:'nearest',behavior:'smooth'});
+      });
+    });
+  });
+
+  sync();
+})();
+
+(function(){
+  const preview=document.querySelector('[data-a11y-admin-preview]');
+  if(!preview) return;
+
+  const title=preview.querySelector('[data-a11y-admin-preview-title]');
+  const text=preview.querySelector('[data-a11y-admin-preview-text]');
+
+  const textTargets={
+    title,
+    text
+  };
+
+  document.querySelectorAll('[data-a11y-admin-text]').forEach(input=>{
+    const key=input.dataset.a11yAdminText;
+    const target=textTargets[key];
+    if(!target) return;
+    input.addEventListener('input',()=>{target.textContent=input.value;});
+  });
+
+  const vars={
+    'panel-bg':'--ap-bg',
+    'panel-text':'--ap-text',
+    'accent':'--ap-accent',
+    'border':'--ap-border',
+    'primary-bg':'--ap-primary',
+    'primary-text':'--ap-primary-text'
+  };
+
+  document.querySelectorAll('[data-a11y-admin-color]').forEach(input=>{
+    const code=input.closest('.accessibility-color-control')?.querySelector('code');
+    const sync=()=>{
+      const cssVar=vars[input.dataset.a11yAdminColor];
+      if(cssVar) preview.style.setProperty(cssVar,input.value);
+      if(code) code.textContent=input.value;
+    };
+    input.addEventListener('input',sync);
+    sync();
+  });
+})();
 </script>
 
 <?php require __DIR__.'/_bottom.php'; ?>
