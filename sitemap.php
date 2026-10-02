@@ -38,6 +38,7 @@ sitemap_add($urls, base_url(), null, 'daily', '1.0');
 
 $publicPages = [
     ['news.php', 'daily', '0.9'],
+    ['documents.php', 'weekly', '0.7'],
     ['gallery.php', 'weekly', '0.7'],
     ['videos.php', 'weekly', '0.7'],
     ['about.php', 'monthly', '0.5'],
