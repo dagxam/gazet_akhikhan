@@ -82,6 +82,8 @@ if($id){
 }
 
 $rows=db()->query('SELECT * FROM newspapers ORDER BY issue_date DESC,id DESC')->fetchAll();
+$newspaperPager=admin_paginate_array($rows,8,'page');
+$rows=$newspaperPager['items'];
 
 $adminTitle='Газета';
 require __DIR__.'/_top.php';
@@ -190,6 +192,7 @@ require __DIR__.'/_top.php';
           </article>
         <?php endforeach;?>
       </div>
+      <?php render_admin_pagination('admin/newspapers.php',$newspaperPager['page'],$newspaperPager['total_pages'],[],'page','Страницы выпусков'); ?>
     <?php else:?>
       <div class="newspaper-admin-empty">
         <b>Выпусков пока нет</b>
