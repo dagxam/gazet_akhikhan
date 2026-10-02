@@ -2644,6 +2644,75 @@ function top_rated_articles(int $limit = 4): array
     return db()->query($sql)->fetchAll();
 }
 
+function public_pagination_state(int $total, int $perPage = 18, string $pageParam = 'page'): array
+{
+    $perPage=max(1,min(100,$perPage));
+    $total=max(0,$total);
+    $totalPages=max(1,(int)ceil($total/$perPage));
+    $page=max(1,(int)($_GET[$pageParam]??1));
+    if($page>$totalPages) $page=$totalPages;
+    $offset=($page-1)*$perPage;
+
+    return [
+        'page'=>$page,
+        'per_page'=>$perPage,
+        'total'=>$total,
+        'total_pages'=>$totalPages,
+        'offset'=>$offset,
+        'start'=>$total ? $offset+1 : 0,
+        'end'=>min($offset+$perPage,$total),
+        'param'=>$pageParam,
+    ];
+}
+
+function public_pagination_pages(int $page, int $totalPages): array
+{
+    if($totalPages<=9) return range(1,max(1,$totalPages));
+
+    $pages=[1];
+    $from=max(2,$page-2);
+    $to=min($totalPages-1,$page+2);
+    if($from>2) $pages[]='…';
+    for($i=$from;$i<=$to;$i++) $pages[]=$i;
+    if($to<$totalPages-1) $pages[]='…';
+    $pages[]=$totalPages;
+    return $pages;
+}
+
+function public_pagination_url(string $path, int $page, array $query = [], string $pageParam = 'page'): string
+{
+    if($page<=1) unset($query[$pageParam]);
+    else $query[$pageParam]=$page;
+
+    $url=base_url(ltrim($path,'/'));
+    return $query ? $url.'?'.http_build_query($query) : $url;
+}
+
+function render_public_pagination(string $path, int $page, int $totalPages, array $query = [], string $pageParam = 'page', string $label = 'Страницы'): void
+{
+    if($totalPages<=1) return;
+
+    echo '<nav class="public-pagination" aria-label="'.e($label).'">';
+    if($page>1){
+        echo '<a class="public-page-arrow" rel="prev" href="'.e(public_pagination_url($path,$page-1,$query,$pageParam)).'" aria-label="Предыдущая страница">←</a>';
+    }
+
+    foreach(public_pagination_pages($page,$totalPages) as $p){
+        if($p==='…'){
+            echo '<span class="public-page-gap">…</span>';
+            continue;
+        }
+        $active=((int)$p===$page) ? ' is-active' : '';
+        $current=((int)$p===$page) ? ' aria-current="page"' : '';
+        echo '<a class="'.$active.'"'.$current.' href="'.e(public_pagination_url($path,(int)$p,$query,$pageParam)).'">'.e((string)$p).'</a>';
+    }
+
+    if($page<$totalPages){
+        echo '<a class="public-page-arrow" rel="next" href="'.e(public_pagination_url($path,$page+1,$query,$pageParam)).'" aria-label="Следующая страница">→</a>';
+    }
+    echo '</nav>';
+}
+
 function admin_paginate_array(array $items, int $perPage = 12, string $pageParam = 'page'): array
 {
     $perPage=max(1,min(100,$perPage));
