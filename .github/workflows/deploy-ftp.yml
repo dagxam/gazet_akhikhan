@@ -236,7 +236,20 @@ jobs:
 
           security_txt_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-security.txt --write-out '%{http_code}' https://akhikhan.ru/.well-known/security.txt)"
           test "$security_txt_code" = "200"
-          grep -q '^Contact: mailto:info@akhikhan.ru"$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-config.txt --write-out '%{http_code}' https://akhikhan.ru/config.php)"
+          grep -q '^Contact: mailto:info@akhikhan.ru$' /tmp/akhikhan-security.txt
+          grep -q '^Expires:' /tmp/akhikhan-security.txt
+          grep -q '^Canonical: https://akhikhan.ru/.well-known/security.txt$' /tmp/akhikhan-security.txt
+
+          login_headers="$(curl --silent --show-error --head --max-time 30 https://akhikhan.ru/admin/login.php | tr -d '\r')"
+          echo "$login_headers" | grep -qi '^Set-Cookie: AKHSESSID='
+          echo "$login_headers" | grep -qi 'httponly'
+          echo "$login_headers" | grep -qi 'samesite=Lax'
+          echo "$login_headers" | grep -qi 'secure'
+
+          logout_get_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-logout-get.txt --write-out '%{http_code}' https://akhikhan.ru/admin/logout.php)"
+          test "$logout_get_code" = "405"
+
+          config_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-config.txt --write-out '%{http_code}' https://akhikhan.ru/config.php)"
           test "$config_code" = "403" -o "$config_code" = "404"
 
           storage_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-storage.txt --write-out '%{http_code}' https://akhikhan.ru/storage/php-error.log)"
@@ -257,11 +270,19 @@ jobs:
 
           echo "Homepage, hardened endpoints and security headers verified."
 
-          # Controlled production burst smoke test: enough to catch obvious concurrency/resource failures
-          # without turning deployment verification into a destructive load test.
-          seq 1 30 | xargs -I{} -P5 sh -c 'curl --silent --show-error --max-time 15 --output /dev/null --write-out "%{http_code}\n" "https://akhikhan.ru/privacy.php?security-smoke={}"' > /tmp/akhikhan-burst-codes.txt
+          # Controlled, non-destructive production burst smoke test.
+          rm -f /tmp/akhikhan-burst-codes.txt
+          for batch in 1 2 3 4 5 6; do
+            for slot in 1 2 3 4 5; do
+              curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}\n' "https://akhikhan.ru/privacy.php?security-smoke=$batch-$slot" >> /tmp/akhikhan-burst-codes.txt &
+            done
+            wait
+          done
           test "$(wc -l < /tmp/akhikhan-burst-codes.txt)" -eq 30
-          test "$(grep -c '^200"$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-ornament.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/ornament-footer-premium.svg)"
+          test "$(grep -c '^200$' /tmp/akhikhan-burst-codes.txt)" -eq 30
+          echo "Controlled concurrent PHP burst (30 requests, batches of 5) passed."
+
+          ornament_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-ornament.svg --write-out '%{http_code}' https://akhikhan.ru/assets/img/ornament-footer-premium.svg)"
           test "$ornament_code" = "200"
           test "$(wc -c < /tmp/akhikhan-ornament.svg)" -gt 7000
           grep -q 'viewBox="0 0 2048 170"' /tmp/akhikhan-ornament.svg
