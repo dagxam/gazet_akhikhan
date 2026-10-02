@@ -138,6 +138,20 @@ jobs:
           fi
           echo "Documents deployment verified for the current production mode."
 
+          contacts_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-contacts.html --write-out '%{http_code}' 'https://akhikhan.ru/contacts.php?deploy=contacts1')"
+          echo "check: contacts page HTTP $contacts_code"
+          test "$contacts_code" = "200" -o "$contacts_code" = "503"
+          if [ "$contacts_code" = "200" ]; then
+            grep -q 'contact-form-card' /tmp/akhikhan-contacts.html
+            grep -q 'info@akhikhan.ru' /tmp/akhikhan-contacts.html
+            grep -q 'Отправить в редакцию' /tmp/akhikhan-contacts.html
+            grep -q 'privacy_consent' /tmp/akhikhan-contacts.html
+            echo "check: contacts form ok"
+          else
+            grep -q 'maintenance-page' /tmp/akhikhan-contacts.html
+            echo "check: contacts route hidden by reconstruction mode"
+          fi
+
           login_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin-login.html --write-out '%{http_code}' https://akhikhan.ru/admin/login.php)"
           test "$login_code" = "200"
           grep -q "Вход в редакцию" /tmp/akhikhan-admin-login.html
@@ -155,6 +169,8 @@ jobs:
           grep -q 'Политика использования cookie' /tmp/akhikhan-cookies.php
           grep -q 'анонимного технического идентификатора браузера' /tmp/akhikhan-cookies.php
           grep -q 'пользовательских настроек версии повышенной доступности' /tmp/akhikhan-cookies.php
+          grep -q 'публичной формы обратной связи' /tmp/akhikhan-cookies.php
+          grep -q 'форма обратной связи' /tmp/akhikhan-privacy.php
           grep -q 'accessibility-panel' /tmp/akhikhan-privacy.php
           grep -q 'topbar-age-rating' /tmp/akhikhan-privacy.php
           grep -q 'Версия для слабовидящих' /tmp/akhikhan-privacy.php
@@ -197,7 +213,7 @@ jobs:
           test "$(wc -c < /tmp/akhikhan-ornament.svg)" -gt 7000
           grep -q 'viewBox="0 0 2048 170"' /tmp/akhikhan-ornament.svg
 
-          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-accessibility2')"
+          public_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-style.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/style.css?v=20261002-contacts1')"
           test "$public_css_code" = "200"
           grep -q 'ornament-footer-premium.svg' /tmp/akhikhan-style.css
           grep -q '.privacy-notice' /tmp/akhikhan-style.css
@@ -212,6 +228,8 @@ jobs:
           grep -q 'Navigation, social icons, article engagement and best news' /tmp/akhikhan-style.css
           grep -q 'Age rating + accessible version' /tmp/akhikhan-style.css
           grep -q 'Accessibility panel v2' /tmp/akhikhan-style.css
+          grep -q 'Contacts page + feedback form' /tmp/akhikhan-style.css
+          grep -q '.contact-form-card' /tmp/akhikhan-style.css
           grep -q '.accessibility-quick-presets' /tmp/akhikhan-style.css
           grep -q '.topbar-accessibility-state' /tmp/akhikhan-style.css
           grep -q '.topbar-accessibility' /tmp/akhikhan-style.css
