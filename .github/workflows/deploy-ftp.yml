@@ -375,18 +375,21 @@ jobs:
           set -euo pipefail
 
           security_txt_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-security.txt --write-out '%{http_code}' https://akhikhan.ru/.well-known/security.txt)"
+          echo "security.txt HTTP: $security_txt_code"
           test "$security_txt_code" = "200"
           grep -q '^Contact: mailto:info@akhikhan.ru$' /tmp/akhikhan-security.txt
           grep -q '^Expires:' /tmp/akhikhan-security.txt
           grep -q '^Canonical: https://akhikhan.ru/.well-known/security.txt$' /tmp/akhikhan-security.txt
+          echo "security.txt content: ok"
 
           login_headers="$(curl --silent --show-error --head --max-time 30 https://akhikhan.ru/admin/login.php | tr -d '\r')"
-          echo "$login_headers" | grep -qi '^Set-Cookie: AKHSESSID='
-          echo "$login_headers" | grep -qi 'httponly'
-          echo "$login_headers" | grep -qi 'samesite=Lax'
-          echo "$login_headers" | grep -qi 'secure'
+          echo "$login_headers" | grep -qi '^Set-Cookie: AKHSESSID=' && echo "session cookie name: ok"
+          echo "$login_headers" | grep -qi 'httponly' && echo "session HttpOnly: ok"
+          echo "$login_headers" | grep -qi 'samesite=Lax' && echo "session SameSite: ok"
+          echo "$login_headers" | grep -qi 'secure' && echo "session Secure: ok"
 
           logout_get_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-logout-get.txt --write-out '%{http_code}' https://akhikhan.ru/admin/logout.php)"
+          echo "logout GET HTTP: $logout_get_code"
           test "$logout_get_code" = "405"
 
           rm -f /tmp/akhikhan-burst-codes.txt
@@ -396,6 +399,8 @@ jobs:
             done
             wait
           done
+          echo "burst response summary:"
+          sort /tmp/akhikhan-burst-codes.txt | uniq -c
           test "$(wc -l < /tmp/akhikhan-burst-codes.txt)" -eq 30
           test "$(grep -c '^200$' /tmp/akhikhan-burst-codes.txt)" -eq 30
 
