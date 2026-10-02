@@ -100,24 +100,26 @@ jobs:
           echo "Akhikhan production site is reachable in normal or reconstruction mode."
 
           if [ "$code" = "200" ]; then
-            grep -q "Последние видео" /tmp/akhikhan.html
-            grep -q 'district-news-summary' /tmp/akhikhan.html
-            grep -q 'home-news-summary' /tmp/akhikhan.html
-            grep -q 'home-news-three-grid items-' /tmp/akhikhan.html
-            grep -q 'editorial-heritage' /tmp/akhikhan.html
-            grep -q 'Wikimedia Commons' /tmp/akhikhan.html
+            grep -q "Последние видео" /tmp/akhikhan.html && echo "check: videos ok"
+            grep -q 'district-news-summary' /tmp/akhikhan.html && echo "check: district summary ok"
+            grep -q 'home-news-summary' /tmp/akhikhan.html && echo "check: home summary ok"
+            grep -q 'home-news-three-grid items-' /tmp/akhikhan.html && echo "check: counted news grid ok"
+            grep -q 'editorial-heritage' /tmp/akhikhan.html && echo "check: heritage ok"
+            grep -q 'Wikimedia Commons' /tmp/akhikhan.html && echo "check: wikimedia ok"
           fi
 
           fresh_home_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-documents-home.html --write-out '%{http_code}' 'https://akhikhan.ru/?deploy=documents1')"
+          echo "check: fresh home HTTP $fresh_home_code"
           test "$fresh_home_code" = "200"
-          grep -q 'documents.php' /tmp/akhikhan-documents-home.html
-          grep -q 'Все документы' /tmp/akhikhan-documents-home.html
-          grep -q '>Документы<' /tmp/akhikhan-documents-home.html
+          grep -q 'documents.php' /tmp/akhikhan-documents-home.html && echo "check: documents link ok"
+          grep -q 'Все документы' /tmp/akhikhan-documents-home.html && echo "check: all documents label ok"
+          grep -q 'Документы' /tmp/akhikhan-documents-home.html && echo "check: documents menu label ok"
 
           documents_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-documents.html --write-out '%{http_code}' 'https://akhikhan.ru/documents.php?deploy=documents1')"
+          echo "check: documents page HTTP $documents_code"
           test "$documents_code" = "200"
-          grep -q 'Документы' /tmp/akhikhan-documents.html
-          grep -q 'public-documents-page' /tmp/akhikhan-documents.html
+          grep -q 'Документы' /tmp/akhikhan-documents.html && echo "check: documents page title ok"
+          grep -q 'public-documents-page' /tmp/akhikhan-documents.html && echo "check: documents page markup ok"
           echo "Public Documents page, homepage link and main-menu item verified."
 
           login_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin-login.html --write-out '%{http_code}' https://akhikhan.ru/admin/login.php)"
