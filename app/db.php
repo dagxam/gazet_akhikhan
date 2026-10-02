@@ -49,5 +49,24 @@ function db(): PDO
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false,
     ]);
+
+    // Keep MySQL CURRENT_TIMESTAMP in the same timezone as PHP/publication inputs.
+    // published_at is stored as a local DATETIME, so comparing it against a
+    // server running in another timezone can hide freshly published articles.
+    try {
+        $timezoneName = (string)($config['site']['timezone'] ?? 'Europe/Moscow');
+        $timezone = new DateTimeZone($timezoneName);
+        $now = new DateTimeImmutable('now', $timezone);
+        $offsetSeconds = $timezone->getOffset($now);
+        $sign = $offsetSeconds < 0 ? '-' : '+';
+        $offsetSeconds = abs($offsetSeconds);
+        $hours = intdiv($offsetSeconds, 3600);
+        $minutes = intdiv($offsetSeconds % 3600, 60);
+        $mysqlOffset = sprintf('%s%02d:%02d', $sign, $hours, $minutes);
+        $pdo->exec('SET SESSION time_zone=' . $pdo->quote($mysqlOffset));
+    } catch (Throwable $e) {
+        error_log('[db timezone] ' . $e->getMessage());
+    }
+
     return $pdo;
 }
