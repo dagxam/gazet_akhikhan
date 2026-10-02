@@ -40,8 +40,13 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     if($categorySlug!=='') $url='category:'.$categorySlug;
     if($url==='') throw new RuntimeException('Укажите ссылку или выберите рубрику.');
 
-    $sortOrder=(int)($_POST['sort_order']??100);
-    $sortOrder=max(-9999,min(9999,$sortOrder));
+    if($saveId){
+      $q=db()->prepare('SELECT sort_order FROM main_menu_items WHERE id=? LIMIT 1');
+      $q->execute([$saveId]);
+      $sortOrder=(int)($q->fetchColumn() ?: 100);
+    }else{
+      $sortOrder=(int)db()->query('SELECT COALESCE(MAX(sort_order),0)+10 FROM main_menu_items')->fetchColumn();
+    }
     $isActive=isset($_POST['is_active'])?1:0;
     $openNew=isset($_POST['open_new_tab'])?1:0;
 
@@ -129,15 +134,7 @@ require __DIR__.'/_top.php';
       </label>
 
       <div class="menu-help">
-        Если выбрана рубрика выше, поле ссылки можно оставить пустым. Для внутренних страниц используйте адрес без домена: <code>contacts.php</code>. Для внешнего сайта — полный <code>https://...</code>.
-      </div>
-
-      <div class="menu-form-row">
-        <label class="field-modern compact">
-          <span>Порядок</span>
-          <input type="number" name="sort_order" value="<?=e((string)($editing['sort_order']??100))?>" min="-9999" max="9999">
-        </label>
-        <div></div>
+        Если выбрана рубрика выше, поле ссылки можно оставить пустым. Для внутренних страниц используйте адрес без домена: <code>contacts.php</code>. Для внешнего сайта — полный <code>https://...</code>. Порядок пунктов меняется в списке справа.
       </div>
 
       <div class="menu-checks">
