@@ -120,7 +120,7 @@ require __DIR__.'/partials/header.php';
   <button class="gallery-lightbox-nav next" type="button" data-gallery-next aria-label="Следующее фото">›</button>
 </div>
 
-<script>
+<script nonce="<?=e(csp_nonce())?>">
 (function(){
   const items=[...document.querySelectorAll('[data-gallery-lightbox]')];
   const modal=document.querySelector('[data-gallery-lightbox-modal]');
