@@ -1,4 +1,15 @@
-</main></div><script>
+</main></div><script nonce="<?=e(csp_nonce())?>">
+document.querySelectorAll('[data-submit-on-change]').forEach(el=>{
+  el.addEventListener('change',()=>el.form?.requestSubmit());
+});
+document.addEventListener('submit',event=>{
+  const form=event.target.closest?.('form[data-confirm]');
+  if(form && !window.confirm(form.dataset.confirm||'Подтвердить действие?')){
+    event.preventDefault();
+  }
+});
+
+
 document.querySelector('.menu-toggle')?.addEventListener('click',()=>document.body.classList.toggle('menu-open'));
 
 document.querySelectorAll('[data-category-toggle]').forEach(btn=>{
