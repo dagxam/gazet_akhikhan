@@ -255,27 +255,29 @@ function security_scan_upload(string $tmp, string $ext): void
     if(!is_file($tmp) || !is_readable($tmp)) throw new RuntimeException('Не удалось проверить загружаемый файл.');
     $ext=strtolower($ext);
 
-    // Optional server antivirus. If ClamAV is installed, every supported upload
-    // is scanned before it is moved into the public uploads tree.
+    // Run local antivirus first when available. Scanner errors fail closed.
+    // A clean antivirus result does NOT skip the structural CDR checks below.
     if(function_exists('proc_open')){
         foreach(['/usr/bin/clamdscan','/usr/local/bin/clamdscan','/usr/bin/clamscan','/usr/local/bin/clamscan'] as $binary){
             if(!is_executable($binary)) continue;
             $cmd=escapeshellarg($binary).' --no-summary '.escapeshellarg($tmp);
             $pipes=[];
             $proc=@proc_open($cmd,[1=>['pipe','w'],2=>['pipe','w']],$pipes);
-            if(is_resource($proc)){
-                foreach($pipes as $pipe) if(is_resource($pipe)) stream_get_contents($pipe);
-                foreach($pipes as $pipe) if(is_resource($pipe)) fclose($pipe);
-                $exit=proc_close($proc);
-                if($exit===1) throw new RuntimeException('Антивирус обнаружил угрозу в файле.');
-                if($exit===0) return;
-                throw new RuntimeException('Антивирус не смог завершить проверку файла. Загрузка остановлена.');
+            if(!is_resource($proc)){
+                throw new RuntimeException('Не удалось запустить антивирусную проверку файла.');
             }
-            throw new RuntimeException('Не удалось запустить антивирусную проверку файла.');
+
+            foreach($pipes as $pipe) if(is_resource($pipe)) stream_get_contents($pipe);
+            foreach($pipes as $pipe) if(is_resource($pipe)) fclose($pipe);
+            $exit=proc_close($proc);
+
+            if($exit===1) throw new RuntimeException('Антивирус обнаружил угрозу в файле.');
+            if($exit!==0) throw new RuntimeException('Антивирус не смог завершить проверку файла. Загрузка остановлена.');
+            break;
         }
     }
 
-    // CDR-style fail-closed checks for active content when ClamAV is absent.
+    // CDR-style fail-closed checks for active content.
     if($ext==='pdf'){
         $sample=(string)file_get_contents($tmp,false,null,0,min(4*1024*1024,(int)filesize($tmp)));
         if(preg_match('~/(JavaScript|JS|Launch|EmbeddedFile|RichMedia|OpenAction)\\b~i',$sample)){
@@ -293,11 +295,12 @@ function security_scan_upload(string $tmp, string $ext): void
                         throw new RuntimeException('Office-документ содержит макросы, ActiveX или встроенные объекты и отклонён политикой безопасности.');
                     }
                 }
-            }finally{$zip->close();}
+            }finally{
+                $zip->close();
+            }
         }
     }
 }
-
 
 
 function sanitize_rich_text(?string $html): string
