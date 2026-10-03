@@ -1,4 +1,4 @@
-</main></div><script>
+</main></div><script nonce="<?=e(csp_nonce())?>">
 document.querySelector('.menu-toggle')?.addEventListener('click',()=>document.body.classList.toggle('menu-open'));
 
 document.querySelectorAll('[data-category-toggle]').forEach(btn=>{
