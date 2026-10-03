@@ -1,4 +1,13 @@
-</main></div><script nonce="<?=e(csp_nonce())?>">
+</main></div><?php csp_render_dynamic_styles(); ?><script nonce="<?=e(csp_nonce())?>">
+document.querySelectorAll('form[data-confirm]').forEach(form=>{
+  form.addEventListener('submit',event=>{
+    if(!window.confirm(form.dataset.confirm||'Подтвердить действие?')) event.preventDefault();
+  });
+});
+document.querySelectorAll('[data-auto-submit]').forEach(input=>{
+  input.addEventListener('change',()=>input.form?.requestSubmit());
+});
+
 document.querySelector('.menu-toggle')?.addEventListener('click',()=>document.body.classList.toggle('menu-open'));
 
 document.querySelectorAll('[data-category-toggle]').forEach(btn=>{
