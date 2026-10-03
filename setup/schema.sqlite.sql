@@ -7,6 +7,9 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   role TEXT NOT NULL DEFAULT 'editor' CHECK (role IN ('admin','editor')),
   status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','blocked')),
+  totp_secret TEXT NULL,
+  totp_enabled_at TEXT NULL,
+  totp_recovery_codes TEXT NULL,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
