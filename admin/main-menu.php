@@ -36,9 +36,20 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     if($label==='') throw new RuntimeException('Введите название пункта меню.');
 
     $categorySlug=trim($_POST['category_slug']??'');
+    $staticPageId=(int)($_POST['static_page_id']??0);
     $url=trim($_POST['url']??'');
-    if($categorySlug!=='') $url='category:'.$categorySlug;
-    if($url==='') throw new RuntimeException('Укажите ссылку или выберите рубрику.');
+
+    if($categorySlug!=='' && $staticPageId>0){
+      throw new RuntimeException('Выберите либо рубрику, либо статичную страницу.');
+    }
+    if($categorySlug!==''){
+      $url='category:'.$categorySlug;
+    }elseif($staticPageId>0){
+      $page=static_page($staticPageId,false);
+      if(!$page) throw new RuntimeException('Выбранная статичная страница не найдена.');
+      $url='page:'.$staticPageId;
+    }
+    if($url==='') throw new RuntimeException('Укажите ссылку, выберите рубрику или статичную страницу.');
 
     if($saveId){
       $q=db()->prepare('SELECT sort_order FROM main_menu_items WHERE id=? LIMIT 1');
@@ -75,10 +86,15 @@ if($id){
 
 $rows=main_menu_items(false);
 $cats=categories();
+$staticPages=static_pages(false);
 $currentCategory='';
+$currentStaticPageId=0;
 $currentUrl=$editing['url']??'';
 if(str_starts_with((string)$currentUrl,'category:')){
   $currentCategory=substr((string)$currentUrl,9);
+  $currentUrl='';
+}elseif(str_starts_with((string)$currentUrl,'page:')){
+  $currentStaticPageId=(int)substr((string)$currentUrl,5);
   $currentUrl='';
 }
 
@@ -129,12 +145,24 @@ require __DIR__.'/_top.php';
       </label>
 
       <label class="field-modern compact">
+        <span>Статичная страница</span>
+        <select name="static_page_id" data-menu-static-page>
+          <option value="0">Не привязывать к странице</option>
+          <?php foreach($staticPages as $page):?>
+            <option value="<?=e((string)$page['id'])?>" <?=$currentStaticPageId===(int)$page['id']?'selected':''?>>
+              <?=e($page['title'])?><?=$page['status']==='published'?'':' · черновик'?>
+            </option>
+          <?php endforeach;?>
+        </select>
+      </label>
+
+      <label class="field-modern compact">
         <span>Ссылка</span>
         <input name="url" value="<?=e($currentUrl)?>" placeholder="Например: documents.php или https://...">
       </label>
 
       <div class="menu-help">
-        Если выбрана рубрика выше, поле ссылки можно оставить пустым. Для внутренних страниц используйте адрес без домена: <code>contacts.php</code>. Для внешнего сайта — полный <code>https://...</code>. Порядок пунктов меняется в списке справа.
+        Можно выбрать рубрику, созданную статичную страницу или указать ссылку вручную. При выборе рубрики или статичной страницы адрес формируется автоматически. Для внутренних страниц используйте адрес без домена: <code>contacts.php</code>.
       </div>
 
       <div class="menu-checks">
@@ -199,7 +227,7 @@ require __DIR__.'/_top.php';
 
             <div class="menu-admin-actions">
               <a class="edit-action" href="<?=e(base_url('admin/main-menu.php?id='.$row['id']))?>">Редактировать</a>
-              <form method="post" onsubmit="return confirm('Удалить этот пункт главного меню?')">
+              <form method="post" data-confirm="Удалить этот пункт главного меню?">
                 <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
                 <input type="hidden" name="delete_id" value="<?=$row['id']?>">
                 <button class="danger">Удалить</button>
@@ -219,17 +247,21 @@ require __DIR__.'/_top.php';
   </section>
 </div>
 
-<script>
+<script nonce="<?=e(csp_nonce())?>">
 const categorySelect=document.querySelector('[data-menu-category]');
+const staticPageSelect=document.querySelector('[data-menu-static-page]');
 const urlInput=document.querySelector('input[name="url"]');
-if(categorySelect&&urlInput){
-  const sync=()=>{
-    const hasCategory=categorySelect.value!=='';
-    urlInput.disabled=hasCategory;
-    urlInput.placeholder=hasCategory?'Ссылка будет создана из выбранной рубрики':'Например: documents.php или https://...';
+if(categorySelect&&staticPageSelect&&urlInput){
+  const sync=(source)=>{
+    if(source==='category' && categorySelect.value!=='') staticPageSelect.value='0';
+    if(source==='page' && staticPageSelect.value!=='0') categorySelect.value='';
+    const hasManagedTarget=categorySelect.value!=='' || staticPageSelect.value!=='0';
+    urlInput.disabled=hasManagedTarget;
+    urlInput.placeholder=hasManagedTarget?'Ссылка будет создана автоматически':'Например: documents.php или https://...';
   };
-  categorySelect.addEventListener('change',sync);
-  sync();
+  categorySelect.addEventListener('change',()=>sync('category'));
+  staticPageSelect.addEventListener('change',()=>sync('page'));
+  sync('');
 }
 
 (function(){
