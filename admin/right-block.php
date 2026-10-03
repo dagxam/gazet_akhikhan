@@ -352,7 +352,7 @@ require __DIR__.'/_top.php';
                 </div>
                 <div class="row-actions">
                   <a class="edit-action" href="<?=e(base_url('admin/right-block.php?area='.$area.'&id='.$block['id']))?>">Редактировать</a>
-                  <form method="post" onsubmit="return confirm('Удалить этот блок?')">
+                  <form method="post" data-confirm="Удалить этот блок?">
                     <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
                     <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="area" value="<?=e($area)?>">
