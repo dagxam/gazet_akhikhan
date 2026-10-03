@@ -11286,3 +11286,7 @@ a.contact-info-line:hover{
   }
 }
 
+
+
+/* Strict CSP clipboard fallback */
+.clipboard-fallback{position:fixed;left:-9999px;top:0;opacity:0;pointer-events:none}
