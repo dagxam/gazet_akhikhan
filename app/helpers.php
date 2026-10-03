@@ -156,7 +156,53 @@ function rich_text_html(?string $value): string
     if(!preg_match('~<\/?[a-z][^>]*>~i',$value)){
         return nl2br(e($value));
     }
-    return sanitize_rich_text($value);
+
+    $safe=sanitize_rich_text($value);
+    if($safe==='' || !str_contains($safe,'style=')) return $safe;
+    if(!class_exists('DOMDocument')) return rich_text_plain($safe);
+
+    $doc=new DOMDocument('1.0','UTF-8');
+    libxml_use_internal_errors(true);
+    $wrapped='<!doctype html><html><head><meta charset="utf-8"></head><body><div id="rich-render-root">'.$safe.'</div></body></html>';
+    $doc->loadHTML($wrapped,LIBXML_HTML_NOIMPLIED|LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+
+    $root=$doc->getElementById('rich-render-root');
+    if(!$root) return rich_text_plain($safe);
+
+    $rules=[];
+    $index=0;
+    $walk=function(DOMNode $node) use (&$walk,&$rules,&$index): void {
+        for($child=$node->firstChild;$child;$child=$child->nextSibling){
+            if(!$child instanceof DOMElement) continue;
+
+            if($child->hasAttribute('style')){
+                $style=trim($child->getAttribute('style'));
+                $child->removeAttribute('style');
+                if($style!==''){
+                    $class='rt-inline-'.substr(hash('sha256',$style.'|'.$index),0,12);
+                    $child->setAttribute('class',$class);
+                    $rules[$class]=$style;
+                    $index++;
+                }
+            }
+            $walk($child);
+        }
+    };
+    $walk($root);
+
+    $out='';
+    foreach(iterator_to_array($root->childNodes) as $child){
+        $out.=$doc->saveHTML($child);
+    }
+
+    if(!$rules) return trim($out);
+
+    $css='';
+    foreach($rules as $class=>$style){
+        $css.='.'.preg_replace('/[^a-z0-9_-]/i','',$class).'{'.$style.'}';
+    }
+    return '<style nonce="'.e(csp_nonce()).'">'.$css.'</style>'.trim($out);
 }
 
 function rich_text_excerpt(?string $value, int $limit = 220): string
