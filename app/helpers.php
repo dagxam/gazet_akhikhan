@@ -510,6 +510,489 @@ function featured_article(): ?array
 function article_url(array $a): string { return base_url('article/' . $a['slug']); }
 function category_url(array $c): string { return base_url('category/' . $c['slug']); }
 
+
+function csp_nonce(): string
+{
+    static $nonce = '';
+    if ($nonce === '') {
+        $nonce = rtrim(strtr(base64_encode(random_bytes(24)), '+/', '-_'), '=');
+    }
+    return $nonce;
+}
+
+function security_send_csp_headers(): void
+{
+    if (headers_sent()) return;
+
+    $nonce = csp_nonce();
+    $policy = [
+        "default-src 'self'",
+        "base-uri 'self'",
+        "object-src 'none'",
+        "frame-ancestors 'self'",
+        "form-action 'self'",
+        "script-src 'self' 'nonce-".$nonce."' https://cdn.jsdelivr.net",
+        "script-src-attr 'none'",
+        "style-src 'self' 'nonce-".$nonce."' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+        "style-src-attr 'none'",
+        "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com",
+        "img-src 'self' data: blob: https:",
+        "connect-src 'self' https://api.open-meteo.com",
+        "frame-src 'self' https://vk.com https://*.vk.com https://vkvideo.ru https://*.vkvideo.ru https://rutube.ru https://*.rutube.ru https://ok.ru https://*.ok.ru",
+        "media-src 'self' blob: https:",
+        "worker-src 'self' blob: https://cdn.jsdelivr.net",
+        "manifest-src 'self'",
+        "upgrade-insecure-requests",
+    ];
+    header('Content-Security-Policy: '.implode('; ', $policy));
+}
+
+function css_safe_color(string $value, string $fallback): string
+{
+    $value = trim($value);
+    if (preg_match('~^#[0-9a-f]{3}(?:[0-9a-f]{3})?$~i', $value)) return strtolower($value);
+    return $fallback;
+}
+
+function css_url_literal(string $url): string
+{
+    $url = str_replace(["\\", "\"", "\r", "\n"], ["\\\\", "\\\"", "", ""], $url);
+    return 'url("'.$url.'")';
+}
+
+function ensure_security_schema(): void
+{
+    if (!APP_INSTALLED) return;
+
+    $pdo = db();
+    $driver = (string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+    if ($driver === 'sqlite') {
+        $cols = $pdo->query("PRAGMA table_info(users)")->fetchAll();
+        $names = [];
+        foreach ($cols as $col) $names[(string)($col['name'] ?? '')] = true;
+
+        if (!isset($names['totp_secret'])) {
+            $pdo->exec("ALTER TABLE users ADD COLUMN totp_secret TEXT NULL");
+        }
+        if (!isset($names['totp_enabled_at'])) {
+            $pdo->exec("ALTER TABLE users ADD COLUMN totp_enabled_at TEXT NULL");
+        }
+        if (!isset($names['totp_recovery_codes'])) {
+            $pdo->exec("ALTER TABLE users ADD COLUMN totp_recovery_codes TEXT NULL");
+        }
+    } else {
+        foreach ([
+            'totp_secret' => "ALTER TABLE users ADD COLUMN totp_secret TEXT NULL AFTER status",
+            'totp_enabled_at' => "ALTER TABLE users ADD COLUMN totp_enabled_at DATETIME NULL AFTER totp_secret",
+            'totp_recovery_codes' => "ALTER TABLE users ADD COLUMN totp_recovery_codes TEXT NULL AFTER totp_enabled_at",
+        ] as $column => $sql) {
+            $q = $pdo->query("SHOW COLUMNS FROM users LIKE ".$pdo->quote($column));
+            if (!$q->fetch()) $pdo->exec($sql);
+        }
+    }
+}
+
+function security_2fa_required(): bool
+{
+    return setting('security_2fa_required', '1') === '1';
+}
+
+function security_totp_master_key(): string
+{
+    static $key = null;
+    if (is_string($key) && strlen($key) === 32) return $key;
+
+    $dir = ROOT_PATH.'/storage/security';
+    if (!is_dir($dir) && !@mkdir($dir, 0775, true) && !is_dir($dir)) {
+        throw new RuntimeException('Не удалось подготовить защищённое хранилище 2FA.');
+    }
+
+    $path = $dir.'/totp-master.key';
+    $fp = @fopen($path, 'c+');
+    if (!$fp) throw new RuntimeException('Не удалось открыть ключ шифрования 2FA.');
+
+    if (!@flock($fp, LOCK_EX)) {
+        fclose($fp);
+        throw new RuntimeException('Не удалось заблокировать ключ шифрования 2FA.');
+    }
+
+    rewind($fp);
+    $raw = trim((string)stream_get_contents($fp));
+    $decoded = $raw !== '' ? base64_decode($raw, true) : false;
+
+    if (!is_string($decoded) || strlen($decoded) !== 32) {
+        $decoded = random_bytes(32);
+        rewind($fp);
+        ftruncate($fp, 0);
+        fwrite($fp, base64_encode($decoded));
+        fflush($fp);
+    }
+
+    @chmod($path, 0600);
+    @flock($fp, LOCK_UN);
+    fclose($fp);
+
+    $key = $decoded;
+    return $key;
+}
+
+function security_encrypt_totp_secret(string $secret): string
+{
+    $key = security_totp_master_key();
+
+    if (function_exists('sodium_crypto_secretbox')) {
+        $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $cipher = sodium_crypto_secretbox($secret, $nonce, $key);
+        return 's1.'.base64_encode($nonce.$cipher);
+    }
+
+    if (function_exists('openssl_encrypt')) {
+        $nonce = random_bytes(12);
+        $tag = '';
+        $cipher = openssl_encrypt($secret, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $nonce, $tag);
+        if ($cipher === false) throw new RuntimeException('Не удалось зашифровать ключ 2FA.');
+        return 'g1.'.base64_encode($nonce.$tag.$cipher);
+    }
+
+    throw new RuntimeException('На сервере нет Sodium/OpenSSL для безопасного хранения ключа 2FA.');
+}
+
+function security_decrypt_totp_secret(?string $encrypted): string
+{
+    $encrypted = trim((string)$encrypted);
+    if ($encrypted === '') return '';
+
+    $parts = explode('.', $encrypted, 2);
+    if (count($parts) !== 2) return '';
+    [$version, $payload] = $parts;
+    $raw = base64_decode($payload, true);
+    if (!is_string($raw)) return '';
+
+    $key = security_totp_master_key();
+
+    if ($version === 's1' && function_exists('sodium_crypto_secretbox_open')) {
+        $nonceBytes = SODIUM_CRYPTO_SECRETBOX_NONCEBYTES;
+        if (strlen($raw) <= $nonceBytes) return '';
+        $nonce = substr($raw, 0, $nonceBytes);
+        $cipher = substr($raw, $nonceBytes);
+        $plain = sodium_crypto_secretbox_open($cipher, $nonce, $key);
+        return is_string($plain) ? $plain : '';
+    }
+
+    if ($version === 'g1' && function_exists('openssl_decrypt')) {
+        if (strlen($raw) <= 28) return '';
+        $nonce = substr($raw, 0, 12);
+        $tag = substr($raw, 12, 16);
+        $cipher = substr($raw, 28);
+        $plain = openssl_decrypt($cipher, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $nonce, $tag);
+        return is_string($plain) ? $plain : '';
+    }
+
+    return '';
+}
+
+function totp_base32_encode(string $bytes): string
+{
+    $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    $buffer = 0;
+    $bits = 0;
+    $out = '';
+
+    for ($i = 0, $len = strlen($bytes); $i < $len; $i++) {
+        $buffer = ($buffer << 8) | ord($bytes[$i]);
+        $bits += 8;
+        while ($bits >= 5) {
+            $bits -= 5;
+            $out .= $alphabet[($buffer >> $bits) & 31];
+        }
+    }
+
+    if ($bits > 0) {
+        $out .= $alphabet[($buffer << (5 - $bits)) & 31];
+    }
+    return $out;
+}
+
+function totp_base32_decode(string $secret): string
+{
+    $secret = strtoupper(preg_replace('/[^A-Z2-7]/i', '', $secret) ?? '');
+    if ($secret === '') return '';
+
+    $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    $map = array_flip(str_split($alphabet));
+    $buffer = 0;
+    $bits = 0;
+    $out = '';
+
+    foreach (str_split($secret) as $char) {
+        if (!isset($map[$char])) return '';
+        $buffer = ($buffer << 5) | $map[$char];
+        $bits += 5;
+        if ($bits >= 8) {
+            $bits -= 8;
+            $out .= chr(($buffer >> $bits) & 0xff);
+        }
+    }
+    return $out;
+}
+
+function totp_generate_secret(): string
+{
+    return totp_base32_encode(random_bytes(20));
+}
+
+function totp_code(string $secret, ?int $timestamp = null): string
+{
+    $key = totp_base32_decode($secret);
+    if ($key === '') return '';
+
+    $counter = intdiv($timestamp ?? time(), 30);
+    $high = ($counter >> 32) & 0xffffffff;
+    $low = $counter & 0xffffffff;
+    $binaryCounter = pack('N2', $high, $low);
+
+    $hash = hash_hmac('sha1', $binaryCounter, $key, true);
+    $offset = ord($hash[strlen($hash) - 1]) & 0x0f;
+    $value = unpack('N', substr($hash, $offset, 4))[1] & 0x7fffffff;
+    return str_pad((string)($value % 1000000), 6, '0', STR_PAD_LEFT);
+}
+
+function totp_verify_code(string $secret, string $code, int $window = 1): bool
+{
+    $code = preg_replace('/\D+/', '', $code) ?? '';
+    if (strlen($code) !== 6) return false;
+
+    $now = time();
+    for ($step = -$window; $step <= $window; $step++) {
+        if (hash_equals(totp_code($secret, $now + ($step * 30)), $code)) return true;
+    }
+    return false;
+}
+
+function totp_recovery_codes_generate(int $count = 8): array
+{
+    $codes = [];
+    for ($i = 0; $i < $count; $i++) {
+        $raw = strtoupper(bin2hex(random_bytes(5)));
+        $codes[] = substr($raw, 0, 5).'-'.substr($raw, 5, 5);
+    }
+    return $codes;
+}
+
+function totp_recovery_codes_hash(array $codes): string
+{
+    $hashes = [];
+    foreach ($codes as $code) {
+        $hashes[] = password_hash(strtoupper(str_replace(['-', ' '], '', (string)$code)), PASSWORD_DEFAULT);
+    }
+    return json_encode($hashes, JSON_UNESCAPED_SLASHES);
+}
+
+function totp_use_recovery_code(int $userId, string $code, ?string $storedJson): bool
+{
+    $normalized = strtoupper(str_replace(['-', ' '], '', trim($code)));
+    if (!preg_match('/^[A-F0-9]{10}$/', $normalized)) return false;
+
+    $hashes = json_decode((string)$storedJson, true);
+    if (!is_array($hashes) || !$hashes) return false;
+
+    foreach ($hashes as $index => $hash) {
+        if (is_string($hash) && password_verify($normalized, $hash)) {
+            unset($hashes[$index]);
+            $q = db()->prepare('UPDATE users SET totp_recovery_codes=? WHERE id=?');
+            $q->execute([json_encode(array_values($hashes), JSON_UNESCAPED_SLASHES), $userId]);
+            return true;
+        }
+    }
+    return false;
+}
+
+function user_totp_enabled(array $user): bool
+{
+    return !empty($user['totp_enabled_at']) && trim((string)($user['totp_secret'] ?? '')) !== '';
+}
+
+function verify_user_totp_or_recovery(array $user, string $code): bool
+{
+    $secret = security_decrypt_totp_secret($user['totp_secret'] ?? null);
+    if ($secret !== '' && totp_verify_code($secret, $code, 1)) return true;
+    return totp_use_recovery_code((int)($user['id'] ?? 0), $code, $user['totp_recovery_codes'] ?? null);
+}
+
+function establish_admin_session(array $user): void
+{
+    if (function_exists('app_start_session')) app_start_session();
+
+    $safe = [
+        'id' => (int)$user['id'],
+        'name' => (string)$user['name'],
+        'email' => (string)$user['email'],
+        'role' => (string)$user['role'],
+    ];
+
+    session_regenerate_id(true);
+    $_SESSION['admin_user'] = $safe;
+    $_SESSION['admin_login_at'] = time();
+    $_SESSION['admin_last_activity'] = time();
+    $_SESSION['admin_last_regen'] = time();
+    unset($_SESSION['pending_2fa'], $_SESSION['pending_2fa_setup']);
+}
+
+function security_upload_scanner_path(): ?string
+{
+    static $resolved = false;
+    static $path = null;
+    if ($resolved) return $path;
+    $resolved = true;
+
+    foreach (['/usr/bin/clamdscan','/usr/local/bin/clamdscan','/usr/bin/clamscan','/usr/local/bin/clamscan'] as $candidate) {
+        if (is_file($candidate) && is_executable($candidate)) {
+            $path = $candidate;
+            break;
+        }
+    }
+    return $path;
+}
+
+function security_upload_scanner_status(): array
+{
+    $path = security_upload_scanner_path();
+    return [
+        'available' => $path !== null,
+        'engine' => $path ? basename($path) : 'none',
+        'path' => $path ?? '',
+        'required' => setting('security_upload_av_required', '0') === '1',
+    ];
+}
+
+function security_scan_uploaded_file(string $tmp, string $kind = 'file'): void
+{
+    if (!is_file($tmp) || !is_readable($tmp)) {
+        throw new RuntimeException('Загруженный файл недоступен для проверки.');
+    }
+
+    $scanner = security_upload_scanner_path();
+    $required = setting('security_upload_av_required', '0') === '1';
+
+    if (!$scanner) {
+        if ($required) {
+            throw new RuntimeException('Антивирусная проверка обязательна, но ClamAV на сервере недоступен.');
+        }
+        return;
+    }
+
+    if (!function_exists('proc_open')) {
+        if ($required) throw new RuntimeException('Антивирус найден, но PHP не может запустить проверку.');
+        return;
+    }
+
+    $command = [$scanner, '--no-summary', '--infected', '--', $tmp];
+    $pipes = [];
+    $process = @proc_open($command, [
+        0 => ['pipe', 'r'],
+        1 => ['pipe', 'w'],
+        2 => ['pipe', 'w'],
+    ], $pipes);
+
+    if (!is_resource($process)) {
+        if ($required) throw new RuntimeException('Не удалось запустить антивирусную проверку.');
+        return;
+    }
+
+    fclose($pipes[0]);
+    stream_set_blocking($pipes[1], false);
+    stream_set_blocking($pipes[2], false);
+
+    $started = microtime(true);
+    $stdout = '';
+    $stderr = '';
+    $exitCode = null;
+
+    while (true) {
+        $stdout .= stream_get_contents($pipes[1]);
+        $stderr .= stream_get_contents($pipes[2]);
+        $status = proc_get_status($process);
+
+        if (!$status['running']) {
+            $exitCode = (int)$status['exitcode'];
+            break;
+        }
+        if ((microtime(true) - $started) > 25) {
+            proc_terminate($process, 9);
+            $exitCode = 2;
+            $stderr .= ' timeout';
+            break;
+        }
+        usleep(100000);
+    }
+
+    $stdout .= stream_get_contents($pipes[1]);
+    $stderr .= stream_get_contents($pipes[2]);
+    fclose($pipes[1]);
+    fclose($pipes[2]);
+    $closeCode = proc_close($process);
+    if ($exitCode === -1 || $exitCode === null) $exitCode = $closeCode;
+
+    if ($exitCode === 1 || stripos($stdout, 'FOUND') !== false) {
+        security_log_event('upload-malware-rejected', ['kind' => $kind]);
+        throw new RuntimeException('Файл отклонён антивирусной проверкой.');
+    }
+    if ($exitCode !== 0) {
+        security_log_event('upload-scan-error', [
+            'kind' => $kind,
+            'scanner' => basename($scanner),
+            'exit' => $exitCode,
+            'error' => substr(trim($stderr), 0, 120),
+        ]);
+        if ($required) throw new RuntimeException('Антивирусная проверка завершилась с ошибкой.');
+    }
+}
+
+function security_file_contains_any_token(string $path, array $tokens): bool
+{
+    $fp = @fopen($path, 'rb');
+    if (!$fp) return false;
+
+    $needles = array_map('strtolower', $tokens);
+    $tail = '';
+    try {
+        while (!feof($fp)) {
+            $chunk = fread($fp, 65536);
+            if (!is_string($chunk) || $chunk === '') break;
+            $haystack = strtolower($tail.$chunk);
+            foreach ($needles as $needle) {
+                if ($needle !== '' && str_contains($haystack, $needle)) return true;
+            }
+            $tail = substr($haystack, -512);
+        }
+    } finally {
+        fclose($fp);
+    }
+    return false;
+}
+
+function security_validate_pdf_active_content(string $path): void
+{
+    if (security_file_contains_any_token($path, ['/javascript', '/launch', '/embeddedfile', '/richmedia'])) {
+        throw new RuntimeException('PDF содержит активное или встроенное содержимое, запрещённое политикой безопасности.');
+    }
+}
+
+function security_validate_ooxml_active_content(ZipArchive $zip): void
+{
+    for ($i = 0; $i < $zip->numFiles; $i++) {
+        $name = strtolower((string)$zip->getNameIndex($i));
+        if (
+            str_contains($name, 'vbaproject.bin')
+            || str_contains($name, '/activex/')
+            || str_contains($name, '/embeddings/')
+        ) {
+            throw new RuntimeException('Office-документ содержит макросы, ActiveX или встроенные OLE-объекты.');
+        }
+    }
+}
+
 function security_log_event(string $event, array $context = []): void
 {
     if(!APP_INSTALLED) return;
