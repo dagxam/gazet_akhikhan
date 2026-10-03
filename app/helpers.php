@@ -1911,6 +1911,12 @@ function main_menu_url(string $value): string
         return $cat ? category_url($cat) : base_url('news.php');
     }
 
+    if(str_starts_with($value,'page:')){
+        $pageId=(int)trim(substr($value,5));
+        $page=static_page($pageId,true);
+        return $page ? static_page_url($page) : base_url();
+    }
+
     if(preg_match('~^(https?://|mailto:|tel:)~i',$value)) return $value;
     if(str_starts_with($value,'#')) return $value;
     if($value==='/') return base_url();
