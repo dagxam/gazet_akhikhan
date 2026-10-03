@@ -18,6 +18,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
       $page=static_page($deleteId,false);
       if($page){
         if(!empty($page['menu_item_id'])) db()->prepare('DELETE FROM main_menu_items WHERE id=?')->execute([(int)$page['menu_item_id']]);
+        db()->prepare("DELETE FROM main_menu_items WHERE url=?")->execute(['page-id:'.$deleteId]);
         safe_delete_static_page_cover($page['cover_image']??null);
         db()->prepare('DELETE FROM static_pages WHERE id=?')->execute([$deleteId]);
       }
@@ -236,7 +237,7 @@ $menuOrder=$menuItem['sort_order']??100;
             <div class="static-page-admin-actions">
               <a class="edit-action" href="<?=e(base_url('admin/static-pages.php?id='.$page['id']))?>">Редактировать</a>
               <?php if($page['status']==='published'):?><a class="edit-action" href="<?=e(static_page_url($page))?>" target="_blank">Открыть ↗</a><?php endif;?>
-              <form method="post" onsubmit="return confirm('Удалить эту страницу? Связанный пункт меню тоже будет удалён.')">
+              <form method="post" data-confirm="Удалить эту страницу? Связанный пункт меню тоже будет удалён.">
                 <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="id" value="<?=$page['id']?>">
@@ -253,7 +254,7 @@ $menuOrder=$menuItem['sort_order']??100;
   </section>
 </div>
 
-<script>
+<script nonce="<?=e(csp_nonce())?>">
 (function(){
   const toggle=document.querySelector('[data-static-menu-toggle]');
   const fields=document.querySelector('[data-static-menu-fields]');
