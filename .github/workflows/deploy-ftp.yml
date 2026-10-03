@@ -197,7 +197,7 @@ jobs:
             legal_code="$(curl --silent --show-error --location --max-time 30 --output "/tmp/akhikhan-$legal_page" --write-out '%{http_code}' "https://akhikhan.ru/$legal_page")"
             test "$legal_code" = "200"
           done
-          grep -Eq '<script nonce="[^"]+" src="https://akhikhan\.ru/assets/js/app\.js\?v=20261003-dropdown-fix1"></script>' /tmp/akhikhan-privacy.php
+          grep -Eq '<script nonce="[^"]+" src="https://akhikhan\.ru/assets/js/app\.js\?v=20261003-a11y-scroll-fix1"></script>' /tmp/akhikhan-privacy.php
           grep -q 'Политика обработки персональных данных' /tmp/akhikhan-privacy.php
           grep -q 'Реализуемые требования и меры защиты персональных данных' /tmp/akhikhan-privacy.php
           grep -q 'Wikimedia Commons' /tmp/akhikhan-privacy.php
