@@ -269,8 +269,10 @@ function security_scan_upload(string $tmp, string $ext): void
                 $exit=proc_close($proc);
                 if($exit===1) throw new RuntimeException('Антивирус обнаружил угрозу в файле.');
                 if($exit===0) return;
+                throw new RuntimeException('Антивирус не смог завершить проверку файла. Загрузка остановлена.');
             }
-            break;
+            throw new RuntimeException('Не удалось запустить антивирусную проверку файла.');
+        }
         }
     }
 
