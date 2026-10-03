@@ -270,7 +270,7 @@ require __DIR__.'/_top.php';
   </section>
 </div>
 
-<script>
+<script nonce="<?=e(csp_nonce())?>">
 (function(){
   const form=document.querySelector('[data-video-admin-form]');
   if(!form) return;
