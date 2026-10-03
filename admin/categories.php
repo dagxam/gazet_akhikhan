@@ -59,7 +59,7 @@ require __DIR__.'/_top.php';
   <?php foreach($rows as $r):?><tr>
     <td><strong><?=e($r['name'])?></strong><small>/<?=e($r['slug'])?><?php if(!empty($r['description'])):?> · <?=e(rich_text_plain($r['description']))?><?php endif;?></small></td>
     <td><?=$r['article_count']?></td>
-    <td><?php if((int)$r['article_count']===0):?><form method="post" onsubmit="return confirm('Удалить рубрику?')"><input type="hidden" name="csrf" value="<?=e(csrf_token())?>"><input type="hidden" name="delete_id" value="<?=$r['id']?>"><button class="danger">Удалить</button></form><?php endif;?></td>
+    <td><?php if((int)$r['article_count']===0):?><form method="post" data-confirm="Удалить рубрику?"><input type="hidden" name="csrf" value="<?=e(csrf_token())?>"><input type="hidden" name="delete_id" value="<?=$r['id']?>"><button class="danger">Удалить</button></form><?php endif;?></td>
   </tr><?php endforeach;?>
   </tbody></table></div>
   <?php render_admin_pagination('admin/categories.php',$categoriesPager['page'],$categoriesPager['total_pages'],[],'page','Страницы рубрик'); ?>
