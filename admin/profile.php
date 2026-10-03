@@ -19,6 +19,83 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     try{
         $action=(string)($_POST['action']??'profile');
 
+        if($action==='two_factor_begin'){
+            $secret=totp_generate_secret();
+            $_SESSION['two_factor_setup']=[
+                'user_id'=>(int)$me['id'],
+                'secret'=>$secret,
+                'created_at'=>time(),
+            ];
+            header('Location: '.base_url('admin/profile.php?two_factor_setup=1'));
+            exit;
+        }
+
+        if($action==='two_factor_cancel'){
+            unset($_SESSION['two_factor_setup']);
+            header('Location: '.base_url('admin/profile.php'));
+            exit;
+        }
+
+        if($action==='two_factor_enable'){
+            $setup=$_SESSION['two_factor_setup']??null;
+            if(!is_array($setup) || (int)($setup['user_id']??0)!==(int)$me['id'] || (time()-(int)($setup['created_at']??0))>600){
+                unset($_SESSION['two_factor_setup']);
+                throw new RuntimeException('Настройка 2FA истекла. Начните подключение заново.');
+            }
+
+            $secret=(string)($setup['secret']??'');
+            $code=trim((string)($_POST['two_factor_code']??''));
+            if($secret==='' || !totp_verify($secret,$code,1)){
+                throw new RuntimeException('Код не подтверждён. Проверьте время на телефоне и попробуйте ещё раз.');
+            }
+
+            $recoveryCodes=two_factor_recovery_codes();
+            db()->prepare('UPDATE users SET two_factor_secret=?,two_factor_enabled=1,two_factor_recovery_codes=?,two_factor_confirmed_at=CURRENT_TIMESTAMP WHERE id=?')
+                ->execute([security_encrypt_secret($secret),two_factor_hash_recovery_codes($recoveryCodes),(int)$me['id']]);
+
+            unset($_SESSION['two_factor_setup']);
+            $_SESSION['two_factor_recovery_plain']=$recoveryCodes;
+            security_log_event('two-factor-enabled',['user_id'=>(int)$me['id']]);
+            header('Location: '.base_url('admin/profile.php?two_factor_enabled=1'));
+            exit;
+        }
+
+        if($action==='two_factor_disable'){
+            $password=(string)($_POST['current_password']??'');
+            $code=trim((string)($_POST['two_factor_code']??''));
+            $q=db()->prepare('SELECT id,password_hash,two_factor_secret,two_factor_enabled,two_factor_recovery_codes FROM users WHERE id=? LIMIT 1');
+            $q->execute([(int)$me['id']]);
+            $securityUser=$q->fetch();
+            if(!$securityUser || !password_verify($password,(string)$securityUser['password_hash'])){
+                throw new RuntimeException('Текущий пароль указан неверно.');
+            }
+            if(!two_factor_verify_user($securityUser,$code)){
+                throw new RuntimeException('Код 2FA или резервный код неверен.');
+            }
+            db()->prepare('UPDATE users SET two_factor_secret=NULL,two_factor_enabled=0,two_factor_recovery_codes=NULL,two_factor_confirmed_at=NULL WHERE id=?')
+                ->execute([(int)$me['id']]);
+            security_log_event('two-factor-disabled',['user_id'=>(int)$me['id']]);
+            header('Location: '.base_url('admin/profile.php?two_factor_disabled=1'));
+            exit;
+        }
+
+        if($action==='two_factor_regenerate'){
+            $code=trim((string)($_POST['two_factor_code']??''));
+            $q=db()->prepare('SELECT id,two_factor_secret,two_factor_enabled,two_factor_recovery_codes FROM users WHERE id=? LIMIT 1');
+            $q->execute([(int)$me['id']]);
+            $securityUser=$q->fetch();
+            if(!$securityUser || empty($securityUser['two_factor_enabled']) || !two_factor_verify_user($securityUser,$code)){
+                throw new RuntimeException('Подтвердите действие действующим кодом 2FA.');
+            }
+            $recoveryCodes=two_factor_recovery_codes();
+            db()->prepare('UPDATE users SET two_factor_recovery_codes=? WHERE id=?')
+                ->execute([two_factor_hash_recovery_codes($recoveryCodes),(int)$me['id']]);
+            $_SESSION['two_factor_recovery_plain']=$recoveryCodes;
+            security_log_event('two-factor-recovery-regenerated',['user_id'=>(int)$me['id']]);
+            header('Location: '.base_url('admin/profile.php?two_factor_recovery=1'));
+            exit;
+        }
+
         if($action==='profile'){
             $userId=(int)$me['id'];
             $name=trim($_POST['name']??'');
@@ -127,7 +204,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     }
 }
 
-$q=db()->prepare('SELECT id,name,email,role,status,created_at FROM users WHERE id=? LIMIT 1');
+$q=db()->prepare('SELECT id,name,email,role,status,two_factor_enabled,two_factor_confirmed_at,created_at FROM users WHERE id=? LIMIT 1');
 $q->execute([(int)$me['id']]);
 $current=$q->fetch() ?: $me;
 $users=is_site_admin()
@@ -145,6 +222,18 @@ require __DIR__.'/_top.php';
 <?php if(isset($_GET['user_added'])):?><div class="ok">Новый пользователь добавлен.</div><?php endif;?>
 <?php if(isset($_GET['users_saved'])):?><div class="ok">Права пользователя обновлены.</div><?php endif;?>
 <?php if(isset($_GET['maintenance_saved'])):?><div class="ok">Режим реконструкции обновлён.</div><?php endif;?>
+<?php if(isset($_GET['two_factor_enabled'])):?><div class="ok">Двухфакторная защита включена.</div><?php endif;?>
+<?php if(isset($_GET['two_factor_disabled'])):?><div class="ok">Двухфакторная защита отключена.</div><?php endif;?>
+<?php if(isset($_GET['two_factor_recovery'])):?><div class="ok">Резервные коды обновлены. Старые коды больше не действуют.</div><?php endif;?>
+<?php
+$twoFactorSetup=$_SESSION['two_factor_setup']??null;
+if(is_array($twoFactorSetup) && ((int)($twoFactorSetup['user_id']??0)!==(int)$me['id'] || (time()-(int)($twoFactorSetup['created_at']??0))>600)){
+    unset($_SESSION['two_factor_setup']);
+    $twoFactorSetup=null;
+}
+$recoveryPlain=$_SESSION['two_factor_recovery_plain']??[];
+unset($_SESSION['two_factor_recovery_plain']);
+?>
 
 <div class="profile-admin-head">
   <div>
@@ -225,6 +314,89 @@ require __DIR__.'/_top.php';
     </div>
   </aside>
 </div>
+
+<section class="editor-card profile-security-card">
+  <div class="users-management-head">
+    <div>
+      <span class="editor-eyebrow">Безопасность входа</span>
+      <h2>Двухфакторная защита</h2>
+      <p>Одноразовые TOTP-коды совместимы с Google Authenticator, Microsoft Authenticator, 1Password и другими приложениями.</p>
+    </div>
+    <span class="profile-role-badge <?=!empty($current['two_factor_enabled'])?'admin':'editor'?>"><?=!empty($current['two_factor_enabled'])?'2FA включена':'2FA выключена'?></span>
+  </div>
+
+  <?php if($recoveryPlain):?>
+    <div class="ok">
+      <strong>Сохраните резервные коды сейчас.</strong> Каждый код работает только один раз, повторно они не показываются.
+      <div class="two-factor-recovery-grid">
+        <?php foreach($recoveryPlain as $recoveryCode):?><code><?=e($recoveryCode)?></code><?php endforeach;?>
+      </div>
+    </div>
+  <?php endif;?>
+
+  <?php if(empty($current['two_factor_enabled'])):?>
+    <?php if(is_array($twoFactorSetup)): 
+      $setupSecret=(string)($twoFactorSetup['secret']??'');
+      $setupUri=two_factor_otpauth_uri((string)$current['email'],$setupSecret);
+    ?>
+      <div class="two-factor-setup">
+        <p><strong>1.</strong> Откройте приложение-аутентификатор и добавьте новую TOTP-учётную запись.</p>
+        <p><strong>2.</strong> Введите секрет вручную:</p>
+        <code class="two-factor-secret"><?=e($setupSecret)?></code>
+        <p class="admin-intro">URI для приложений, которые поддерживают прямой импорт:</p>
+        <a class="edit-action" href="<?=e($setupUri)?>">Открыть в приложении-аутентификатор</a>
+        <form method="post" class="two-factor-confirm-form">
+          <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
+          <input type="hidden" name="action" value="two_factor_enable">
+          <label class="field-modern compact">
+            <span>6-значный код</span>
+            <input name="two_factor_code" required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="000000">
+          </label>
+          <button class="primary" type="submit">Подтвердить и включить 2FA</button>
+        </form>
+        <form method="post">
+          <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
+          <input type="hidden" name="action" value="two_factor_cancel">
+          <button class="secondary" type="submit">Отменить настройку</button>
+        </form>
+      </div>
+    <?php else:?>
+      <form method="post">
+        <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
+        <input type="hidden" name="action" value="two_factor_begin">
+        <button class="primary" type="submit">Подключить приложение-аутентификатор</button>
+      </form>
+    <?php endif;?>
+  <?php else:?>
+    <p class="admin-intro">2FA подтверждена <?=e(ru_date($current['two_factor_confirmed_at']??''))?>. При каждом новом входе после пароля потребуется одноразовый код.</p>
+
+    <div class="profile-password-grid">
+      <form method="post">
+        <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
+        <input type="hidden" name="action" value="two_factor_regenerate">
+        <label class="field-modern compact">
+          <span>Текущий код 2FA</span>
+          <input name="two_factor_code" required inputmode="numeric" autocomplete="one-time-code" maxlength="16">
+        </label>
+        <button class="secondary" type="submit">Создать новые резервные коды</button>
+      </form>
+
+      <form method="post" data-confirm="Отключить двухфакторную защиту для этой учётной записи?">
+        <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
+        <input type="hidden" name="action" value="two_factor_disable">
+        <label class="field-modern compact">
+          <span>Текущий пароль</span>
+          <input type="password" name="current_password" required autocomplete="current-password">
+        </label>
+        <label class="field-modern compact">
+          <span>Код 2FA или резервный код</span>
+          <input name="two_factor_code" required autocomplete="one-time-code" maxlength="16">
+        </label>
+        <button class="danger" type="submit">Отключить 2FA</button>
+      </form>
+    </div>
+  <?php endif;?>
+</section>
 
 <?php if(is_site_admin()):?>
 <section class="editor-card users-management-card">
