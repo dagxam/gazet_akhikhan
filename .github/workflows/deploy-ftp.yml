@@ -80,9 +80,7 @@ jobs:
             config.php
             README.md
             uploads/**
-            storage/*.sqlite
-            storage/*.sqlite-*
-            storage/*.db
+            storage/**
 
       - name: Verify production site
         shell: bash
