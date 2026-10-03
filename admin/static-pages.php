@@ -253,7 +253,7 @@ $menuOrder=$menuItem['sort_order']??100;
   </section>
 </div>
 
-<script>
+<script nonce="<?=e(csp_nonce())?>">
 (function(){
   const toggle=document.querySelector('[data-static-menu-toggle]');
   const fields=document.querySelector('[data-static-menu-fields]');
