@@ -530,7 +530,7 @@ require __DIR__ . '/partials/header.php';
 </section>
 
 <?php if($newspaper && empty($newspaper['cover_image'])):?>
-<script type="module" id="public-newspaper-pdf-renderer">
+<script nonce="<?=e(csp_nonce())?>" type="module" id="public-newspaper-pdf-renderer">
 const canvases=[...document.querySelectorAll('canvas[data-pdf-preview]')];
 if(canvases.length){
   try{
