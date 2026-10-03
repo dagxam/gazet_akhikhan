@@ -181,7 +181,7 @@ $sqliteAvailable = in_array('sqlite', PDO::getAvailableDrivers(), true);
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">\n<meta name="robots" content="noindex,nofollow,noarchive">\n<title>Установка AKHIKHAN.RU</title>
-<style>
+<style nonce="<?=e(csp_nonce())?>">
 body{font-family:Arial,sans-serif;background:#f3efe6;color:#2e261d;margin:0}
 .box{max-width:760px;margin:40px auto;background:#fffdf8;border:1px solid #d7c9b2;padding:30px;border-radius:14px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -237,7 +237,7 @@ button{background:#6f4d25;color:#fff;border:0;padding:13px 20px;border-radius:8p
 </form>
 </main>
 
-<script>
+<script nonce="<?=e(csp_nonce())?>">
 const select=document.getElementById('db_driver');
 function toggleDb(){
   const mysql=select.value==='mysql';
