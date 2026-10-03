@@ -76,7 +76,8 @@ jobs:
           grep -q "static_page_id" admin/main-menu.php
           grep -q "page:" admin/main-menu.php
           grep -q "Антивирус не смог завершить проверку файла" app/helpers.php
-          grep -q 'script nonce="<?=e(csp_nonce())?>" src="<?=e(base_url('"'"'assets/js/app.js?v=20261003-dropdown-fix1'"'"'))?>"' partials/footer.php
+          grep -q 'script nonce="<?=e(csp_nonce())?>" src="<?=e(base_url('"'"'assets/js/app.js?v=20261003-a11y-scroll-fix1'"'"'))?>"' partials/footer.php
+          grep -q "preventScroll:true" assets/js/app.js
           node --check assets/js/app.js
           python3 -m py_compile tests/load/staging_load.py
           echo "2FA/CSP/upload/menu/staging and interactive JS security implementation validated."
