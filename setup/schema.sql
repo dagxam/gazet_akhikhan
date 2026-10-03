@@ -5,6 +5,9 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash VARCHAR(255) NOT NULL,
   role ENUM('admin','editor') NOT NULL DEFAULT 'editor',
   status ENUM('active','blocked') NOT NULL DEFAULT 'active',
+  totp_secret TEXT NULL,
+  totp_enabled_at DATETIME NULL,
+  totp_recovery_codes TEXT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
