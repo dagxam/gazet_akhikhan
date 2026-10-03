@@ -143,7 +143,7 @@ if($privacyBannerEnabled){
 <?php endif;?>
 
 <?php csp_render_dynamic_styles(); ?>
-<script src="<?=e(base_url('assets/js/app.js?v=20261002-accessibility2'))?>"></script>
+<script nonce="<?=e(csp_nonce())?>" src="<?=e(base_url('assets/js/app.js?v=20261003-dropdown-fix1'))?>"></script>
 </div>
 </body>
 </html>
