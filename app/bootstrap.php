@@ -76,13 +76,18 @@ date_default_timezone_set($config['site']['timezone'] ?? 'Europe/Moscow');
 require_once ROOT_PATH . '/app/db.php';
 require_once ROOT_PATH . '/app/helpers.php';
 
+if (PHP_SAPI !== 'cli' && !headers_sent()) {
+    $nonce=csp_nonce();
+    header("Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'nonce-".$nonce."' https://cdn.jsdelivr.net; script-src-attr 'none'; style-src 'self' 'nonce-".$nonce."' https://fonts.googleapis.com https://cdnjs.cloudflare.com; style-src-attr 'none'; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.open-meteo.com; frame-src 'self' https://vk.com https://*.vk.com https://vkvideo.ru https://*.vkvideo.ru https://rutube.ru https://*.rutube.ru https://ok.ru https://*.ok.ru; media-src 'self' blob: https:; worker-src 'self' blob: https://cdn.jsdelivr.net; manifest-src 'self'; upgrade-insecure-requests");
+}
+
 if (APP_INSTALLED) {
     // Keep schema/seed work out of the hot request path. The old bootstrap
     // re-checked tables and indexes on every public request, which adds DB
     // metadata locks and becomes fragile under concurrent traffic.
     //
     // Bump this value whenever a deployment adds or changes an ensure_* migration.
-    $runtimeSchemaVersion = '2026-10-02-security-v1';
+    $runtimeSchemaVersion = '2026-10-03-security-v2';
     $runtimeSchemaKey = 'runtime_schema_version';
 
     if (setting($runtimeSchemaKey, '') !== $runtimeSchemaVersion) {
@@ -99,6 +104,7 @@ if (APP_INSTALLED) {
                 // Another PHP worker may have completed initialization while
                 // this request was waiting for the lock.
                 if (setting($runtimeSchemaKey, '') !== $runtimeSchemaVersion) {
+                    ensure_user_security_schema();
                     ensure_default_categories();
                     ensure_article_categories_schema();
                     ensure_article_location_schema();
