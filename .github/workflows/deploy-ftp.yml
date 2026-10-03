@@ -228,6 +228,13 @@ jobs:
           echo "$security_headers" | grep -qi '^X-Content-Type-Options: nosniff'
           echo "$security_headers" | grep -qi '^X-Frame-Options: SAMEORIGIN'
           echo "$security_headers" | grep -qi '^Content-Security-Policy:'
+          echo "$security_headers" | grep -qi "script-src 'self' 'nonce-"
+          echo "$security_headers" | grep -qi "script-src-attr 'none'"
+          echo "$security_headers" | grep -qi "style-src-attr 'none'"
+          if echo "$security_headers" | grep -qi "unsafe-inline"; then
+            echo "CSP must not contain unsafe-inline"
+            exit 1
+          fi
           echo "$security_headers" | grep -qi '^Strict-Transport-Security: max-age=31536000'
           echo "$security_headers" | grep -qi '^Cross-Origin-Opener-Policy: same-origin-allow-popups'
           echo "$security_headers" | grep -qi '^Origin-Agent-Cluster: ?1'
