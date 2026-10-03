@@ -703,7 +703,7 @@ require __DIR__.'/_top.php';
   </div>
 </form>
 
-<script>
+<script nonce="<?=e(csp_nonce())?>">
 (function(){
   const options=[...document.querySelectorAll('[data-admin-theme-option]')];
   if(!options.length) return;
