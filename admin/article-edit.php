@@ -301,7 +301,7 @@ $currentImages=$id ? article_images($id) : [];
 </div>
 </form>
 
-<script>
+<script nonce="<?=e(csp_nonce())?>">
 (function(){
   const input=document.querySelector('[data-article-gallery-input]');
   const selected=document.querySelector('[data-article-gallery-selected]');
