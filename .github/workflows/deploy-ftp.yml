@@ -64,6 +64,21 @@ jobs:
           set -euo pipefail
           find . -type f -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
 
+      - name: Validate security implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "'strict-dynamic'" app/bootstrap.php
+          if grep -q "unsafe-inline" app/bootstrap.php; then
+            echo "CSP regression: unsafe-inline detected"
+            exit 1
+          fi
+          grep -q "static_page_id" admin/main-menu.php
+          grep -q "page:" admin/main-menu.php
+          grep -q "Антивирус не смог завершить проверку файла" app/helpers.php
+          python3 -m py_compile tests/load/staging_load.py
+          echo "2FA/CSP/upload/menu/staging security implementation validated."
+
       - name: Upload site via FTP
         uses: SamKirkland/FTP-Deploy-Action@110f9186c050f71550953127052e77650219c287 # v4.4.0
         with:
@@ -229,6 +244,7 @@ jobs:
           echo "$security_headers" | grep -qi '^X-Frame-Options: SAMEORIGIN'
           echo "$security_headers" | grep -qi '^Content-Security-Policy:'
           echo "$security_headers" | grep -qi "script-src 'self' 'nonce-"
+          echo "$security_headers" | grep -qi "'strict-dynamic'"
           echo "$security_headers" | grep -qi "script-src-attr 'none'"
           echo "$security_headers" | grep -qi "style-src-attr 'none'"
           if echo "$security_headers" | grep -qi "unsafe-inline"; then
