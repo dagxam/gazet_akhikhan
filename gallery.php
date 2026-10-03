@@ -51,7 +51,9 @@ require __DIR__.'/partials/header.php';
         </div>
       </div>
       <?php if(!empty($album['cover_image'])):?>
-        <div class="gallery-album-hero-cover" style="background-image:url('<?=e(base_url($album['cover_image']))?>')"></div>
+        <?php $galleryHeroId='gallery-hero-cover-'.(int)$album['id']; ?>
+        <style nonce="<?=e(csp_nonce())?>">#<?=e($galleryHeroId)?>{background-image:<?=e(css_url_literal(base_url($album['cover_image'])))?>}</style>
+        <div id="<?=e($galleryHeroId)?>" class="gallery-album-hero-cover"></div>
       <?php endif;?>
     </section>
 
@@ -89,7 +91,9 @@ require __DIR__.'/partials/header.php';
       <section class="gallery-albums-public-grid">
         <?php foreach($albums as $i=>$item):?>
           <a class="gallery-album-card <?=$i===0?'is-leading':''?>" href="<?=e(base_url('gallery.php?album='.$item['id']))?>">
-            <span class="gallery-album-card-image" <?php if(!empty($item['cover_image'])):?>style="background-image:url('<?=e(base_url($item['cover_image']))?>')"<?php endif;?>>
+            <?php $galleryCardId='gallery-card-cover-'.(int)$item['id']; ?>
+            <?php if(!empty($item['cover_image'])):?><style nonce="<?=e(csp_nonce())?>">#<?=e($galleryCardId)?>{background-image:<?=e(css_url_literal(base_url($item['cover_image'])))?>}</style><?php endif;?>
+            <span id="<?=e($galleryCardId)?>" class="gallery-album-card-image">
               <i><?=e((string)$item['photo_count'])?> фото</i>
             </span>
             <span class="gallery-album-card-copy">
@@ -120,7 +124,7 @@ require __DIR__.'/partials/header.php';
   <button class="gallery-lightbox-nav next" type="button" data-gallery-next aria-label="Следующее фото">›</button>
 </div>
 
-<script>
+<script nonce="<?=e(csp_nonce())?>">
 (function(){
   const items=[...document.querySelectorAll('[data-gallery-lightbox]')];
   const modal=document.querySelector('[data-gallery-lightbox-modal]');
