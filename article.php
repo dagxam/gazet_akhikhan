@@ -228,7 +228,9 @@ require __DIR__ . '/partials/header.php';
         $blockHref=homepage_right_block_href($block['link_url']??'');
         $blockStyle=in_array($block['style'],['light','accent','dark'],true)?$block['style']:'light';
       ?>
-        <section class="right-feature-card right-feature-<?=e($blockStyle)?> <?=!empty($block['image'])?'has-image':''?>" <?php if(!empty($block['image'])):?>style="--right-block-image:url('<?=e(base_url($block['image']))?>')"<?php endif;?>>
+        <?php $pageBlockId='page-right-block-'.(int)$block['id']; ?>
+        <?php if(!empty($block['image'])):?><style nonce="<?=e(csp_nonce())?>">#<?=e($pageBlockId)?>{--right-block-image:<?=e(css_url_literal(base_url($block['image'])))?>}</style><?php endif;?>
+        <section id="<?=e($pageBlockId)?>" class="right-feature-card right-feature-<?=e($blockStyle)?> <?=!empty($block['image'])?'has-image':''?>">
           <div class="right-feature-overlay"></div>
           <div class="right-feature-content">
             <?php if(!empty($block['kicker'])):?><span class="heading-kicker"><?=e($block['kicker'])?></span><?php endif;?>
