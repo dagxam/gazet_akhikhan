@@ -89,7 +89,7 @@
             <small><?=$maintenanceOn?'Посетителям закрыт':'Сайт открыт'?></small>
           </span>
           <span class="maintenance-switch-control">
-            <input type="checkbox" name="maintenance_mode" value="1" <?=$maintenanceOn?'checked':''?> onchange="this.form.submit()">
+            <input type="checkbox" name="maintenance_mode" value="1" <?=$maintenanceOn?'checked':''?> data-submit-on-change>
             <i></i>
           </span>
         </label>
