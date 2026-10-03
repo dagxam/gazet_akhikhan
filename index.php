@@ -34,13 +34,16 @@ $pageTitle = '';
 $pageDescription = 'АХИХЪАН — сетевое издание Унцукульского района Республики Дагестан. Новости района, общество, культура, спорт, история и люди.';
 $seoCanonical = base_url();
 $seoImage = !empty($hero['cover_image']) ? (string)$hero['cover_image'] : 'assets/img/akhikhan-logo-hq.webp';
+$heroDynamicClass=!empty($hero['cover_image'])
+    ? csp_dynamic_class("background-image:linear-gradient(90deg,rgba(19,21,18,.88) 0%,rgba(19,21,18,.57) 45%,rgba(19,21,18,.14) 82%),url('".base_url($hero['cover_image'])."');",'hero-bg')
+    : '';
 require __DIR__ . '/partials/header.php';
 ?>
 
 <div class="wrap home-shell">
 
 <section class="home-lead-grid">
-  <article class="hero-story <?=!empty($hero['cover_image'])?'hero-has-cover':'hero-clean'?>" data-interactive-hero<?php if(!empty($hero['cover_image'])):?> style="background-image:linear-gradient(90deg,rgba(19,21,18,.88) 0%,rgba(19,21,18,.57) 45%,rgba(19,21,18,.14) 82%),url('<?=e(base_url($hero['cover_image']))?>')"<?php endif;?>>
+  <article class="hero-story <?=!empty($hero['cover_image'])?'hero-has-cover':'hero-clean'?> <?=e($heroDynamicClass)?>" data-interactive-hero>
     <div class="hero-story-copy">
       <span class="kicker" data-hero-kicker>Главные новости</span>
       <?php if($hero):?>
@@ -323,8 +326,8 @@ require __DIR__ . '/partials/header.php';
         $blockHref=homepage_right_block_href($block['link_url']??'');
         $blockStyle=in_array($block['style'],['light','accent','dark'],true)?$block['style']:'light';
       ?>
-        <section class="right-feature-card right-feature-<?=e($blockStyle)?> <?=!empty($block['image'])?'has-image':''?>"
-          <?php if(!empty($block['image'])):?>style="--right-block-image:url('<?=e(base_url($block['image']))?>')"<?php endif;?>>
+        <?php $rightBlockDynamicClass=!empty($block['image']) ? csp_dynamic_class("--right-block-image:url('".base_url($block['image'])."');",'right-block') : ''; ?>
+        <section class="right-feature-card right-feature-<?=e($blockStyle)?> <?=!empty($block['image'])?'has-image':''?> <?=e($rightBlockDynamicClass)?>">
           <div class="right-feature-overlay"></div>
           <div class="right-feature-content">
             <?php if(!empty($block['kicker'])):?><span class="heading-kicker"><?=e($block['kicker'])?></span><?php endif;?>
@@ -479,7 +482,8 @@ require __DIR__ . '/partials/header.php';
       <?php foreach($homeVideos as $i=>$video):?>
         <a class="section-card home-video-section-card" href="<?=e(base_url('videos.php?id='.$video['id']))?>">
           <span class="section-number"><?=str_pad((string)($i+1),2,'0',STR_PAD_LEFT)?></span>
-          <div class="section-card-image home-video-section-image" <?php if(!empty($video['cover_image'])):?>style="background-image:url('<?=e(base_url($video['cover_image']))?>')"<?php endif;?>>
+          <?php $videoDynamicClass=!empty($video['cover_image']) ? csp_dynamic_class("background-image:url('".base_url($video['cover_image'])."');",'video-cover') : ''; ?>
+          <div class="section-card-image home-video-section-image <?=e($videoDynamicClass)?>">
             <?php if(empty($video['cover_image'])):?>
               <span class="home-video-fallback">
                 <i class="<?=($video['provider']??'')==='vk'?'fa-brands fa-vk':(($video['provider']??'')==='ok'?'fa-brands fa-odnoklassniki':'fa-solid fa-play')?>"></i>
