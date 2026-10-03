@@ -76,7 +76,7 @@ require __DIR__.'/_top.php';
             <td>
               <div class="row-actions">
                 <a class="edit-action" href="<?=e(base_url('admin/article-edit.php?id='.$r['id']))?>">Редактировать</a>
-                <form method="post" onsubmit="return confirm('Удалить новость?')">
+                <form method="post" data-confirm="Удалить новость?">
                   <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
                   <input type="hidden" name="delete_id" value="<?=$r['id']?>">
                   <input type="hidden" name="page" value="<?=$page?>">
