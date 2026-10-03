@@ -1608,6 +1608,8 @@ function handle_cover_upload(array $file, ?string $old = null): ?string
     $allowed = ['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'];
     if (!isset($allowed[$mime])) throw new RuntimeException('Разрешены JPG, PNG и WEBP.');
 
+    security_scan_uploaded_file((string)$file['tmp_name'],'image');
+
     $folder = 'uploads/' . date('Y/m');
     $dir = ROOT_PATH . '/' . $folder;
     if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
@@ -1691,6 +1693,9 @@ function handle_newspaper_pdf_upload(array $file, ?string $oldPdf = null, ?strin
     if ($head !== '%PDF-') {
         throw new RuntimeException('Загрузите файл газеты в формате PDF.');
     }
+
+    security_scan_uploaded_file((string)$file['tmp_name'],'newspaper-pdf');
+    security_validate_pdf_active_content((string)$file['tmp_name']);
 
     $folder = 'uploads/newspapers/' . date('Y/m');
     $dir = ROOT_PATH . '/' . $folder;
@@ -1885,6 +1890,8 @@ function validate_document_file_signature(string $tmp, string $ext): void
                 if($zip->numFiles>20000){
                     throw new RuntimeException('Документ содержит слишком много внутренних файлов.');
                 }
+
+                security_validate_ooxml_active_content($zip);
             }finally{
                 $zip->close();
             }
@@ -1943,7 +1950,9 @@ function handle_document_upload(array $file, ?string $oldPath = null, ?string $o
         throw new RuntimeException('Формат файла не соответствует разрешённым документам.');
     }
 
+    security_scan_uploaded_file((string)$file['tmp_name'],'document');
     validate_document_file_signature((string)$file['tmp_name'],$ext);
+    if($ext==='pdf') security_validate_pdf_active_content((string)$file['tmp_name']);
 
     $folder='uploads/documents/'.date('Y/m');
     $dir=ROOT_PATH.'/'.$folder;
@@ -2103,6 +2112,12 @@ function main_menu_url(string $value): string
         return $cat ? category_url($cat) : base_url('news.php');
     }
 
+    if(str_starts_with($value,'page-id:')){
+        $pageId=(int)substr($value,8);
+        $page=static_page($pageId,true);
+        return $page ? static_page_url($page) : base_url();
+    }
+
     if(preg_match('~^(https?://|mailto:|tel:)~i',$value)) return $value;
     if(str_starts_with($value,'#')) return $value;
     if($value==='/') return base_url();
@@ -2169,6 +2184,8 @@ function handle_branding_asset_upload(array $file, string $kind, ?string $old = 
             ? 'Для favicon разрешены ICO, PNG, JPG и WEBP.'
             : 'Для логотипа разрешены PNG, JPG и WEBP.');
     }
+
+    security_scan_uploaded_file($tmp,'branding');
 
     $folder='uploads/branding/'.date('Y/m');
     $dir=ROOT_PATH.'/'.$folder;
@@ -2747,6 +2764,8 @@ function handle_video_upload(array $file, ?string $oldPath = null): ?string
     if(!isset($allowed[$mime]) || !in_array($ext,['mp4','webm','ogv','ogg','mov','m4v'],true)){
         throw new RuntimeException('Разрешены видео MP4, WEBM, OGV/OGG, MOV и M4V.');
     }
+
+    security_scan_uploaded_file($tmp,'video');
 
     $folder='uploads/videos/'.date('Y/m');
     $dir=ROOT_PATH.'/'.$folder;
