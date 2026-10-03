@@ -64,6 +64,28 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             exit;
         }
 
+        if($action==='disable_2fa'){
+            $userId=(int)$me['id'];
+            $password=(string)($_POST['current_password']??'');
+            $code=trim((string)($_POST['current_totp']??''));
+
+            $q=db()->prepare("SELECT id,name,email,password_hash,role,status,totp_secret,totp_enabled_at,totp_recovery_codes FROM users WHERE id=? AND status='active' LIMIT 1");
+            $q->execute([$userId]);
+            $target=$q->fetch();
+            if(!$target || !password_verify($password,(string)$target['password_hash'])){
+                throw new RuntimeException('Текущий пароль указан неверно.');
+            }
+            if(!user_totp_enabled($target) || !verify_user_totp_or_recovery($target,$code)){
+                throw new RuntimeException('Код 2FA или резервный код указан неверно.');
+            }
+
+            db()->prepare('UPDATE users SET totp_secret=NULL,totp_enabled_at=NULL,totp_recovery_codes=NULL WHERE id=?')->execute([$userId]);
+            unset($_SESSION['totp_setup_secret'],$_SESSION['totp_setup_user_id']);
+            security_log_event('2fa-reset',['user_id'=>$userId]);
+            header('Location: '.base_url('admin/2fa-setup.php?reset=1'));
+            exit;
+        }
+
         if($action==='add_user'){
             require_site_admin();
 
@@ -127,11 +149,11 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     }
 }
 
-$q=db()->prepare('SELECT id,name,email,role,status,created_at FROM users WHERE id=? LIMIT 1');
+$q=db()->prepare('SELECT id,name,email,role,status,totp_enabled_at,created_at FROM users WHERE id=? LIMIT 1');
 $q->execute([(int)$me['id']]);
 $current=$q->fetch() ?: $me;
 $users=is_site_admin()
-    ? db()->query("SELECT id,name,email,role,status,created_at FROM users ORDER BY CASE WHEN role='admin' THEN 0 ELSE 1 END,name")->fetchAll()
+    ? db()->query("SELECT id,name,email,role,status,totp_enabled_at,created_at FROM users ORDER BY CASE WHEN role='admin' THEN 0 ELSE 1 END,name")->fetchAll()
     : [];
 $usersPager=admin_paginate_array($users,10,'users_page');
 $users=$usersPager['items'];
@@ -223,8 +245,42 @@ require __DIR__.'/_top.php';
       <span>В системе с</span>
       <b><?=e(ru_date($current['created_at']??''))?></b>
     </div>
+    <div class="profile-summary-line">
+      <span>Двухфакторная защита</span>
+      <b class="<?=!empty($current['totp_enabled_at'])?'twofa-status-on':'twofa-status-off'?>"><?=!empty($current['totp_enabled_at'])?'Включена':'Требует настройки'?></b>
+    </div>
   </aside>
 </div>
+
+<section class="editor-card profile-twofa-card">
+  <div class="side-card-title">
+    <span class="side-icon"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
+    <div>
+      <h3>Двухфакторная защита</h3>
+      <p>Пароль + одноразовый код TOTP для входа в редакционную систему.</p>
+    </div>
+  </div>
+
+  <?php if(!empty($current['totp_enabled_at'])):?>
+    <div class="twofa-profile-state is-enabled">
+      <strong>2FA включена</strong>
+      <span>Для каждого нового входа после пароля требуется код из приложения-аутентификатора.</span>
+    </div>
+    <form method="post" class="twofa-reset-form" data-confirm="Перенастроить 2FA? Старый ключ и оставшиеся резервные коды перестанут работать.">
+      <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
+      <input type="hidden" name="action" value="disable_2fa">
+      <label class="field-modern compact"><span>Текущий пароль</span><input type="password" name="current_password" required autocomplete="current-password"></label>
+      <label class="field-modern compact"><span>Текущий код 2FA</span><input name="current_totp" required maxlength="20" autocomplete="one-time-code" placeholder="123456 или резервный код"></label>
+      <button class="secondary" type="submit">Перенастроить 2FA</button>
+    </form>
+  <?php else:?>
+    <div class="twofa-profile-state is-required">
+      <strong>2FA ещё не настроена</strong>
+      <span>При следующем входе настройка будет обязательной. Можно сделать это сейчас.</span>
+    </div>
+    <a class="primary twofa-profile-link" href="<?=e(base_url('admin/2fa-setup.php'))?>">Настроить 2FA</a>
+  <?php endif;?>
+</section>
 
 <?php if(is_site_admin()):?>
 <section class="editor-card users-management-card">
