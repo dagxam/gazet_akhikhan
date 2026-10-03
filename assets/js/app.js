@@ -581,12 +581,23 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
   }
 
   function openPanel(){
+    const scrollX=window.scrollX;
+    const scrollY=window.scrollY;
     panel.hidden=false;
     toggle.setAttribute('aria-expanded','true');
     document.body.classList.add('accessibility-panel-open');
     window.requestAnimationFrame(()=>{
       const target=panel.querySelector('[data-a11y-preset], [data-a11y-font], [data-a11y-contrast], [data-a11y-spacing], [data-a11y-grayscale], [data-a11y-motion], button');
-      if(target) target.focus();
+      if(target){
+        try{
+          target.focus({preventScroll:true});
+        }catch(e){
+          target.focus();
+        }
+      }
+      if(window.scrollX!==scrollX || window.scrollY!==scrollY){
+        window.scrollTo(scrollX,scrollY);
+      }
     });
   }
 
