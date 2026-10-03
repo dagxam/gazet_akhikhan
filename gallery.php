@@ -51,7 +51,8 @@ require __DIR__.'/partials/header.php';
         </div>
       </div>
       <?php if(!empty($album['cover_image'])):?>
-        <div class="gallery-album-hero-cover" style="background-image:url('<?=e(base_url($album['cover_image']))?>')"></div>
+        <?php $albumHeroClass=csp_dynamic_class("background-image:url('".base_url($album['cover_image'])."');",'gallery-hero'); ?>
+        <div class="gallery-album-hero-cover <?=e($albumHeroClass)?>"></div>
       <?php endif;?>
     </section>
 
@@ -89,7 +90,8 @@ require __DIR__.'/partials/header.php';
       <section class="gallery-albums-public-grid">
         <?php foreach($albums as $i=>$item):?>
           <a class="gallery-album-card <?=$i===0?'is-leading':''?>" href="<?=e(base_url('gallery.php?album='.$item['id']))?>">
-            <span class="gallery-album-card-image" <?php if(!empty($item['cover_image'])):?>style="background-image:url('<?=e(base_url($item['cover_image']))?>')"<?php endif;?>>
+            <?php $albumCardClass=!empty($item['cover_image']) ? csp_dynamic_class("background-image:url('".base_url($item['cover_image'])."');",'gallery-card') : ''; ?>
+            <span class="gallery-album-card-image <?=e($albumCardClass)?>">
               <i><?=e((string)$item['photo_count'])?> фото</i>
             </span>
             <span class="gallery-album-card-copy">
