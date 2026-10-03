@@ -7,6 +7,10 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   role TEXT NOT NULL DEFAULT 'editor' CHECK (role IN ('admin','editor')),
   status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','blocked')),
+  two_factor_secret TEXT,
+  two_factor_enabled INTEGER NOT NULL DEFAULT 0,
+  two_factor_recovery_codes TEXT,
+  two_factor_confirmed_at TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
