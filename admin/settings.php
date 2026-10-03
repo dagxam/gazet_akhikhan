@@ -440,9 +440,9 @@ require __DIR__.'/_top.php';
           </div>
         </div>
 
+        <style id="a11y-admin-preview-style" nonce="<?=e(csp_nonce())?>">[data-a11y-admin-preview]{--ap-bg:<?=e(css_safe_color($accessibilitySettings['accessibility_panel_bg'],'#fffdf9'))?>;--ap-text:<?=e(css_safe_color($accessibilitySettings['accessibility_panel_text_color'],'#302923'))?>;--ap-accent:<?=e(css_safe_color($accessibilitySettings['accessibility_panel_accent'],'#765132'))?>;--ap-border:<?=e(css_safe_color($accessibilitySettings['accessibility_panel_border'],'#d8c7b4'))?>;--ap-primary:<?=e(css_safe_color($accessibilitySettings['accessibility_primary_bg'],'#5d402a'))?>;--ap-primary-text:<?=e(css_safe_color($accessibilitySettings['accessibility_primary_text'],'#ffffff'))?>}</style>
         <div class="accessibility-admin-preview"
-             data-a11y-admin-preview
-             style="--ap-bg:<?=e($accessibilitySettings['accessibility_panel_bg'])?>;--ap-text:<?=e($accessibilitySettings['accessibility_panel_text_color'])?>;--ap-accent:<?=e($accessibilitySettings['accessibility_panel_accent'])?>;--ap-border:<?=e($accessibilitySettings['accessibility_panel_border'])?>;--ap-primary:<?=e($accessibilitySettings['accessibility_primary_bg'])?>;--ap-primary-text:<?=e($accessibilitySettings['accessibility_primary_text'])?>">
+             data-a11y-admin-preview>
           <div class="accessibility-admin-preview-trigger">
             <span><i class="fa-regular fa-eye"></i></span>
             <b data-a11y-admin-preview-button><?=e($accessibilitySettings['accessibility_label'])?></b>
@@ -591,9 +591,9 @@ require __DIR__.'/_top.php';
           </div>
         </div>
 
+        <style id="privacy-banner-preview-style" nonce="<?=e(csp_nonce())?>">[data-privacy-banner-preview]{--pb-bg:<?=e(css_safe_color($privacyBanner['privacy_banner_bg_color'],'#fcf8f0'))?>;--pb-title:<?=e(css_safe_color($privacyBanner['privacy_banner_title_color'],'#2f2924'))?>;--pb-text:<?=e(css_safe_color($privacyBanner['privacy_banner_text_color'],'#65594e'))?>;--pb-accent:<?=e(css_safe_color($privacyBanner['privacy_banner_accent_color'],'#80532c'))?>;--pb-button-bg:<?=e(css_safe_color($privacyBanner['privacy_banner_button_bg'],'#6f4a29'))?>;--pb-button-text:<?=e(css_safe_color($privacyBanner['privacy_banner_button_text'],'#ffffff'))?>}</style>
         <div class="privacy-banner-admin-preview"
-             data-privacy-banner-preview
-             style="--pb-bg:<?=e($privacyBanner['privacy_banner_bg_color'])?>;--pb-title:<?=e($privacyBanner['privacy_banner_title_color'])?>;--pb-text:<?=e($privacyBanner['privacy_banner_text_color'])?>;--pb-accent:<?=e($privacyBanner['privacy_banner_accent_color'])?>;--pb-button-bg:<?=e($privacyBanner['privacy_banner_button_bg'])?>;--pb-button-text:<?=e($privacyBanner['privacy_banner_button_text'])?>">
+             data-privacy-banner-preview>
           <div class="privacy-banner-admin-icon">✓</div>
           <div>
             <strong data-privacy-preview-title><?=e($privacyBanner['privacy_banner_title'])?></strong>
@@ -667,8 +667,15 @@ require __DIR__.'/_top.php';
           ?>
             <label class="theme-option <?=$theme===$key?'is-selected':''?>" data-admin-theme-option="<?=e($key)?>">
               <input type="radio" name="admin_color_scheme" value="<?=e($key)?>" <?=$theme===$key?'checked':''?>>
+              <?php
+                $themeRule='';
+                foreach($meta[2] as $swatchIndex=>$color){
+                  $themeRule.='.theme-option[data-admin-theme-option="'.preg_replace('/[^a-z0-9_-]/i','',$key).'"] .theme-swatches i:nth-child('.($swatchIndex+1).'){background:'.css_safe_color((string)$color,'#cccccc').'}';
+                }
+              ?>
+              <style nonce="<?=e(csp_nonce())?>"><?=$themeRule?></style>
               <span class="theme-swatches">
-                <?php foreach($meta[2] as $color):?><i style="background:<?=e($color)?>"></i><?php endforeach;?>
+                <?php foreach($meta[2] as $color):?><i></i><?php endforeach;?>
               </span>
               <span class="theme-option-copy"><b><?=e($meta[0])?></b><small><?=e($meta[1])?></small></span>
               <span class="theme-check">✓</span>
@@ -752,16 +759,20 @@ require __DIR__.'/_top.php';
     'button-bg':'--pb-button-bg',
     'button-text':'--pb-button-text'
   };
-  document.querySelectorAll('[data-privacy-preview-color]').forEach(input=>{
-    const code=input.closest('.privacy-banner-color-control')?.querySelector('code');
-    const sync=()=>{
-      const cssVar=vars[input.dataset.privacyPreviewColor];
-      if(cssVar) preview.style.setProperty(cssVar,input.value);
+  const styleEl=document.getElementById('privacy-banner-preview-style');
+  const colorInputs=[...document.querySelectorAll('[data-privacy-preview-color]')];
+  const syncColors=()=>{
+    const declarations=[];
+    colorInputs.forEach(input=>{
+      const code=input.closest('.privacy-banner-color-control')?.querySelector('code');
       if(code) code.textContent=input.value;
-    };
-    input.addEventListener('input',sync);
-    sync();
-  });
+      const cssVar=vars[input.dataset.privacyPreviewColor];
+      if(cssVar && /^#[0-9a-f]{6}$/i.test(input.value)) declarations.push(cssVar+':'+input.value);
+    });
+    if(styleEl) styleEl.textContent='[data-privacy-banner-preview]{'+declarations.join(';')+'}';
+  };
+  colorInputs.forEach(input=>input.addEventListener('input',syncColors));
+  syncColors();
 })();
 
 (function(){
@@ -792,17 +803,20 @@ require __DIR__.'/_top.php';
     'primary-bg':'--ap-primary',
     'primary-text':'--ap-primary-text'
   };
-
-  document.querySelectorAll('[data-a11y-admin-color]').forEach(input=>{
-    const code=input.closest('.accessibility-color-control')?.querySelector('code');
-    const sync=()=>{
-      const cssVar=vars[input.dataset.a11yAdminColor];
-      if(cssVar) preview.style.setProperty(cssVar,input.value);
+  const styleEl=document.getElementById('a11y-admin-preview-style');
+  const colorInputs=[...document.querySelectorAll('[data-a11y-admin-color]')];
+  const syncColors=()=>{
+    const declarations=[];
+    colorInputs.forEach(input=>{
+      const code=input.closest('.accessibility-color-control')?.querySelector('code');
       if(code) code.textContent=input.value;
-    };
-    input.addEventListener('input',sync);
-    sync();
-  });
+      const cssVar=vars[input.dataset.a11yAdminColor];
+      if(cssVar && /^#[0-9a-f]{6}$/i.test(input.value)) declarations.push(cssVar+':'+input.value);
+    });
+    if(styleEl) styleEl.textContent='[data-a11y-admin-preview]{'+declarations.join(';')+'}';
+  };
+  colorInputs.forEach(input=>input.addEventListener('input',syncColors));
+  syncColors();
 })();
 </script>
 
