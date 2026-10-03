@@ -341,7 +341,8 @@ require __DIR__.'/_top.php';
         <div class="right-blocks-list">
           <?php foreach($blocks as $block):?>
             <article class="right-block-admin-item <?=empty($block['is_active'])?'is-disabled':''?>">
-              <div class="right-block-admin-preview <?=e($block['style'])?> <?=!empty($block['image'])?'has-image':''?>" <?php if(!empty($block['image'])):?>style="background-image:url('<?=e(base_url($block['image']))?>')"<?php endif;?>>
+              <?php $blockPreviewClass=!empty($block['image']) ? csp_dynamic_class("background-image:url('".base_url($block['image'])."');",'admin-right-block') : ''; ?>
+              <div class="right-block-admin-preview <?=e($block['style'])?> <?=!empty($block['image'])?'has-image':''?> <?=e($blockPreviewClass)?>">
                 <span><?=e($block['kicker'] ?: 'Блок')?></span>
                 <strong><?=e($block['title'])?></strong>
               </div>
