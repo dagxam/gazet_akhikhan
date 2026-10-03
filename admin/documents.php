@@ -183,7 +183,7 @@ require __DIR__.'/_top.php';
               <div class="row-actions">
                 <a class="edit-action" href="<?=e(base_url('admin/documents.php?id='.$row['id']))?>">Редактировать</a>
                 <a class="edit-action" href="<?=e(base_url($row['file_path']))?>" target="_blank">Открыть ↗</a>
-                <form method="post" onsubmit="return confirm('Удалить этот документ?')">
+                <form method="post" data-confirm="Удалить этот документ?">
                   <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
                   <input type="hidden" name="delete_id" value="<?=$row['id']?>">
                   <button class="danger">Удалить</button>
