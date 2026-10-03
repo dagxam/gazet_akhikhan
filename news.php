@@ -57,7 +57,9 @@ require __DIR__.'/partials/header.php';
   <section class="listing-grid">
     <?php foreach($articles as $a): ?>
       <article class="list-card">
-        <a class="list-thumb<?=empty($a['cover_image'])?' demo-road':''?>" href="<?=e(article_url($a))?>" style="<?=!empty($a['cover_image']) ? "background-image:url('".e(base_url($a['cover_image']))."')" : ''?>"></a>
+        <?php $listThumbId='list-thumb-'.(int)$a['id']; ?>
+          <?php if(!empty($a['cover_image'])):?><style nonce="<?=e(csp_nonce())?>">#<?=e($listThumbId)?>{background-image:<?=e(css_url_literal(base_url($a['cover_image'])))?>}</style><?php endif;?>
+          <a id="<?=e($listThumbId)?>" class="list-thumb<?=empty($a['cover_image'])?' demo-road':''?>" href="<?=e(article_url($a))?>"></a>
         <div class="list-card-body">
           <div class="article-label"><?=e($a['category_name'] ?: 'Новости')?></div>
           <h2><a href="<?=e(article_url($a))?>"><?=e($a['title'])?></a></h2>
