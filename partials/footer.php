@@ -99,15 +99,22 @@ $privacyBannerLink2Url=$privacyBannerUrl(setting('privacy_banner_link2_url','coo
   </div>
 </footer>
 
-<?php if($privacyBannerEnabled):?>
+<?php if($privacyBannerEnabled):
+  $privacyBgCss=css_safe_color($privacyBannerColor('privacy_banner_bg_color','#fcf8f0'),'#fcf8f0');
+  $privacyTitleCss=css_safe_color($privacyBannerColor('privacy_banner_title_color','#2f2924'),'#2f2924');
+  $privacyTextCss=css_safe_color($privacyBannerColor('privacy_banner_text_color','#65594e'),'#65594e');
+  $privacyAccentCss=css_safe_color($privacyBannerColor('privacy_banner_accent_color','#80532c'),'#80532c');
+  $privacyButtonBgCss=css_safe_color($privacyBannerColor('privacy_banner_button_bg','#6f4a29'),'#6f4a29');
+  $privacyButtonTextCss=css_safe_color($privacyBannerColor('privacy_banner_button_text','#ffffff'),'#ffffff');
+?>
+<style nonce="<?=e(csp_nonce())?>">.privacy-notice{--privacy-bg:<?=e($privacyBgCss)?>;--privacy-title:<?=e($privacyTitleCss)?>;--privacy-text:<?=e($privacyTextCss)?>;--privacy-accent:<?=e($privacyAccentCss)?>;--privacy-button-bg:<?=e($privacyButtonBgCss)?>;--privacy-button-text:<?=e($privacyButtonTextCss)?>}</style>
 <div class="privacy-notice"
      data-privacy-notice
      data-privacy-version="<?=e($privacyBannerVersion)?>"
      hidden
      role="dialog"
      aria-live="polite"
-     aria-label="<?=e($privacyBannerTitle!==''?$privacyBannerTitle:'Уведомление о конфиденциальности')?>"
-     style="--privacy-bg:<?=e($privacyBannerColor('privacy_banner_bg_color','#fcf8f0'))?>;--privacy-title:<?=e($privacyBannerColor('privacy_banner_title_color','#2f2924'))?>;--privacy-text:<?=e($privacyBannerColor('privacy_banner_text_color','#65594e'))?>;--privacy-accent:<?=e($privacyBannerColor('privacy_banner_accent_color','#80532c'))?>;--privacy-button-bg:<?=e($privacyBannerColor('privacy_banner_button_bg','#6f4a29'))?>;--privacy-button-text:<?=e($privacyBannerColor('privacy_banner_button_text','#ffffff'))?>">
+     aria-label="<?=e($privacyBannerTitle!==''?$privacyBannerTitle:'Уведомление о конфиденциальности')?>">
   <div class="privacy-notice-card">
     <div class="privacy-notice-icon" aria-hidden="true">
       <svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.7-2.7 8.2-7 10-4.3-1.8-7-5.3-7-10V6l7-3z"></path><path d="M9.3 12.1l1.8 1.8 3.8-4"></path></svg>
@@ -129,7 +136,7 @@ $privacyBannerLink2Url=$privacyBannerUrl(setting('privacy_banner_link2_url','coo
 </div>
 <?php endif;?>
 
-<script src="<?=e(base_url('assets/js/app.js?v=20261002-accessibility2'))?>"></script>
+<script src="<?=e(base_url('assets/js/app.js?v=20261003-security4'))?>"></script>
 </div>
 </body>
 </html>
