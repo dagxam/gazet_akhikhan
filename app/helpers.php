@@ -1415,6 +1415,7 @@ function handle_cover_upload(array $file, ?string $old = null): ?string
     $mime = $finfo->file($file['tmp_name']);
     $allowed = ['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'];
     if (!isset($allowed[$mime])) throw new RuntimeException('Разрешены JPG, PNG и WEBP.');
+    security_scan_upload((string)$file['tmp_name'],$allowed[$mime]);
 
     $folder = 'uploads/' . date('Y/m');
     $dir = ROOT_PATH . '/' . $folder;
@@ -1499,6 +1500,7 @@ function handle_newspaper_pdf_upload(array $file, ?string $oldPdf = null, ?strin
     if ($head !== '%PDF-') {
         throw new RuntimeException('Загрузите файл газеты в формате PDF.');
     }
+    security_scan_upload((string)$file['tmp_name'],'pdf');
 
     $folder = 'uploads/newspapers/' . date('Y/m');
     $dir = ROOT_PATH . '/' . $folder;
@@ -1752,6 +1754,7 @@ function handle_document_upload(array $file, ?string $oldPath = null, ?string $o
     }
 
     validate_document_file_signature((string)$file['tmp_name'],$ext);
+    security_scan_upload((string)$file['tmp_name'],$ext);
 
     $folder='uploads/documents/'.date('Y/m');
     $dir=ROOT_PATH.'/'.$folder;
@@ -1983,6 +1986,7 @@ function handle_branding_asset_upload(array $file, string $kind, ?string $old = 
             ? 'Для favicon разрешены ICO, PNG, JPG и WEBP.'
             : 'Для логотипа разрешены PNG, JPG и WEBP.');
     }
+    security_scan_upload($tmp,$allowed[$mime]);
 
     $folder='uploads/branding/'.date('Y/m');
     $dir=ROOT_PATH.'/'.$folder;
@@ -2561,6 +2565,7 @@ function handle_video_upload(array $file, ?string $oldPath = null): ?string
     if(!isset($allowed[$mime]) || !in_array($ext,['mp4','webm','ogv','ogg','mov','m4v'],true)){
         throw new RuntimeException('Разрешены видео MP4, WEBM, OGV/OGG, MOV и M4V.');
     }
+    security_scan_upload($tmp,$allowed[$mime]);
 
     $folder='uploads/videos/'.date('Y/m');
     $dir=ROOT_PATH.'/'.$folder;
