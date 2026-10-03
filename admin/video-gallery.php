@@ -247,7 +247,7 @@ require __DIR__.'/_top.php';
               <div class="video-admin-actions">
                 <a class="edit-action" href="<?=e(base_url('admin/video-gallery.php?id='.$video['id']))?>">Редактировать</a>
                 <?php if($video['status']==='published'):?><a class="edit-action" href="<?=e(base_url('videos.php?id='.$video['id']))?>" target="_blank">Смотреть ↗</a><?php endif;?>
-                <form method="post" onsubmit="return confirm('Удалить это видео? Загруженный видеофайл тоже будет удалён с сервера.')">
+                <form method="post" data-confirm="Удалить это видео? Загруженный видеофайл тоже будет удалён с сервера.">
                   <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
                   <input type="hidden" name="action" value="delete">
                   <input type="hidden" name="id" value="<?=$video['id']?>">
