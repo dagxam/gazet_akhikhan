@@ -68,6 +68,7 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
   const link=hero.querySelector('[data-hero-link]');
   const heroLocationCity=hero.querySelector('[data-hero-location-city]');
   const heroLocationRegion=hero.querySelector('[data-hero-location-region]');
+  const heroBackgroundStyle=document.querySelector('[data-hero-background-style]');
   let current=null;
   let switchTimer=null;
 
@@ -104,11 +105,14 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
       if(cover){
         hero.classList.remove('hero-clean');
         hero.classList.add('hero-has-cover');
-        hero.style.backgroundImage='linear-gradient(90deg,rgba(19,21,18,.88) 0%,rgba(19,21,18,.57) 45%,rgba(19,21,18,.14) 82%),url("'+cover.replace(/"/g,'%22')+'")';
+        if(heroBackgroundStyle){
+          const safeCover=cover.replace(/\\/g,'%5C').replace(/"/g,'%22').replace(/[\r\n]/g,'');
+          heroBackgroundStyle.textContent='.hero-story[data-interactive-hero]{background-image:linear-gradient(90deg,rgba(19,21,18,.88) 0%,rgba(19,21,18,.57) 45%,rgba(19,21,18,.14) 82%),url("'+safeCover+'")}';
+        }
       }else{
         hero.classList.remove('hero-has-cover');
         hero.classList.add('hero-clean');
-        hero.style.backgroundImage='';
+        if(heroBackgroundStyle) heroBackgroundStyle.textContent='';
       }
 
       requestAnimationFrame(function(){
@@ -331,8 +335,7 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
         const input=document.createElement('textarea');
         input.value=url;
         input.setAttribute('readonly','');
-        input.style.position='fixed';
-        input.style.opacity='0';
+        input.className='clipboard-copy-helper';
         document.body.appendChild(input);
         input.select();
         try{ document.execCommand('copy'); }catch(err){}
