@@ -812,7 +812,6 @@ require __DIR__.'/_top.php';
     const code=input.closest('.accessibility-color-control')?.querySelector('code');
     const sync=()=>{
       const cssVar=vars[input.dataset.a11yAdminColor];
-      if(cssVar) preview.style.setProperty(cssVar,input.value);
       if(code) code.textContent=input.value;
     };
     input.addEventListener('input',sync);
