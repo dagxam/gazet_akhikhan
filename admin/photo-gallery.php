@@ -223,7 +223,7 @@ require __DIR__.'/_top.php';
               </div>
               <div class="gallery-album-admin-actions">
                 <a class="edit-action" href="<?=e(base_url('admin/photo-gallery.php?album_id='.$album['id']))?>">Открыть альбом</a>
-                <form method="post" onsubmit="return confirm('Удалить альбом и все фотографии внутри?')">
+                <form method="post" data-confirm="Удалить альбом и все фотографии внутри?">
                   <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
                   <input type="hidden" name="action" value="delete_album">
                   <input type="hidden" name="album_id" value="<?=$album['id']?>">
@@ -293,7 +293,7 @@ require __DIR__.'/_top.php';
     <?php render_admin_pagination('admin/photo-gallery.php',$photoPager['page'],$photoPager['total_pages'],['album_id'=>(int)$editing['id']],'photo_page','Страницы фотографий'); ?>
 
     <?php foreach($photos as $photo):?>
-      <form id="delete-photo-<?=$photo['id']?>" method="post" onsubmit="return confirm('Удалить эту фотографию?')">
+      <form id="delete-photo-<?=$photo['id']?>" method="post" data-confirm="Удалить эту фотографию?">
         <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
         <input type="hidden" name="action" value="delete_photo">
         <input type="hidden" name="photo_id" value="<?=$photo['id']?>">
