@@ -78,7 +78,7 @@ require_once ROOT_PATH . '/app/helpers.php';
 
 if (PHP_SAPI !== 'cli' && !headers_sent()) {
     $nonce=csp_nonce();
-    header("Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'nonce-".$nonce."' https://cdn.jsdelivr.net; script-src-attr 'none'; style-src 'self' 'nonce-".$nonce."' https://fonts.googleapis.com https://cdnjs.cloudflare.com; style-src-attr 'none'; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.open-meteo.com; frame-src 'self' https://vk.com https://*.vk.com https://vkvideo.ru https://*.vkvideo.ru https://rutube.ru https://*.rutube.ru https://ok.ru https://*.ok.ru; media-src 'self' blob: https:; worker-src 'self' blob: https://cdn.jsdelivr.net; manifest-src 'self'; upgrade-insecure-requests");
+    header("Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'nonce-".$nonce."' 'strict-dynamic' https://cdn.jsdelivr.net; script-src-attr 'none'; style-src 'self' 'nonce-".$nonce."' https://fonts.googleapis.com https://cdnjs.cloudflare.com; style-src-attr 'none'; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.open-meteo.com; frame-src 'self' https://vk.com https://*.vk.com https://vkvideo.ru https://*.vkvideo.ru https://rutube.ru https://*.rutube.ru https://ok.ru https://*.ok.ru; media-src 'self' blob: https:; worker-src 'self' blob: https://cdn.jsdelivr.net; manifest-src 'self'; upgrade-insecure-requests");
 }
 
 if (APP_INSTALLED) {
