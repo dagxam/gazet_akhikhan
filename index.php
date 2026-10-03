@@ -43,7 +43,7 @@ require __DIR__ . '/partials/header.php';
 <div class="wrap home-shell">
 
 <section class="home-lead-grid">
-  <article class="hero-story <?=!empty($hero['cover_image'])?'hero-has-cover':'hero-clean'?> <?=e($heroDynamicClass)?>" data-interactive-hero>
+  <article class="hero-story <?=!empty($hero['cover_image'])?'hero-has-cover':'hero-clean'?> <?=e($heroDynamicClass)?>" data-interactive-hero data-hero-bg-initial="<?=e($heroDynamicClass)?>">
     <div class="hero-story-copy">
       <span class="kicker" data-hero-kicker>Главные новости</span>
       <?php if($hero):?>
@@ -76,7 +76,11 @@ require __DIR__ . '/partials/header.php';
     </div>
     <div class="latest-list">
       <?php if($mainNews): ?>
-        <?php foreach($mainNews as $i=>$item): ?>
+        <?php foreach($mainNews as $i=>$item):
+          $heroSwitchClass=!empty($item['cover_image'])
+            ? csp_dynamic_class("background-image:linear-gradient(90deg,rgba(19,21,18,.88) 0%,rgba(19,21,18,.57) 45%,rgba(19,21,18,.14) 82%),url('".base_url($item['cover_image'])."');",'hero-switch')
+            : '';
+        ?>
           <article class="latest-item<?=$i===0?' is-active':''?>"
                    tabindex="0"
                    data-hero-title="<?=e($item['title'])?>"
@@ -84,6 +88,7 @@ require __DIR__ . '/partials/header.php';
                    data-hero-kicker="Главные новости"
                    data-hero-url="<?=e(article_url($item))?>"
                    data-hero-cover="<?=e(!empty($item['cover_image']) ? base_url($item['cover_image']) : '')?>"
+                   data-hero-bg-class="<?=e($heroSwitchClass)?>"
                    data-hero-location-city="<?=e(trim((string)($item['location_city']??'')) ?: 'Унцукульский район')?>"
                    data-hero-location-region="<?=e(trim((string)($item['location_region']??'')) ?: 'Дагестан')?>">
             <time><?=e(ru_date($item['published_at'] ?: $item['created_at']))?></time>
