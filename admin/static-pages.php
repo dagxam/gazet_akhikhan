@@ -236,7 +236,7 @@ $menuOrder=$menuItem['sort_order']??100;
             <div class="static-page-admin-actions">
               <a class="edit-action" href="<?=e(base_url('admin/static-pages.php?id='.$page['id']))?>">Редактировать</a>
               <?php if($page['status']==='published'):?><a class="edit-action" href="<?=e(static_page_url($page))?>" target="_blank">Открыть ↗</a><?php endif;?>
-              <form method="post" onsubmit="return confirm('Удалить эту страницу? Связанный пункт меню тоже будет удалён.')">
+              <form method="post" data-confirm="Удалить эту страницу? Связанный пункт меню тоже будет удалён.">
                 <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="id" value="<?=$page['id']?>">
