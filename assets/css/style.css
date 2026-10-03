@@ -7339,7 +7339,8 @@ svg{
   display:grid;
   padding:6px;
 }
-.topbar-admin-menu-links a{
+.topbar-admin-menu-links a,
+.topbar-admin-menu-links button{
   min-height:38px;
   display:flex;
   align-items:center;
@@ -7350,22 +7351,26 @@ svg{
   text-decoration:none;
   font:750 10px/1.2 var(--sans,Arial,sans-serif);
 }
-.topbar-admin-menu-links a:hover{
+.topbar-admin-menu-links a:hover,
+.topbar-admin-menu-links button:hover{
   background:#f7f3ee;
   color:#7b512f;
 }
-.topbar-admin-menu-links a i{
+.topbar-admin-menu-links a i,
+.topbar-admin-menu-links button i{
   width:15px;
   text-align:center;
   color:#9a744f;
 }
-.topbar-admin-menu-links a.is-logout{
+.topbar-admin-menu-links a.is-logout,
+.topbar-admin-menu-links button.is-logout{
   margin-top:4px;
   border-top:1px solid #eee7df;
   border-radius:0 0 9px 9px;
   color:#9b4f49;
 }
-.topbar-admin-menu-links a.is-logout i{
+.topbar-admin-menu-links a.is-logout i,
+.topbar-admin-menu-links button.is-logout i{
   color:#a85a53;
 }
 @media(max-width:900px){
@@ -11290,3 +11295,7 @@ a.contact-info-line:hover{
 
 /* Strict CSP clipboard fallback */
 .clipboard-fallback{position:fixed;left:-9999px;top:0;opacity:0;pointer-events:none}
+
+
+.topbar-admin-logout-form{margin:0}
+.topbar-admin-logout-form button{width:100%;border:0;background:transparent;cursor:pointer;text-align:left}
