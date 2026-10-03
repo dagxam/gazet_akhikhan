@@ -440,9 +440,17 @@ require __DIR__.'/_top.php';
           </div>
         </div>
 
-        <div class="accessibility-admin-preview"
-             data-a11y-admin-preview
-             style="--ap-bg:<?=e($accessibilitySettings['accessibility_panel_bg'])?>;--ap-text:<?=e($accessibilitySettings['accessibility_panel_text_color'])?>;--ap-accent:<?=e($accessibilitySettings['accessibility_panel_accent'])?>;--ap-border:<?=e($accessibilitySettings['accessibility_panel_border'])?>;--ap-primary:<?=e($accessibilitySettings['accessibility_primary_bg'])?>;--ap-primary-text:<?=e($accessibilitySettings['accessibility_primary_text'])?>">
+        <?php $a11yPreviewClass=csp_dynamic_class(
+          '--ap-bg:'.$accessibilitySettings['accessibility_panel_bg'].';'.
+          '--ap-text:'.$accessibilitySettings['accessibility_panel_text_color'].';'.
+          '--ap-accent:'.$accessibilitySettings['accessibility_panel_accent'].';'.
+          '--ap-border:'.$accessibilitySettings['accessibility_panel_border'].';'.
+          '--ap-primary:'.$accessibilitySettings['accessibility_primary_bg'].';'.
+          '--ap-primary-text:'.$accessibilitySettings['accessibility_primary_text'].';',
+          'a11y-preview'
+        ); ?>
+        <div class="accessibility-admin-preview <?=e($a11yPreviewClass)?>"
+             data-a11y-admin-preview>
           <div class="accessibility-admin-preview-trigger">
             <span><i class="fa-regular fa-eye"></i></span>
             <b data-a11y-admin-preview-button><?=e($accessibilitySettings['accessibility_label'])?></b>
@@ -591,9 +599,17 @@ require __DIR__.'/_top.php';
           </div>
         </div>
 
-        <div class="privacy-banner-admin-preview"
-             data-privacy-banner-preview
-             style="--pb-bg:<?=e($privacyBanner['privacy_banner_bg_color'])?>;--pb-title:<?=e($privacyBanner['privacy_banner_title_color'])?>;--pb-text:<?=e($privacyBanner['privacy_banner_text_color'])?>;--pb-accent:<?=e($privacyBanner['privacy_banner_accent_color'])?>;--pb-button-bg:<?=e($privacyBanner['privacy_banner_button_bg'])?>;--pb-button-text:<?=e($privacyBanner['privacy_banner_button_text'])?>">
+        <?php $privacyPreviewClass=csp_dynamic_class(
+          '--pb-bg:'.$privacyBanner['privacy_banner_bg_color'].';'.
+          '--pb-title:'.$privacyBanner['privacy_banner_title_color'].';'.
+          '--pb-text:'.$privacyBanner['privacy_banner_text_color'].';'.
+          '--pb-accent:'.$privacyBanner['privacy_banner_accent_color'].';'.
+          '--pb-button-bg:'.$privacyBanner['privacy_banner_button_bg'].';'.
+          '--pb-button-text:'.$privacyBanner['privacy_banner_button_text'].';',
+          'privacy-preview'
+        ); ?>
+        <div class="privacy-banner-admin-preview <?=e($privacyPreviewClass)?>"
+             data-privacy-banner-preview>
           <div class="privacy-banner-admin-icon">✓</div>
           <div>
             <strong data-privacy-preview-title><?=e($privacyBanner['privacy_banner_title'])?></strong>
@@ -668,7 +684,7 @@ require __DIR__.'/_top.php';
             <label class="theme-option <?=$theme===$key?'is-selected':''?>" data-admin-theme-option="<?=e($key)?>">
               <input type="radio" name="admin_color_scheme" value="<?=e($key)?>" <?=$theme===$key?'checked':''?>>
               <span class="theme-swatches">
-                <?php foreach($meta[2] as $color):?><i style="background:<?=e($color)?>"></i><?php endforeach;?>
+                <?php foreach($meta[2] as $color): $swatchClass=csp_dynamic_class('background:'.$color.';','theme-swatch'); ?><i class="<?=e($swatchClass)?>"></i><?php endforeach;?>
               </span>
               <span class="theme-option-copy"><b><?=e($meta[0])?></b><small><?=e($meta[1])?></small></span>
               <span class="theme-check">✓</span>
@@ -703,7 +719,7 @@ require __DIR__.'/_top.php';
   </div>
 </form>
 
-<script>
+<script nonce="<?=e(csp_nonce())?>">
 (function(){
   const options=[...document.querySelectorAll('[data-admin-theme-option]')];
   if(!options.length) return;
@@ -756,7 +772,6 @@ require __DIR__.'/_top.php';
     const code=input.closest('.privacy-banner-color-control')?.querySelector('code');
     const sync=()=>{
       const cssVar=vars[input.dataset.privacyPreviewColor];
-      if(cssVar) preview.style.setProperty(cssVar,input.value);
       if(code) code.textContent=input.value;
     };
     input.addEventListener('input',sync);
