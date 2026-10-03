@@ -76,8 +76,10 @@ jobs:
           grep -q "static_page_id" admin/main-menu.php
           grep -q "page:" admin/main-menu.php
           grep -q "Антивирус не смог завершить проверку файла" app/helpers.php
+          grep -q 'script nonce="<?=e(csp_nonce())?>" src="<?=e(base_url('"'"'assets/js/app.js?v=20261003-dropdown-fix1'"'"'))?>"' partials/footer.php
+          node --check assets/js/app.js
           python3 -m py_compile tests/load/staging_load.py
-          echo "2FA/CSP/upload/menu/staging security implementation validated."
+          echo "2FA/CSP/upload/menu/staging and interactive JS security implementation validated."
 
       - name: Upload site via FTP
         uses: SamKirkland/FTP-Deploy-Action@110f9186c050f71550953127052e77650219c287 # v4.4.0
@@ -194,6 +196,7 @@ jobs:
             legal_code="$(curl --silent --show-error --location --max-time 30 --output "/tmp/akhikhan-$legal_page" --write-out '%{http_code}' "https://akhikhan.ru/$legal_page")"
             test "$legal_code" = "200"
           done
+          grep -Eq '<script nonce="[^"]+" src="https://akhikhan\.ru/assets/js/app\.js\?v=20261003-dropdown-fix1"></script>' /tmp/akhikhan-privacy.php
           grep -q 'Политика обработки персональных данных' /tmp/akhikhan-privacy.php
           grep -q 'Реализуемые требования и меры защиты персональных данных' /tmp/akhikhan-privacy.php
           grep -q 'Wikimedia Commons' /tmp/akhikhan-privacy.php
