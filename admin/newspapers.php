@@ -202,7 +202,7 @@ require __DIR__.'/_top.php';
   </section>
 </div>
 
-<script type="module">
+<script nonce="<?=e(csp_nonce())?>" type="module">
 const canvases=[...document.querySelectorAll('canvas[data-pdf-preview]')];
 if(canvases.length){
   try{
