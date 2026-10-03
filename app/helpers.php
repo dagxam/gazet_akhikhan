@@ -7,6 +7,297 @@ function e(?string $value): string
 }
 
 
+function csp_nonce(): string
+{
+    static $nonce = null;
+    if ($nonce === null) {
+        $nonce = rtrim(strtr(base64_encode(random_bytes(18)), '+/', '-_'), '=');
+    }
+    return $nonce;
+}
+
+function csp_dynamic_class(string $declarations, string $prefix = 'dyn'): string
+{
+    $declarations=trim($declarations);
+    if($declarations==='' || preg_match('/[{}<>]/',$declarations)) return '';
+    $prefix=preg_replace('/[^a-z0-9_-]+/i','-',strtolower($prefix)) ?: 'dyn';
+    $class=$prefix.'-'.substr(hash('sha256',$declarations),0,16);
+    $GLOBALS['csp_dynamic_styles'][$class]='.'.$class.'{'.$declarations.'}';
+    return $class;
+}
+
+function csp_render_dynamic_styles(): void
+{
+    $styles=$GLOBALS['csp_dynamic_styles']??[];
+    $rendered=$GLOBALS['csp_dynamic_styles_rendered']??[];
+    $pending=[];
+    foreach($styles as $class=>$css){
+        if(isset($rendered[$class])) continue;
+        $pending[$class]=$css;
+        $rendered[$class]=true;
+    }
+    $GLOBALS['csp_dynamic_styles_rendered']=$rendered;
+    if(!$pending) return;
+    echo '<style nonce="'.e(csp_nonce()).'">'.implode('',array_values($pending)).'</style>';
+}
+
+function csp_prepare_rich_text_styles(string $html): string
+{
+    if($html==='' || !str_contains($html,'style=')) return $html;
+    if(!class_exists('DOMDocument')) return preg_replace('/\\sstyle=(["\']).*?\\1/isu','',$html) ?? $html;
+
+    $doc=new DOMDocument('1.0','UTF-8');
+    libxml_use_internal_errors(true);
+    $wrapped='<!doctype html><html><head><meta charset="utf-8"></head><body><div id="csp-rich-root">'.$html.'</div></body></html>';
+    $doc->loadHTML($wrapped,LIBXML_HTML_NOIMPLIED|LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+    $root=$doc->getElementById('csp-rich-root');
+    if(!$root) return $html;
+
+    $xpath=new DOMXPath($doc);
+    foreach($xpath->query('.//*[@style]',$root) as $node){
+        if(!$node instanceof DOMElement) continue;
+        $style=trim($node->getAttribute('style'));
+        $node->removeAttribute('style');
+        if($style==='') continue;
+        $class=csp_dynamic_class($style,'rt');
+        if($class==='') continue;
+        $existing=trim($node->getAttribute('class'));
+        $node->setAttribute('class',trim($existing.' '.$class));
+    }
+
+    $out='';
+    foreach(iterator_to_array($root->childNodes) as $child) $out.=$doc->saveHTML($child);
+    return trim($out);
+}
+
+function ensure_user_security_schema(): void
+{
+    if(!APP_INSTALLED) return;
+    $pdo=db();
+    $driver=(string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+    if($driver==='sqlite'){
+        $cols=$pdo->query("PRAGMA table_info(users)")->fetchAll();
+        $names=[];
+        foreach($cols as $col) $names[(string)($col['name']??'')]=true;
+        if(!isset($names['two_factor_secret'])) $pdo->exec("ALTER TABLE users ADD COLUMN two_factor_secret TEXT NULL");
+        if(!isset($names['two_factor_enabled'])) $pdo->exec("ALTER TABLE users ADD COLUMN two_factor_enabled INTEGER NOT NULL DEFAULT 0");
+        if(!isset($names['two_factor_recovery_codes'])) $pdo->exec("ALTER TABLE users ADD COLUMN two_factor_recovery_codes TEXT NULL");
+        if(!isset($names['two_factor_confirmed_at'])) $pdo->exec("ALTER TABLE users ADD COLUMN two_factor_confirmed_at TEXT NULL");
+    }else{
+        foreach([
+            'two_factor_secret'=>"ALTER TABLE users ADD COLUMN two_factor_secret TEXT NULL AFTER status",
+            'two_factor_enabled'=>"ALTER TABLE users ADD COLUMN two_factor_enabled TINYINT(1) NOT NULL DEFAULT 0 AFTER two_factor_secret",
+            'two_factor_recovery_codes'=>"ALTER TABLE users ADD COLUMN two_factor_recovery_codes TEXT NULL AFTER two_factor_enabled",
+            'two_factor_confirmed_at'=>"ALTER TABLE users ADD COLUMN two_factor_confirmed_at DATETIME NULL AFTER two_factor_recovery_codes",
+        ] as $column=>$sql){
+            $q=$pdo->query("SHOW COLUMNS FROM users LIKE ".$pdo->quote($column));
+            if(!$q->fetch()) $pdo->exec($sql);
+        }
+    }
+}
+
+function security_secret_key(): string
+{
+    $dir=ROOT_PATH.'/storage/security';
+    if(!is_dir($dir) && !@mkdir($dir,0775,true) && !is_dir($dir)){
+        throw new RuntimeException('Не удалось подготовить защищённое хранилище.');
+    }
+    $path=$dir.'/two-factor.key';
+    if(!is_file($path)){
+        $key=random_bytes(32);
+        if(@file_put_contents($path,$key,LOCK_EX)===false) throw new RuntimeException('Не удалось создать ключ 2FA.');
+        @chmod($path,0600);
+    }
+    $key=@file_get_contents($path);
+    if(!is_string($key) || strlen($key)!==32) throw new RuntimeException('Ключ 2FA повреждён.');
+    return $key;
+}
+
+function security_encrypt_secret(string $plain): string
+{
+    $key=security_secret_key();
+    if(function_exists('sodium_crypto_secretbox')){
+        $nonce=random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        return 's1.'.base64_encode($nonce.sodium_crypto_secretbox($plain,$nonce,$key));
+    }
+    if(function_exists('openssl_encrypt')){
+        $iv=random_bytes(12);
+        $tag='';
+        $cipher=openssl_encrypt($plain,'aes-256-gcm',$key,OPENSSL_RAW_DATA,$iv,$tag,'akhikhan-2fa');
+        if($cipher===false) throw new RuntimeException('Не удалось зашифровать 2FA-секрет.');
+        return 'o1.'.base64_encode($iv.$tag.$cipher);
+    }
+    throw new RuntimeException('На сервере нет Sodium/OpenSSL для безопасного хранения 2FA.');
+}
+
+function security_decrypt_secret(string $encoded): string
+{
+    $key=security_secret_key();
+    if(str_starts_with($encoded,'s1.') && function_exists('sodium_crypto_secretbox_open')){
+        $raw=base64_decode(substr($encoded,3),true);
+        if(!is_string($raw) || strlen($raw)<=SODIUM_CRYPTO_SECRETBOX_NONCEBYTES) return '';
+        $nonce=substr($raw,0,SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $plain=sodium_crypto_secretbox_open(substr($raw,SODIUM_CRYPTO_SECRETBOX_NONCEBYTES),$nonce,$key);
+        return is_string($plain)?$plain:'';
+    }
+    if(str_starts_with($encoded,'o1.') && function_exists('openssl_decrypt')){
+        $raw=base64_decode(substr($encoded,3),true);
+        if(!is_string($raw) || strlen($raw)<29) return '';
+        $iv=substr($raw,0,12); $tag=substr($raw,12,16); $cipher=substr($raw,28);
+        $plain=openssl_decrypt($cipher,'aes-256-gcm',$key,OPENSSL_RAW_DATA,$iv,$tag,'akhikhan-2fa');
+        return is_string($plain)?$plain:'';
+    }
+    return '';
+}
+
+function totp_base32_encode(string $data): string
+{
+    $alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    $bits='';
+    foreach(str_split($data) as $char) $bits.=str_pad(decbin(ord($char)),8,'0',STR_PAD_LEFT);
+    $out='';
+    for($i=0;$i<strlen($bits);$i+=5){
+        $chunk=substr($bits,$i,5);
+        if(strlen($chunk)<5) $chunk=str_pad($chunk,5,'0');
+        $out.=$alphabet[bindec($chunk)];
+    }
+    return $out;
+}
+
+function totp_base32_decode(string $secret): string
+{
+    $alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    $secret=strtoupper(preg_replace('/[^A-Z2-7]/i','',$secret)??'');
+    $bits='';
+    foreach(str_split($secret) as $char){
+        $pos=strpos($alphabet,$char);
+        if($pos===false) continue;
+        $bits.=str_pad(decbin($pos),5,'0',STR_PAD_LEFT);
+    }
+    $out='';
+    for($i=0;$i+8<=strlen($bits);$i+=8) $out.=chr(bindec(substr($bits,$i,8)));
+    return $out;
+}
+
+function totp_generate_secret(): string
+{
+    return totp_base32_encode(random_bytes(20));
+}
+
+function totp_code(string $secret, ?int $time = null): string
+{
+    $key=totp_base32_decode($secret);
+    $counter=intdiv($time??time(),30);
+    $bin=pack('N2',($counter>>32)&0xffffffff,$counter&0xffffffff);
+    $hash=hash_hmac('sha1',$bin,$key,true);
+    $offset=ord($hash[19])&0x0f;
+    $value=((ord($hash[$offset])&0x7f)<<24)|((ord($hash[$offset+1])&0xff)<<16)|((ord($hash[$offset+2])&0xff)<<8)|(ord($hash[$offset+3])&0xff);
+    return str_pad((string)($value%1000000),6,'0',STR_PAD_LEFT);
+}
+
+function totp_verify(string $secret, string $code, int $window = 1): bool
+{
+    $code=preg_replace('/\\D+/','',$code)??'';
+    if(strlen($code)!==6) return false;
+    $now=time();
+    for($i=-$window;$i<=$window;$i++){
+        if(hash_equals(totp_code($secret,$now+$i*30),$code)) return true;
+    }
+    return false;
+}
+
+function two_factor_recovery_codes(): array
+{
+    $codes=[];
+    for($i=0;$i<8;$i++) $codes[]=strtoupper(bin2hex(random_bytes(4)));
+    return $codes;
+}
+
+function two_factor_hash_recovery_codes(array $codes): string
+{
+    return json_encode(array_map(fn($c)=>password_hash(strtoupper(trim((string)$c)),PASSWORD_DEFAULT),$codes),JSON_UNESCAPED_SLASHES);
+}
+
+function two_factor_verify_recovery_code(int $userId, string $code, string $json): bool
+{
+    $hashes=json_decode($json,true);
+    if(!is_array($hashes)) return false;
+    $code=strtoupper(trim($code));
+    foreach($hashes as $i=>$hash){
+        if(is_string($hash) && password_verify($code,$hash)){
+            unset($hashes[$i]);
+            db()->prepare('UPDATE users SET two_factor_recovery_codes=? WHERE id=?')->execute([json_encode(array_values($hashes)), $userId]);
+            return true;
+        }
+    }
+    return false;
+}
+
+function two_factor_verify_user(array $user, string $code): bool
+{
+    if(empty($user['two_factor_enabled'])) return true;
+    $secret=security_decrypt_secret((string)($user['two_factor_secret']??''));
+    if($secret!=='' && totp_verify($secret,$code,1)) return true;
+    return two_factor_verify_recovery_code((int)$user['id'],$code,(string)($user['two_factor_recovery_codes']??''));
+}
+
+function two_factor_otpauth_uri(string $email, string $secret): string
+{
+    $issuer='AKHIKHAN';
+    $label=$issuer.':'.$email;
+    return 'otpauth://totp/'.rawurlencode($label).'?secret='.rawurlencode($secret).'&issuer='.rawurlencode($issuer).'&algorithm=SHA1&digits=6&period=30';
+}
+
+function security_scan_upload(string $tmp, string $ext): void
+{
+    if(!is_file($tmp) || !is_readable($tmp)) throw new RuntimeException('Не удалось проверить загружаемый файл.');
+    $ext=strtolower($ext);
+
+    // Optional server antivirus. If ClamAV is installed, every supported upload
+    // is scanned before it is moved into the public uploads tree.
+    if(function_exists('proc_open')){
+        foreach(['/usr/bin/clamdscan','/usr/local/bin/clamdscan','/usr/bin/clamscan','/usr/local/bin/clamscan'] as $binary){
+            if(!is_executable($binary)) continue;
+            $cmd=escapeshellarg($binary).' --no-summary '.escapeshellarg($tmp);
+            $pipes=[];
+            $proc=@proc_open($cmd,[1=>['pipe','w'],2=>['pipe','w']],$pipes);
+            if(is_resource($proc)){
+                foreach($pipes as $pipe) if(is_resource($pipe)) stream_get_contents($pipe);
+                foreach($pipes as $pipe) if(is_resource($pipe)) fclose($pipe);
+                $exit=proc_close($proc);
+                if($exit===1) throw new RuntimeException('Антивирус обнаружил угрозу в файле.');
+                if($exit===0) return;
+            }
+            break;
+        }
+    }
+
+    // CDR-style fail-closed checks for active content when ClamAV is absent.
+    if($ext==='pdf'){
+        $sample=(string)file_get_contents($tmp,false,null,0,min(4*1024*1024,(int)filesize($tmp)));
+        if(preg_match('~/(JavaScript|JS|Launch|EmbeddedFile|RichMedia|OpenAction)\\b~i',$sample)){
+            throw new RuntimeException('PDF содержит активное или встроенное содержимое и отклонён политикой безопасности.');
+        }
+    }
+
+    if(in_array($ext,['docx','xlsx','pptx'],true) && class_exists('ZipArchive')){
+        $zip=new ZipArchive();
+        if($zip->open($tmp)===true){
+            try{
+                for($i=0;$i<$zip->numFiles;$i++){
+                    $name=strtolower((string)$zip->getNameIndex($i));
+                    if(str_contains($name,'vbaproject.bin') || str_contains($name,'/activex/') || str_contains($name,'/embeddings/')){
+                        throw new RuntimeException('Office-документ содержит макросы, ActiveX или встроенные объекты и отклонён политикой безопасности.');
+                    }
+                }
+            }finally{$zip->close();}
+        }
+    }
+}
+
+
 
 function sanitize_rich_text(?string $html): string
 {
@@ -156,7 +447,7 @@ function rich_text_html(?string $value): string
     if(!preg_match('~<\/?[a-z][^>]*>~i',$value)){
         return nl2br(e($value));
     }
-    return sanitize_rich_text($value);
+    return csp_prepare_rich_text_styles(sanitize_rich_text($value));
 }
 
 function rich_text_excerpt(?string $value, int $limit = 220): string
