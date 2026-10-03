@@ -182,7 +182,7 @@ require __DIR__.'/_top.php';
             </div>
             <div class="social-link-actions">
               <a class="edit-action" href="<?=e(base_url('admin/social-links.php?id='.$link['id']))?>">Редактировать</a>
-              <form method="post" onsubmit="return confirm('Удалить эту ссылку?')">
+              <form method="post" data-confirm="Удалить эту ссылку?">
                 <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="id" value="<?=$link['id']?>">
