@@ -213,7 +213,8 @@ require __DIR__.'/_top.php';
       <div class="gallery-albums-list">
         <?php foreach($albums as $album):?>
           <article class="gallery-album-admin-card">
-            <a class="gallery-album-admin-cover" href="<?=e(base_url('admin/photo-gallery.php?album_id='.$album['id']))?>" <?php if(!empty($album['cover_image'])):?>style="background-image:url('<?=e(base_url($album['cover_image']))?>')"<?php endif;?>></a>
+            <?php $albumCoverClass=!empty($album['cover_image']) ? csp_dynamic_class("background-image:url('".base_url($album['cover_image'])."');",'admin-album-cover') : ''; ?>
+            <a class="gallery-album-admin-cover <?=e($albumCoverClass)?>" href="<?=e(base_url('admin/photo-gallery.php?album_id='.$album['id']))?>"></a>
             <div class="gallery-album-admin-info">
               <span class="status <?=$album['status']==='published'?'green':'gray'?>"><?=$album['status']==='published'?'Опубликован':'Черновик'?></span>
               <h3><?=e($album['title'])?></h3>
