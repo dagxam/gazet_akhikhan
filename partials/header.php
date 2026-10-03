@@ -273,9 +273,12 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
               <a href="<?=e(base_url('admin/profile.php'))?>" target="_blank" rel="noopener">
                 <i class="fa-regular fa-user" aria-hidden="true"></i><span>Профиль</span>
               </a>
-              <a class="is-logout" href="<?=e(base_url('admin/logout.php'))?>">
-                <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i><span>Выйти</span>
-              </a>
+              <form class="topbar-admin-logout-form" method="post" action="<?=e(base_url('admin/logout.php'))?>">
+                <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
+                <button class="is-logout" type="submit">
+                  <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i><span>Выйти</span>
+                </button>
+              </form>
             </div>
           </div>
         </div>
