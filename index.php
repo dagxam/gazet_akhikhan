@@ -40,7 +40,8 @@ require __DIR__ . '/partials/header.php';
 <div class="wrap home-shell">
 
 <section class="home-lead-grid">
-  <article class="hero-story <?=!empty($hero['cover_image'])?'hero-has-cover':'hero-clean'?>" data-interactive-hero<?php if(!empty($hero['cover_image'])):?> style="background-image:linear-gradient(90deg,rgba(19,21,18,.88) 0%,rgba(19,21,18,.57) 45%,rgba(19,21,18,.14) 82%),url('<?=e(base_url($hero['cover_image']))?>')"<?php endif;?>>
+  <?php if(!empty($hero['cover_image'])):?><style nonce="<?=e(csp_nonce())?>" data-hero-background-style>.hero-story[data-interactive-hero]{background-image:linear-gradient(90deg,rgba(19,21,18,.88) 0%,rgba(19,21,18,.57) 45%,rgba(19,21,18,.14) 82%),<?=e(css_url_literal(base_url($hero['cover_image'])))?>}</style><?php else:?><style nonce="<?=e(csp_nonce())?>" data-hero-background-style></style><?php endif;?>
+  <article class="hero-story <?=!empty($hero['cover_image'])?'hero-has-cover':'hero-clean'?>" data-interactive-hero>
     <div class="hero-story-copy">
       <span class="kicker" data-hero-kicker>Главные новости</span>
       <?php if($hero):?>
@@ -323,8 +324,9 @@ require __DIR__ . '/partials/header.php';
         $blockHref=homepage_right_block_href($block['link_url']??'');
         $blockStyle=in_array($block['style'],['light','accent','dark'],true)?$block['style']:'light';
       ?>
-        <section class="right-feature-card right-feature-<?=e($blockStyle)?> <?=!empty($block['image'])?'has-image':''?>"
-          <?php if(!empty($block['image'])):?>style="--right-block-image:url('<?=e(base_url($block['image']))?>')"<?php endif;?>>
+        <?php $homeBlockId='home-right-block-'.(int)$block['id']; ?>
+        <?php if(!empty($block['image'])):?><style nonce="<?=e(csp_nonce())?>">#<?=e($homeBlockId)?>{--right-block-image:<?=e(css_url_literal(base_url($block['image'])))?>}</style><?php endif;?>
+        <section id="<?=e($homeBlockId)?>" class="right-feature-card right-feature-<?=e($blockStyle)?> <?=!empty($block['image'])?'has-image':''?>">
           <div class="right-feature-overlay"></div>
           <div class="right-feature-content">
             <?php if(!empty($block['kicker'])):?><span class="heading-kicker"><?=e($block['kicker'])?></span><?php endif;?>
@@ -479,7 +481,9 @@ require __DIR__ . '/partials/header.php';
       <?php foreach($homeVideos as $i=>$video):?>
         <a class="section-card home-video-section-card" href="<?=e(base_url('videos.php?id='.$video['id']))?>">
           <span class="section-number"><?=str_pad((string)($i+1),2,'0',STR_PAD_LEFT)?></span>
-          <div class="section-card-image home-video-section-image" <?php if(!empty($video['cover_image'])):?>style="background-image:url('<?=e(base_url($video['cover_image']))?>')"<?php endif;?>>
+          <?php $homeVideoId='home-video-cover-'.(int)$video['id']; ?>
+          <?php if(!empty($video['cover_image'])):?><style nonce="<?=e(csp_nonce())?>">#<?=e($homeVideoId)?>{background-image:<?=e(css_url_literal(base_url($video['cover_image'])))?>}</style><?php endif;?>
+          <div id="<?=e($homeVideoId)?>" class="section-card-image home-video-section-image">
             <?php if(empty($video['cover_image'])):?>
               <span class="home-video-fallback">
                 <i class="<?=($video['provider']??'')==='vk'?'fa-brands fa-vk':(($video['provider']??'')==='ok'?'fa-brands fa-odnoklassniki':'fa-solid fa-play')?>"></i>
@@ -530,7 +534,7 @@ require __DIR__ . '/partials/header.php';
 </section>
 
 <?php if($newspaper && empty($newspaper['cover_image'])):?>
-<script type="module" id="public-newspaper-pdf-renderer">
+<script type="module" id="public-newspaper-pdf-renderer" nonce="<?=e(csp_nonce())?>">
 const canvases=[...document.querySelectorAll('canvas[data-pdf-preview]')];
 if(canvases.length){
   try{
