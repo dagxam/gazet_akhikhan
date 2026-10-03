@@ -35,10 +35,24 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     $label=trim($_POST['label']??'');
     if($label==='') throw new RuntimeException('Введите название пункта меню.');
 
-    $categorySlug=trim($_POST['category_slug']??'');
-    $url=trim($_POST['url']??'');
-    if($categorySlug!=='') $url='category:'.$categorySlug;
-    if($url==='') throw new RuntimeException('Укажите ссылку или выберите рубрику.');
+    $categorySlug=trim((string)($_POST['category_slug']??''));
+    $staticPageId=(int)($_POST['static_page_id']??0);
+    $url=trim((string)($_POST['url']??''));
+    $selectedStaticPage=null;
+
+    if($categorySlug!=='' && $staticPageId>0){
+      throw new RuntimeException('Выберите только один источник пункта меню: рубрику или статичную страницу.');
+    }
+
+    if($staticPageId>0){
+      $selectedStaticPage=static_page($staticPageId,false);
+      if(!$selectedStaticPage) throw new RuntimeException('Выбранная статичная страница не найдена.');
+      $url='page-id:'.$staticPageId;
+    }elseif($categorySlug!==''){
+      $url='category:'.$categorySlug;
+    }
+
+    if($url==='') throw new RuntimeException('Укажите ссылку, выберите рубрику или статичную страницу.');
 
     if($saveId){
       $q=db()->prepare('SELECT sort_order FROM main_menu_items WHERE id=? LIMIT 1');
@@ -49,6 +63,10 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     }
     $isActive=isset($_POST['is_active'])?1:0;
     $openNew=isset($_POST['open_new_tab'])?1:0;
+
+    if($isActive && $selectedStaticPage && ($selectedStaticPage['status']??'draft')!=='published'){
+      throw new RuntimeException('Нельзя показать в меню статичную страницу со статусом «Черновик». Сначала опубликуйте её.');
+    }
 
     if($saveId){
       $q=db()->prepare('UPDATE main_menu_items SET label=?,url=?,sort_order=?,is_active=?,open_new_tab=?,updated_at=CURRENT_TIMESTAMP WHERE id=?');
@@ -75,10 +93,18 @@ if($id){
 
 $rows=main_menu_items(false);
 $cats=categories();
+$staticPages=static_pages(false);
+$staticPageMap=[];
+foreach($staticPages as $pageRow) $staticPageMap[(int)$pageRow['id']]=$pageRow;
+
 $currentCategory='';
+$currentStaticPage=0;
 $currentUrl=$editing['url']??'';
 if(str_starts_with((string)$currentUrl,'category:')){
   $currentCategory=substr((string)$currentUrl,9);
+  $currentUrl='';
+}elseif(str_starts_with((string)$currentUrl,'page-id:')){
+  $currentStaticPage=(int)substr((string)$currentUrl,8);
   $currentUrl='';
 }
 
@@ -129,12 +155,25 @@ require __DIR__.'/_top.php';
       </label>
 
       <label class="field-modern compact">
-        <span>Ссылка</span>
+        <span>Статичная страница</span>
+        <select name="static_page_id" data-menu-static-page>
+          <option value="0">Не привязывать к статичной странице</option>
+          <?php foreach($staticPages as $pageRow):?>
+            <option value="<?=(int)$pageRow['id']?>" <?=$currentStaticPage===(int)$pageRow['id']?'selected':''?>>
+              <?=e($pageRow['title'])?><?=($pageRow['status']??'draft')==='published'?'':' · Черновик'?>
+            </option>
+          <?php endforeach;?>
+        </select>
+        <small>Пункт останется связан со страницей даже после изменения её URL.</small>
+      </label>
+
+      <label class="field-modern compact">
+        <span>Произвольная ссылка</span>
         <input name="url" value="<?=e($currentUrl)?>" placeholder="Например: documents.php или https://...">
       </label>
 
       <div class="menu-help">
-        Если выбрана рубрика выше, поле ссылки можно оставить пустым. Для внутренних страниц используйте адрес без домена: <code>contacts.php</code>. Для внешнего сайта — полный <code>https://...</code>. Порядок пунктов меняется в списке справа.
+        Выберите <b>рубрику</b>, <b>статичную страницу</b> или укажите произвольную ссылку. Одновременно используется только один вариант. Черновик статичной страницы нельзя включить в публичное меню.
       </div>
 
       <div class="menu-checks">
@@ -187,7 +226,17 @@ require __DIR__.'/_top.php';
 
             <div class="menu-admin-copy">
               <strong><i class="menu-state-dot <?=empty($row['is_active'])?'off':''?>"></i><?=e($row['label'])?></strong>
-              <small><?=e($row['url'])?><?=$row['open_new_tab']?' · новая вкладка':''?></small>
+              <?php
+                $displayTarget=(string)$row['url'];
+                if(str_starts_with($displayTarget,'page-id:')){
+                  $linkedId=(int)substr($displayTarget,8);
+                  $linkedPage=$staticPageMap[$linkedId]??null;
+                  $displayTarget=$linkedPage ? 'Страница · '.(string)$linkedPage['title'] : 'Страница удалена';
+                }elseif(str_starts_with($displayTarget,'category:')){
+                  $displayTarget='Рубрика · '.substr($displayTarget,9);
+                }
+              ?>
+              <small><?=e($displayTarget)?><?=$row['open_new_tab']?' · новая вкладка':''?></small>
             </div>
 
             <span class="menu-admin-state <?=empty($row['is_active'])?'is-off':''?>"><?=empty($row['is_active'])?'Скрыт':'На сайте'?></span>
@@ -221,14 +270,27 @@ require __DIR__.'/_top.php';
 
 <script nonce="<?=e(csp_nonce())?>">
 const categorySelect=document.querySelector('[data-menu-category]');
+const staticPageSelect=document.querySelector('[data-menu-static-page]');
 const urlInput=document.querySelector('input[name="url"]');
-if(categorySelect&&urlInput){
+if(categorySelect&&staticPageSelect&&urlInput){
   const sync=()=>{
     const hasCategory=categorySelect.value!=='';
-    urlInput.disabled=hasCategory;
-    urlInput.placeholder=hasCategory?'Ссылка будет создана из выбранной рубрики':'Например: documents.php или https://...';
+    const hasPage=Number(staticPageSelect.value||0)>0;
+    staticPageSelect.disabled=hasCategory;
+    categorySelect.disabled=hasPage;
+    urlInput.disabled=hasCategory||hasPage;
+    urlInput.placeholder=hasCategory
+      ?'Ссылка будет создана из выбранной рубрики'
+      :(hasPage?'Ссылка будет создана из выбранной статичной страницы':'Например: documents.php или https://...');
   };
-  categorySelect.addEventListener('change',sync);
+  categorySelect.addEventListener('change',()=>{
+    if(categorySelect.value!=='') staticPageSelect.value='0';
+    sync();
+  });
+  staticPageSelect.addEventListener('change',()=>{
+    if(Number(staticPageSelect.value||0)>0) categorySelect.value='';
+    sync();
+  });
   sync();
 }
 
