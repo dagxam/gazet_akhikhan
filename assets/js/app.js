@@ -99,16 +99,18 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
       if(heroLocationRegion) heroLocationRegion.textContent=item.dataset.heroLocationRegion||'Дагестан';
 
       const cover=item.dataset.heroCover||'';
+      const bgClass=item.dataset.heroBgClass||'';
       hero.classList.remove('hero-reference');
+      [...hero.classList].forEach(className=>{
+        if(className.startsWith('hero-bg-')||className.startsWith('hero-switch-')) hero.classList.remove(className);
+      });
 
-      if(cover){
+      if(cover&&bgClass){
         hero.classList.remove('hero-clean');
-        hero.classList.add('hero-has-cover');
-        hero.style.backgroundImage='linear-gradient(90deg,rgba(19,21,18,.88) 0%,rgba(19,21,18,.57) 45%,rgba(19,21,18,.14) 82%),url("'+cover.replace(/"/g,'%22')+'")';
+        hero.classList.add('hero-has-cover',bgClass);
       }else{
         hero.classList.remove('hero-has-cover');
         hero.classList.add('hero-clean');
-        hero.style.backgroundImage='';
       }
 
       requestAnimationFrame(function(){
@@ -331,8 +333,7 @@ document.querySelectorAll('a[href="#top"]').forEach(function(link){
         const input=document.createElement('textarea');
         input.value=url;
         input.setAttribute('readonly','');
-        input.style.position='fixed';
-        input.style.opacity='0';
+        input.className='clipboard-fallback';
         document.body.appendChild(input);
         input.select();
         try{ document.execCommand('copy'); }catch(err){}
