@@ -182,7 +182,7 @@ require __DIR__.'/_top.php';
               <div class="row-actions">
                 <a class="edit-action" href="<?=e(base_url('admin/newspapers.php?id='.$row['id']))?>">Редактировать</a>
                 <a class="edit-action" href="<?=e(base_url($row['pdf_file']))?>" target="_blank">PDF ↗</a>
-                <form method="post" onsubmit="return confirm('Удалить этот выпуск газеты?')">
+                <form method="post" data-confirm="Удалить этот выпуск газеты?">
                   <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
                   <input type="hidden" name="delete_id" value="<?=$row['id']?>">
                   <button class="danger">Удалить</button>
@@ -202,7 +202,7 @@ require __DIR__.'/_top.php';
   </section>
 </div>
 
-<script type="module">
+<script nonce="<?=e(csp_nonce())?>" type="module">
 const canvases=[...document.querySelectorAll('canvas[data-pdf-preview]')];
 if(canvases.length){
   try{
