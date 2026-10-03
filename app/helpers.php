@@ -273,7 +273,6 @@ function security_scan_upload(string $tmp, string $ext): void
             }
             throw new RuntimeException('Не удалось запустить антивирусную проверку файла.');
         }
-        }
     }
 
     // CDR-style fail-closed checks for active content when ClamAV is absent.
