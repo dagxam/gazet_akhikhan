@@ -44,6 +44,13 @@ $accessibilityPanelBorder=setting('accessibility_panel_border','#d8c7b4');
 $accessibilityPrimaryBg=setting('accessibility_primary_bg','#5d402a');
 $accessibilityPrimaryText=setting('accessibility_primary_text','#ffffff');
 
+$accessibilityPanelBgCss=css_safe_color($accessibilityPanelBg,'#fffdf9');
+$accessibilityPanelTextCss=css_safe_color($accessibilityPanelTextColor,'#302923');
+$accessibilityPanelAccentCss=css_safe_color($accessibilityPanelAccent,'#765132');
+$accessibilityPanelBorderCss=css_safe_color($accessibilityPanelBorder,'#d8c7b4');
+$accessibilityPrimaryBgCss=css_safe_color($accessibilityPrimaryBg,'#5d402a');
+$accessibilityPrimaryTextCss=css_safe_color($accessibilityPrimaryText,'#ffffff');
+
 $seoSiteName = trim(setting('site_name','АХИХЪАН')) ?: 'АХИХЪАН';
 $seoSiteAlternateName = 'Сетевое издание Унцукульского района';
 $seoDefaultDescription = 'Сетевое издание Унцукульского района Республики Дагестан: новости, общество, культура, спорт, люди и история.';
@@ -170,13 +177,17 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
 <?php if($seoModifiedTime!==''):?><meta property="article:modified_time" content="<?=e($seoModifiedTime)?>"><?php endif;?>
 <?php if($seoArticleSection!==''):?><meta property="article:section" content="<?=e($seoArticleSection)?>"><?php endif;?>
 <?php foreach($seoJsonLd as $jsonLd):?>
-<script type="application/ld+json"><?=json_encode($jsonLd,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?></script>
+<script type="application/ld+json" nonce="<?=e(csp_nonce())?>"><?=json_encode($jsonLd,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?></script>
 <?php endforeach;?>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@400;500;600;700;800&family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Noto+Serif:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20261002-security3'))?>">
+<link rel="stylesheet" href="<?=e(base_url('assets/css/style.css?v=20261003-security4'))?>">
+<style nonce="<?=e(csp_nonce())?>">
+.topbar-accessibility{--a11y-accent:<?=e($accessibilityPanelAccentCss)?>}
+.accessibility-panel{--a11y-panel-bg:<?=e($accessibilityPanelBgCss)?>;--a11y-panel-text:<?=e($accessibilityPanelTextCss)?>;--a11y-panel-accent:<?=e($accessibilityPanelAccentCss)?>;--a11y-panel-border:<?=e($accessibilityPanelBorderCss)?>;--a11y-primary-bg:<?=e($accessibilityPrimaryBgCss)?>;--a11y-primary-text:<?=e($accessibilityPrimaryTextCss)?>}
+</style>
 </head>
 <body>
 <a class="skip-link" href="#main-content">Перейти к основному содержанию</a>
@@ -226,7 +237,7 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
       <?php endif;?>
 
       <?php if($accessibilityEnabled):?>
-        <button class="topbar-accessibility" type="button" data-accessibility-toggle aria-expanded="false" aria-controls="accessibility-panel" style="--a11y-accent:<?=e($accessibilityPanelAccent)?>;">
+        <button class="topbar-accessibility" type="button" data-accessibility-toggle aria-expanded="false" aria-controls="accessibility-panel">
           <span class="topbar-accessibility-icon"><i class="fa-regular fa-eye" aria-hidden="true"></i></span>
           <span><?=e($accessibilityLabel)?></span>
           <b class="topbar-accessibility-state" data-accessibility-state-label>Выкл.</b>
@@ -261,9 +272,12 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
               <a href="<?=e(base_url('admin/profile.php'))?>" target="_blank" rel="noopener">
                 <i class="fa-regular fa-user" aria-hidden="true"></i><span>Профиль</span>
               </a>
-              <a class="is-logout" href="<?=e(base_url('admin/logout.php'))?>">
-                <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i><span>Выйти</span>
-              </a>
+              <form class="topbar-logout-form" method="post" action="<?=e(base_url('admin/logout.php'))?>">
+                <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
+                <button class="is-logout topbar-logout-button" type="submit">
+                  <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i><span>Выйти</span>
+                </button>
+              </form>
             </div>
           </div>
         </div>
@@ -289,8 +303,7 @@ function nav_link_for_slug(string $slug, string $fallbackLabel): string {
          hidden
          role="dialog"
          aria-modal="false"
-         aria-labelledby="accessibility-panel-title"
-         style="--a11y-panel-bg:<?=e($accessibilityPanelBg)?>;--a11y-panel-text:<?=e($accessibilityPanelTextColor)?>;--a11y-panel-accent:<?=e($accessibilityPanelAccent)?>;--a11y-panel-border:<?=e($accessibilityPanelBorder)?>;--a11y-primary-bg:<?=e($accessibilityPrimaryBg)?>;--a11y-primary-text:<?=e($accessibilityPrimaryText)?>;">
+         aria-labelledby="accessibility-panel-title">
   <div class="wrap accessibility-panel-inner">
     <div class="accessibility-panel-hero">
       <div class="accessibility-panel-symbol"><i class="fa-regular fa-eye" aria-hidden="true"></i></div>
