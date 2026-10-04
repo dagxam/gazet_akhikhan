@@ -493,7 +493,7 @@ unset($_SESSION['two_factor_recovery_plain']);
     <div class="users-list">
       <?php foreach($users as $user):
         $assignedPermissions=$user['role']==='editor'
-          ? normalize_editor_permissions($user['editor_permissions']??null,true)
+          ? normalize_editor_permissions($user['editor_permissions']??null,false)
           : [];
       ?>
         <article class="user-admin-row">
@@ -536,6 +536,12 @@ unset($_SESSION['two_factor_recovery_plain']);
 
             <fieldset class="editor-permissions-box editor-permissions-compact">
               <legend>Доступ к разделам</legend>
+              <?php if($user['role']==='editor' && !$assignedPermissions):?>
+                <div class="editor-no-access-note">
+                  <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                  <span><b>Права не назначены</b><small>В левом меню редактора будут только «Обзор» и «Профиль», пока администратор не сохранит хотя бы один раздел.</small></span>
+                </div>
+              <?php endif;?>
               <?php if($user['role']==='admin'):?>
                 <div class="editor-full-access-note">
                   <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
