@@ -4770,3 +4770,150 @@ button[type="submit"]:disabled{
   font-size:9px;
   line-height:1.4;
 }
+
+
+/* User management controls polish — 2026-10-04 */
+.user-access-toolbar{
+  grid-template-columns:minmax(170px,190px) minmax(150px,170px) minmax(150px,170px);
+  gap:12px;
+  align-items:end;
+}
+.user-access-control select,
+.user-access-save,
+.user-delete-button{
+  min-height:42px;
+  height:42px;
+  border-radius:11px!important;
+}
+.user-access-control select{
+  border:1px solid #dacdbf;
+  background:
+    linear-gradient(180deg,#fff 0%,#fcfaf7 100%);
+  box-shadow:0 2px 8px rgba(75,51,31,.035);
+  color:#35291f;
+  font-size:10.5px;
+  font-weight:700;
+}
+.user-access-save{
+  display:inline-flex!important;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  margin:0;
+  border:1px solid #b99a79!important;
+  background:linear-gradient(180deg,#fffaf4 0%,#f7efe5 100%)!important;
+  color:#654726!important;
+  box-shadow:0 4px 12px rgba(88,60,35,.05)!important;
+  font-size:10px!important;
+  font-weight:800!important;
+}
+.user-access-save:hover{
+  border-color:#8e6842!important;
+  background:#f3e6d7!important;
+  transform:translateY(-1px);
+}
+.user-admin-danger-zone{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:12px 17px;
+  border-top:1px solid #f0dfda;
+  background:#fffaf9;
+}
+.user-admin-danger-copy{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  color:#8f5148;
+}
+.user-admin-danger-copy>i{
+  flex:0 0 auto;
+  width:30px;
+  height:30px;
+  display:grid;
+  place-items:center;
+  border-radius:9px;
+  background:#f6e7e4;
+  color:#9c544a;
+  font-size:11px;
+}
+.user-admin-danger-copy>span{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+}
+.user-admin-danger-copy b{
+  font-size:10px;
+  line-height:1.25;
+}
+.user-admin-danger-copy small{
+  margin-top:2px;
+  color:#a47d77;
+  font-size:9px;
+  line-height:1.35;
+}
+.user-admin-danger-zone form{
+  margin:0;
+  flex:0 0 auto;
+}
+.user-delete-button{
+  display:inline-flex!important;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  min-width:116px;
+  padding:0 14px!important;
+  border:1px solid #deb9b2!important;
+  background:#fff!important;
+  color:#9d4f45!important;
+  box-shadow:none!important;
+  font-size:10px!important;
+  font-weight:800!important;
+}
+.user-delete-button:hover{
+  border-color:#c9867c!important;
+  background:#fbedeb!important;
+  transform:translateY(-1px);
+}
+.user-admin-row{
+  transition:border-color .16s ease,box-shadow .16s ease;
+}
+.user-admin-row:hover{
+  border-color:#d8c6b5;
+  box-shadow:0 10px 28px rgba(76,53,34,.065);
+}
+.editor-permission-check{
+  min-height:70px;
+}
+.editor-permission-check b{
+  font-size:11.2px;
+}
+.editor-permission-check small{
+  font-size:9.3px;
+}
+@media(max-width:900px){
+  .user-access-toolbar{
+    grid-template-columns:1fr 1fr;
+  }
+  .user-access-save{
+    grid-column:1 / -1;
+  }
+}
+@media(max-width:620px){
+  .user-access-toolbar{
+    grid-template-columns:1fr;
+  }
+  .user-access-save{
+    grid-column:auto;
+  }
+  .user-admin-danger-zone{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .user-admin-danger-zone form,
+  .user-delete-button{
+    width:100%;
+  }
+}
