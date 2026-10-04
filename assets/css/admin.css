@@ -4730,3 +4730,43 @@ button[type="submit"]:disabled{
     padding:12px;
   }
 }
+
+
+/* Exact saved editor access state */
+.editor-no-access-note{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:0 0 11px;
+  padding:10px 11px;
+  border:1px solid #e8d8c7;
+  border-radius:11px;
+  background:#fff8ef;
+  color:#755336;
+}
+.editor-no-access-note>i{
+  flex:0 0 auto;
+  width:28px;
+  height:28px;
+  display:grid;
+  place-items:center;
+  border-radius:9px;
+  background:#8a623d;
+  color:#fff;
+  font-size:11px;
+}
+.editor-no-access-note>span{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+}
+.editor-no-access-note b{
+  font-size:10px;
+  line-height:1.25;
+}
+.editor-no-access-note small{
+  margin-top:2px;
+  color:#8a7968;
+  font-size:9px;
+  line-height:1.4;
+}
