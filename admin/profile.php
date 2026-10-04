@@ -180,6 +180,36 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             exit;
         }
 
+        if($action==='delete_user'){
+            require_site_admin();
+
+            $userId=(int)($_POST['user_id']??0);
+            if($userId<=0) throw new RuntimeException('Пользователь не найден.');
+            if($userId===(int)$me['id']) throw new RuntimeException('Нельзя удалить собственную учётную запись.');
+
+            $q=db()->prepare('SELECT id,name,email,role,status FROM users WHERE id=? LIMIT 1');
+            $q->execute([$userId]);
+            $target=$q->fetch();
+            if(!$target) throw new RuntimeException('Пользователь не найден.');
+
+            if(
+                ($target['role']??'')==='admin'
+                && ($target['status']??'')==='active'
+                && active_admin_count_excluding($userId)<1
+            ){
+                throw new RuntimeException('Нельзя удалить последнего активного администратора.');
+            }
+
+            db()->prepare('DELETE FROM users WHERE id=?')->execute([$userId]);
+            security_log_event('editor-account-deleted',[
+                'target_user_id'=>$userId,
+                'target_role'=>(string)($target['role']??''),
+            ]);
+
+            header('Location: '.base_url('admin/profile.php?user_deleted=1'));
+            exit;
+        }
+
         if($action==='update_user'){
             require_site_admin();
 
@@ -263,6 +293,7 @@ require __DIR__.'/_top.php';
 <?php if(isset($_GET['saved'])):?><div class="ok">Профиль обновлён.</div><?php endif;?>
 <?php if(isset($_GET['user_added'])):?><div class="ok">Новый пользователь добавлен.</div><?php endif;?>
 <?php if(isset($_GET['users_saved'])):?><div class="ok">Права пользователя обновлены.</div><?php endif;?>
+<?php if(isset($_GET['user_deleted'])):?><div class="ok">Сотрудник удалён. Его опубликованные материалы сохранены.</div><?php endif;?>
 <?php if(isset($_GET['maintenance_saved'])):?><div class="ok">Режим реконструкции обновлён.</div><?php endif;?>
 <?php if(isset($_GET['two_factor_enabled'])):?><div class="ok">Двухфакторная защита включена.</div><?php endif;?>
 <?php if(isset($_GET['two_factor_disabled'])):?><div class="ok">Двухфакторная защита отключена.</div><?php endif;?>
@@ -569,6 +600,21 @@ unset($_SESSION['two_factor_recovery_plain']);
               </div>
             </fieldset>
           </form>
+
+          <?php if((int)$user['id']!==(int)$current['id']):?>
+            <div class="user-admin-danger-zone">
+              <div class="user-admin-danger-copy">
+                <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+                <span><b>Удалить сотрудника</b><small>Учётная запись будет удалена, опубликованные материалы останутся на сайте.</small></span>
+              </div>
+              <form method="post" data-confirm="Удалить сотрудника <?=e($user['name'])?>? Это действие нельзя отменить.">
+                <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
+                <input type="hidden" name="action" value="delete_user">
+                <input type="hidden" name="user_id" value="<?=$user['id']?>">
+                <button class="danger user-delete-button" type="submit"><i class="fa-regular fa-trash-can" aria-hidden="true"></i><span>Удалить</span></button>
+              </form>
+            </div>
+          <?php endif;?>
         </article>
       <?php endforeach;?>
       <?php render_admin_pagination('admin/profile.php',$usersPager['page'],$usersPager['total_pages'],[],'users_page','Страницы пользователей'); ?>
