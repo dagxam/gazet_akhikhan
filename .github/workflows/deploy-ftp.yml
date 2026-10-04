@@ -78,6 +78,17 @@ jobs:
           grep -q "Антивирус не смог завершить проверку файла" app/helpers.php
           grep -q 'script nonce="<?=e(csp_nonce())?>" src="<?=e(base_url('"'"'assets/js/app.js?v=20261003-a11y-scroll-fix1'"'"'))?>"' partials/footer.php
           grep -q "preventScroll:true" assets/js/app.js
+          grep -q "2026-10-04-editor-rbac-v1" app/bootstrap.php
+          grep -q "editor_permissions" app/helpers.php
+          grep -q "require_editor_permission('news')" admin/articles.php
+          grep -q "require_editor_permission('news')" admin/categories.php
+          grep -q "require_editor_permission('photos')" admin/photo-gallery.php
+          grep -q "require_editor_permission('videos')" admin/video-gallery.php
+          grep -q "require_editor_permission('newspapers')" admin/newspapers.php
+          grep -q "require_editor_permission('documents')" admin/documents.php
+          grep -q "new_editor_permissions" admin/profile.php
+          grep -q "user_editor_permissions" admin/profile.php
+          grep -q "Granular editor section permissions" assets/css/admin.css
           node --check assets/js/app.js
           python3 -m py_compile tests/load/staging_load.py
           echo "2FA/CSP/upload/menu/staging and interactive JS security implementation validated."
@@ -219,7 +230,7 @@ jobs:
           fi
           echo "Public privacy documents and links verified."
 
-          admin_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/admin.css?v=20261002-security2')"
+          admin_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/admin.css?v=20261004-rbac1')"
           echo "check: admin CSS HTTP $admin_css_code"
           test "$admin_css_code" = "200"
           grep -q 'Unified admin buttons and top Open site action' /tmp/akhikhan-admin.css
@@ -236,6 +247,8 @@ jobs:
           grep -q '.article-gallery-dropzone' /tmp/akhikhan-admin.css
           grep -q 'Security: POST logout control' /tmp/akhikhan-admin.css
           grep -q '.admin-logout-form' /tmp/akhikhan-admin.css
+          grep -q '.editor-permissions-box' /tmp/akhikhan-admin.css
+          grep -q '.editor-permission-check' /tmp/akhikhan-admin.css
 
           right_blocks_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-right-blocks.html --write-out '%{http_code}' https://akhikhan.ru/admin/right-block.php)"
           test "$right_blocks_code" = "302" -o "$right_blocks_code" = "303"
