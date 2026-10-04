@@ -8,6 +8,19 @@ document.querySelectorAll('[data-auto-submit]').forEach(input=>{
   input.addEventListener('change',()=>input.form?.requestSubmit());
 });
 
+document.querySelectorAll('[data-editor-role-select]').forEach(select=>{
+  const form=select.closest('form');
+  const panel=form?.querySelector('[data-editor-permissions-panel]');
+  if(!panel) return;
+
+  const syncEditorPermissions=()=>{
+    panel.hidden=select.value!=='editor';
+  };
+
+  select.addEventListener('change',syncEditorPermissions);
+  syncEditorPermissions();
+});
+
 document.querySelector('.menu-toggle')?.addEventListener('click',()=>document.body.classList.toggle('menu-open'));
 
 document.querySelectorAll('[data-category-toggle]').forEach(btn=>{
