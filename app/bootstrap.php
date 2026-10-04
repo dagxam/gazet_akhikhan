@@ -87,7 +87,7 @@ if (APP_INSTALLED) {
     // metadata locks and becomes fragile under concurrent traffic.
     //
     // Bump this value whenever a deployment adds or changes an ensure_* migration.
-    $runtimeSchemaVersion = '2026-10-03-security-v2';
+    $runtimeSchemaVersion = '2026-10-04-editor-rbac-v1';
     $runtimeSchemaKey = 'runtime_schema_version';
 
     if (setting($runtimeSchemaKey, '') !== $runtimeSchemaVersion) {
