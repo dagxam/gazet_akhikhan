@@ -24,6 +24,7 @@
       <span class="admin-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"></path></svg></span>
       <span>Обзор</span>
     </a>
+    <?php if(user_has_editor_permission('news')):?>
     <a class="admin-nav-link<?=$adminNavActive(['articles.php','article-edit.php'])?>" href="<?=e(base_url('admin/articles.php'))?>">
       <span class="admin-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"></path><path d="M15 3v4h4M9 11h6M9 15h6"></path></svg></span>
       <span>Новости</span>
@@ -32,26 +33,37 @@
       <span class="admin-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h6v5H4zM14 6h6v5h-6zM4 15h6v3H4zM14 15h6v3h-6z"></path></svg></span>
       <span>Рубрики</span>
     </a>
+    <?php endif;?>
+    <?php if(user_has_editor_permission('newspapers')):?>
     <a class="admin-nav-link<?=$adminNavActive(['newspapers.php'])?>" href="<?=e(base_url('admin/newspapers.php'))?>">
       <span class="admin-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z"></path><path d="M8 8h7M8 12h7M8 16h4"></path></svg></span>
       <span>Газета</span>
     </a>
+    <?php endif;?>
+    <?php if(user_has_editor_permission('documents')):?>
     <a class="admin-nav-link<?=$adminNavActive(['documents.php'])?>" href="<?=e(base_url('admin/documents.php'))?>">
       <span class="admin-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"></path><path d="M14 3v5h5M10 12h5M10 16h5"></path></svg></span>
       <span>Документы</span>
     </a>
+    <?php endif;?>
+    <?php if(user_has_editor_permission('photos')):?>
     <a class="admin-nav-link<?=$adminNavActive(['photo-gallery.php'])?>" href="<?=e(base_url('admin/photo-gallery.php'))?>">
       <span class="admin-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"></path><path d="M7 15l3-3 2 2 3-4 3 5"></path><circle cx="8" cy="9" r="1.2"></circle></svg></span>
       <span>Фотогалерея</span>
     </a>
+    <?php endif;?>
+    <?php if(user_has_editor_permission('videos')):?>
     <a class="admin-nav-link<?=$adminNavActive(['video-gallery.php'])?>" href="<?=e(base_url('admin/video-gallery.php'))?>">
       <span class="admin-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M10 9l5 3-5 3z"></path></svg></span>
       <span>Видеогалерея</span>
     </a>
+    <?php endif;?>
+    <?php if(is_site_admin()):?>
     <a class="admin-nav-link<?=$adminNavActive(['static-pages.php'])?>" href="<?=e(base_url('admin/static-pages.php'))?>">
       <span class="admin-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"></path><path d="M15 3v5h5M9 12h6M9 16h4"></path></svg></span>
       <span>Статичные страницы</span>
     </a>
+    <?php endif;?>
     <?php if(is_site_admin()):?>
     <details class="admin-nav-group <?=$settingsGroupOpen?'is-active':''?>" <?=$settingsGroupOpen?'open':''?>>
       <summary class="admin-nav-group-summary">
