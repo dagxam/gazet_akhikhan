@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash VARCHAR(255) NOT NULL,
   role ENUM('admin','editor') NOT NULL DEFAULT 'editor',
   status ENUM('active','blocked') NOT NULL DEFAULT 'active',
+  editor_permissions TEXT NULL,
   two_factor_secret TEXT NULL,
   two_factor_enabled TINYINT(1) NOT NULL DEFAULT 0,
   two_factor_recovery_codes TEXT NULL,
