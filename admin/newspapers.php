@@ -1,6 +1,6 @@
 <?php
 require dirname(__DIR__) . '/app/bootstrap.php';
-require_admin();
+require_editor_permission('newspapers');
 
 $id=(int)($_GET['id']??0);
 $editing=null;
