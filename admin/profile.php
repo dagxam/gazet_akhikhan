@@ -439,7 +439,7 @@ unset($_SESSION['two_factor_recovery_plain']);
     <div>
       <span class="editor-eyebrow">Команда редакции</span>
       <h2>Пользователи</h2>
-      <p>Администратор может добавлять сотрудников, назначать роль и временно блокировать доступ.</p>
+      <p>Администратор может добавлять сотрудников, назначать роль, выбирать доступные редактору разделы и временно блокировать доступ.</p>
     </div>
   </div>
 
@@ -460,12 +460,32 @@ unset($_SESSION['two_factor_recovery_plain']);
         </select>
       </label>
 
+      <fieldset class="editor-permissions-box">
+        <legend>Разделы управления редактора</legend>
+        <p>Выберите один или несколько разделов. Администратор всегда получает полный доступ.</p>
+        <div class="editor-permissions-grid">
+          <?php foreach($editorPermissionCatalog as $permissionKey=>$permissionLabel):?>
+            <label class="editor-permission-check">
+              <input type="checkbox" name="new_editor_permissions[]" value="<?=e($permissionKey)?>">
+              <span>
+                <b><?=e($permissionLabel)?></b>
+                <?php if($permissionKey==='news'):?><small>Добавление и редактирование новостей + управление рубриками</small><?php endif;?>
+              </span>
+            </label>
+          <?php endforeach;?>
+        </div>
+      </fieldset>
+
       <label class="admin-pd-confirm"><input type="checkbox" name="basis_confirmed" value="1" required><span>Подтверждаю наличие правового основания для создания учётной записи и уведомление сотрудника о <a href="<?=e(base_url('privacy.php'))?>" target="_blank" rel="noopener">Политике обработки персональных данных</a>. Это подтверждение администратора, а не согласие за другого человека.</span></label>
       <button class="primary wide" type="submit">Добавить сотрудника</button>
     </form>
 
     <div class="users-list">
-      <?php foreach($users as $user):?>
+      <?php foreach($users as $user):
+        $assignedPermissions=$user['role']==='editor'
+          ? normalize_editor_permissions($user['editor_permissions']??null,true)
+          : array_keys($editorPermissionCatalog);
+      ?>
         <article class="user-admin-row">
           <div class="user-admin-identity">
             <span class="user-mini-avatar"><?=e(function_exists('mb_substr') ? mb_strtoupper(mb_substr($user['name'],0,1,'UTF-8'),'UTF-8') : strtoupper(substr($user['name'],0,1)))?></span>
@@ -488,7 +508,31 @@ unset($_SESSION['two_factor_recovery_plain']);
               <option value="active" <?=$user['status']==='active'?'selected':''?>>Активен</option>
               <option value="blocked" <?=$user['status']==='blocked'?'selected':''?>>Заблокирован</option>
             </select>
-            <button class="secondary" type="submit">Сохранить</button>
+
+            <fieldset class="editor-permissions-box editor-permissions-compact">
+              <legend>Доступ к разделам</legend>
+              <div class="editor-permissions-grid">
+                <?php foreach($editorPermissionCatalog as $permissionKey=>$permissionLabel):?>
+                  <label class="editor-permission-check">
+                    <input
+                      type="checkbox"
+                      name="user_editor_permissions[]"
+                      value="<?=e($permissionKey)?>"
+                      <?=in_array($permissionKey,$assignedPermissions,true)?'checked':''?>
+                    >
+                    <span>
+                      <b><?=e($permissionLabel)?></b>
+                      <?php if($permissionKey==='news'):?><small>включая рубрики</small><?php endif;?>
+                    </span>
+                  </label>
+                <?php endforeach;?>
+              </div>
+              <?php if($user['role']==='admin'):?>
+                <small class="editor-permissions-note">Для администратора эти галочки не ограничивают доступ. Они пригодятся, если изменить роль на редактора.</small>
+              <?php endif;?>
+            </fieldset>
+
+            <button class="secondary" type="submit">Сохранить права</button>
           </form>
         </article>
       <?php endforeach;?>
