@@ -81,13 +81,15 @@ function ensure_user_security_schema(): void
         $cols=$pdo->query("PRAGMA table_info(users)")->fetchAll();
         $names=[];
         foreach($cols as $col) $names[(string)($col['name']??'')]=true;
+        if(!isset($names['editor_permissions'])) $pdo->exec("ALTER TABLE users ADD COLUMN editor_permissions TEXT NULL");
         if(!isset($names['two_factor_secret'])) $pdo->exec("ALTER TABLE users ADD COLUMN two_factor_secret TEXT NULL");
         if(!isset($names['two_factor_enabled'])) $pdo->exec("ALTER TABLE users ADD COLUMN two_factor_enabled INTEGER NOT NULL DEFAULT 0");
         if(!isset($names['two_factor_recovery_codes'])) $pdo->exec("ALTER TABLE users ADD COLUMN two_factor_recovery_codes TEXT NULL");
         if(!isset($names['two_factor_confirmed_at'])) $pdo->exec("ALTER TABLE users ADD COLUMN two_factor_confirmed_at TEXT NULL");
     }else{
         foreach([
-            'two_factor_secret'=>"ALTER TABLE users ADD COLUMN two_factor_secret TEXT NULL AFTER status",
+            'editor_permissions'=>"ALTER TABLE users ADD COLUMN editor_permissions TEXT NULL AFTER status",
+            'two_factor_secret'=>"ALTER TABLE users ADD COLUMN two_factor_secret TEXT NULL AFTER editor_permissions",
             'two_factor_enabled'=>"ALTER TABLE users ADD COLUMN two_factor_enabled TINYINT(1) NOT NULL DEFAULT 0 AFTER two_factor_secret",
             'two_factor_recovery_codes'=>"ALTER TABLE users ADD COLUMN two_factor_recovery_codes TEXT NULL AFTER two_factor_enabled",
             'two_factor_confirmed_at'=>"ALTER TABLE users ADD COLUMN two_factor_confirmed_at DATETIME NULL AFTER two_factor_recovery_codes",
@@ -1353,7 +1355,7 @@ function admin_user(): ?array
     $loaded = true;
 
     try {
-        $q = db()->prepare("SELECT id,name,email,role,status FROM users WHERE id=? LIMIT 1");
+        $q = db()->prepare("SELECT id,name,email,role,status,editor_permissions FROM users WHERE id=? LIMIT 1");
         $q->execute([(int)$_SESSION['admin_user']['id']]);
         $user = $q->fetch();
 
@@ -1397,6 +1399,79 @@ function require_site_admin(): void
         http_response_code(403);
         exit('Недостаточно прав для этого действия.');
     }
+}
+
+function editor_permission_catalog(): array
+{
+    return [
+        'news' => 'Новости и рубрики',
+        'photos' => 'Фотогалерея',
+        'videos' => 'Видеогалерея',
+        'newspapers' => 'Газета',
+        'documents' => 'Документы',
+    ];
+}
+
+function normalize_editor_permissions(mixed $value, bool $legacyFullAccess = true): array
+{
+    $allowed=array_keys(editor_permission_catalog());
+
+    if(is_array($value)){
+        $raw=$value;
+    }else{
+        $text=trim((string)$value);
+        // NULL/empty means a legacy editor created before granular RBAC.
+        // Preserve the access that account had before this migration.
+        if($text==='' && $legacyFullAccess) return $allowed;
+        $decoded=$text!=='' ? json_decode($text,true) : [];
+        $raw=is_array($decoded) ? $decoded : [];
+    }
+
+    $result=[];
+    foreach($raw as $permission){
+        $permission=(string)$permission;
+        if(in_array($permission,$allowed,true) && !in_array($permission,$result,true)){
+            $result[]=$permission;
+        }
+    }
+    return $result;
+}
+
+function editor_permissions_json(array $permissions): string
+{
+    return json_encode(normalize_editor_permissions($permissions,false),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+}
+
+function user_has_editor_permission(string $permission, ?array $user = null): bool
+{
+    $user=$user ?? admin_user();
+    if(!$user) return false;
+    if(($user['role']??'')==='admin') return true;
+    if(($user['role']??'')!=='editor') return false;
+    if(!array_key_exists($permission,editor_permission_catalog())) return false;
+
+    return in_array(
+        $permission,
+        normalize_editor_permissions($user['editor_permissions']??null,true),
+        true
+    );
+}
+
+function require_editor_permission(string $permission): void
+{
+    require_admin();
+    if(!user_has_editor_permission($permission)){
+        http_response_code(403);
+        header('Cache-Control: no-store');
+        exit('Недостаточно прав для управления этим разделом.');
+    }
+}
+
+function posted_editor_permissions(string $field): array
+{
+    $value=$_POST[$field]??[];
+    if(!is_array($value)) $value=[];
+    return normalize_editor_permissions($value,false);
 }
 
 function maintenance_mode_enabled(): bool
