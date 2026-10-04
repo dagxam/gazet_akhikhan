@@ -492,13 +492,13 @@ unset($_SESSION['two_factor_recovery_plain']);
       <label class="field-modern compact"><span>Пароль</span><input type="password" name="new_password" required minlength="12" maxlength="72" autocomplete="new-password"></label>
       <label class="field-modern compact">
         <span>Должность</span>
-        <select name="new_role">
+        <select name="new_role" data-editor-role-select>
           <option value="editor">Редактор</option>
           <option value="admin">Администратор</option>
         </select>
       </label>
 
-      <fieldset class="editor-permissions-box editor-permissions-create">
+      <fieldset class="editor-permissions-box editor-permissions-create" data-editor-permissions-panel>
         <legend>Разделы управления редактора</legend>
         <p>Отметьте только те разделы, за которые сотрудник будет отвечать. Для администратора ограничения не применяются.</p>
         <div class="editor-permissions-grid">
@@ -550,7 +550,7 @@ unset($_SESSION['two_factor_recovery_plain']);
             <div class="user-access-toolbar">
               <label class="user-access-control">
                 <span>Роль</span>
-                <select name="user_role" aria-label="Должность <?=e($user['name'])?>">
+                <select name="user_role" aria-label="Должность <?=e($user['name'])?>" data-editor-role-select>
                   <option value="admin" <?=$user['role']==='admin'?'selected':''?>>Администратор</option>
                   <option value="editor" <?=$user['role']==='editor'?'selected':''?>>Редактор</option>
                 </select>
@@ -562,21 +562,18 @@ unset($_SESSION['two_factor_recovery_plain']);
                   <option value="blocked" <?=$user['status']==='blocked'?'selected':''?>>Заблокирован</option>
                 </select>
               </label>
-              <button class="secondary user-access-save" type="submit">Сохранить права</button>
+              <div class="user-access-action">
+                <span class="user-access-action-label" aria-hidden="true">Действие</span>
+                <button class="secondary user-access-save" type="submit">Сохранить права</button>
+              </div>
             </div>
 
-            <fieldset class="editor-permissions-box editor-permissions-compact">
+            <fieldset class="editor-permissions-box editor-permissions-compact" data-editor-permissions-panel <?=$user['role']==='admin'?'hidden':''?>>
               <legend>Доступ к разделам</legend>
               <?php if($user['role']==='editor' && !$assignedPermissions):?>
                 <div class="editor-no-access-note">
                   <i class="fa-solid fa-lock" aria-hidden="true"></i>
                   <span><b>Права не назначены</b><small>В левом меню редактора будут только «Обзор» и «Профиль», пока администратор не сохранит хотя бы один раздел.</small></span>
-                </div>
-              <?php endif;?>
-              <?php if($user['role']==='admin'):?>
-                <div class="editor-full-access-note">
-                  <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
-                  <span><b>Полный доступ администратора</b><small>Галочки ниже используются только при переводе этого сотрудника в роль редактора.</small></span>
                 </div>
               <?php endif;?>
               <div class="editor-permissions-grid">
