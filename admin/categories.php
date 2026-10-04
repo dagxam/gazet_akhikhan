@@ -1,6 +1,6 @@
 <?php
 require dirname(__DIR__) . '/app/bootstrap.php';
-require_admin();
+require_editor_permission('news');
 
 $error='';
 if($_SERVER['REQUEST_METHOD']==='POST'){
