@@ -4917,3 +4917,43 @@ button[type="submit"]:disabled{
     width:100%;
   }
 }
+
+
+/* Admin role permissions visibility + action alignment — 2026-10-04 */
+.editor-permissions-box[hidden]{
+  display:none!important;
+}
+.user-access-action{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  min-width:0;
+}
+.user-access-action-label{
+  visibility:hidden;
+  display:block;
+  min-height:11px;
+  color:#77695c;
+  font-size:9px;
+  font-weight:800;
+  line-height:11px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.user-access-save{
+  align-self:stretch;
+  margin:0!important;
+}
+@media(max-width:900px){
+  .user-access-action{
+    grid-column:1 / -1;
+  }
+  .user-access-action-label{
+    display:none;
+  }
+}
+@media(max-width:620px){
+  .user-access-action{
+    grid-column:auto;
+  }
+}
