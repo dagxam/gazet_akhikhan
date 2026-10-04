@@ -21,6 +21,21 @@ document.querySelectorAll('[data-editor-role-select]').forEach(select=>{
   syncEditorPermissions();
 });
 
+document.querySelectorAll('[data-user-access-toggle]').forEach(button=>{
+  const id=button.getAttribute('aria-controls');
+  const panel=id ? document.getElementById(id) : null;
+  if(!panel) return;
+
+  button.addEventListener('click',()=>{
+    const willOpen=panel.hidden;
+    panel.hidden=!willOpen;
+    button.setAttribute('aria-expanded',willOpen?'true':'false');
+    const label=button.querySelector('span');
+    if(label) label.textContent=willOpen?'Скрыть':'Настроить';
+    button.classList.toggle('is-open',willOpen);
+  });
+});
+
 document.querySelector('.menu-toggle')?.addEventListener('click',()=>document.body.classList.toggle('menu-open'));
 
 document.querySelectorAll('[data-category-toggle]').forEach(btn=>{
