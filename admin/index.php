@@ -21,25 +21,36 @@ $dashboardRows=function(string $sql): array {
   }
 };
 
-$stats=[
-  ['key'=>'published','value'=>$dashboardCount("SELECT COUNT(*) FROM articles WHERE status='published'"),'label'=>'Опубликовано','icon'=>'fa-solid fa-newspaper','href'=>'admin/articles.php'],
-  ['key'=>'drafts','value'=>$dashboardCount("SELECT COUNT(*) FROM articles WHERE status='draft'"),'label'=>'Черновики','icon'=>'fa-regular fa-file','href'=>'admin/articles.php'],
-  ['key'=>'views','value'=>$dashboardCount("SELECT COALESCE(SUM(views),0) FROM articles"),'label'=>'Просмотры новостей','icon'=>'fa-regular fa-eye','href'=>'admin/articles.php'],
-  ['key'=>'categories','value'=>$dashboardCount("SELECT COUNT(*) FROM categories"),'label'=>'Рубрики','icon'=>'fa-solid fa-layer-group','href'=>'admin/categories.php'],
-  ['key'=>'newspapers','value'=>$dashboardCount("SELECT COUNT(*) FROM newspapers"),'label'=>'Выпуски газеты','icon'=>'fa-solid fa-book-open','href'=>'admin/newspapers.php'],
-  ['key'=>'documents','value'=>$dashboardCount("SELECT COUNT(*) FROM documents"),'label'=>'Документы','icon'=>'fa-regular fa-file-lines','href'=>'admin/documents.php'],
-  ['key'=>'albums','value'=>$dashboardCount("SELECT COUNT(*) FROM photo_albums"),'label'=>'Фотоальбомы','icon'=>'fa-regular fa-images','href'=>'admin/photo-gallery.php'],
-  ['key'=>'photos','value'=>$dashboardCount("SELECT COUNT(*) FROM photo_gallery_images"),'label'=>'Фотографии','icon'=>'fa-regular fa-image','href'=>'admin/photo-gallery.php'],
-  ['key'=>'videos','value'=>$dashboardCount("SELECT COUNT(*) FROM video_gallery"),'label'=>'Видео','icon'=>'fa-solid fa-video','href'=>'admin/video-gallery.php'],
-  ['key'=>'pages','value'=>$dashboardCount("SELECT COUNT(*) FROM static_pages"),'label'=>'Статичные страницы','icon'=>'fa-regular fa-file-lines','href'=>'admin/static-pages.php'],
-  ['key'=>'menu','value'=>$dashboardCount("SELECT COUNT(*) FROM main_menu_items WHERE is_active=1"),'label'=>'Пунктов меню','icon'=>'fa-solid fa-bars','href'=>'admin/main-menu.php'],
-  ['key'=>'social','value'=>$dashboardCount("SELECT COUNT(*) FROM social_links WHERE is_active=1"),'label'=>'Соцсети','icon'=>'fa-solid fa-share-nodes','href'=>'admin/social-links.php'],
-  ['key'=>'home_blocks','value'=>$dashboardCount("SELECT COUNT(*) FROM homepage_right_blocks WHERE area='home' AND is_active=1"),'label'=>'Блоки на главной','icon'=>'fa-solid fa-table-columns','href'=>'admin/right-block.php?area=home'],
-  ['key'=>'page_blocks','value'=>$dashboardCount("SELECT COUNT(*) FROM homepage_right_blocks WHERE area='pages' AND is_active=1"),'label'=>'Блоки на страницах','icon'=>'fa-regular fa-rectangle-list','href'=>'admin/right-block.php?area=pages'],
-];
+$canNews=user_has_editor_permission('news');
+$canPhotos=user_has_editor_permission('photos');
+$canVideos=user_has_editor_permission('videos');
+$canNewspapers=user_has_editor_permission('newspapers');
+$canDocuments=user_has_editor_permission('documents');
 
-$recent=$dashboardRows("SELECT id,title,status,published_at,created_at,updated_at,views FROM articles ORDER BY updated_at DESC LIMIT 8");
-$latestVideos=$dashboardRows("SELECT * FROM video_gallery ORDER BY video_date DESC,updated_at DESC,id DESC LIMIT 6");
+$stats=[];
+if($canNews){
+  $stats[]=['key'=>'published','value'=>$dashboardCount("SELECT COUNT(*) FROM articles WHERE status='published'"),'label'=>'Опубликовано','icon'=>'fa-solid fa-newspaper','href'=>'admin/articles.php'];
+  $stats[]=['key'=>'drafts','value'=>$dashboardCount("SELECT COUNT(*) FROM articles WHERE status='draft'"),'label'=>'Черновики','icon'=>'fa-regular fa-file','href'=>'admin/articles.php'];
+  $stats[]=['key'=>'views','value'=>$dashboardCount("SELECT COALESCE(SUM(views),0) FROM articles"),'label'=>'Просмотры новостей','icon'=>'fa-regular fa-eye','href'=>'admin/articles.php'];
+  $stats[]=['key'=>'categories','value'=>$dashboardCount("SELECT COUNT(*) FROM categories"),'label'=>'Рубрики','icon'=>'fa-solid fa-layer-group','href'=>'admin/categories.php'];
+}
+if($canNewspapers) $stats[]=['key'=>'newspapers','value'=>$dashboardCount("SELECT COUNT(*) FROM newspapers"),'label'=>'Выпуски газеты','icon'=>'fa-solid fa-book-open','href'=>'admin/newspapers.php'];
+if($canDocuments) $stats[]=['key'=>'documents','value'=>$dashboardCount("SELECT COUNT(*) FROM documents"),'label'=>'Документы','icon'=>'fa-regular fa-file-lines','href'=>'admin/documents.php'];
+if($canPhotos){
+  $stats[]=['key'=>'albums','value'=>$dashboardCount("SELECT COUNT(*) FROM photo_albums"),'label'=>'Фотоальбомы','icon'=>'fa-regular fa-images','href'=>'admin/photo-gallery.php'];
+  $stats[]=['key'=>'photos','value'=>$dashboardCount("SELECT COUNT(*) FROM photo_gallery_images"),'label'=>'Фотографии','icon'=>'fa-regular fa-image','href'=>'admin/photo-gallery.php'];
+}
+if($canVideos) $stats[]=['key'=>'videos','value'=>$dashboardCount("SELECT COUNT(*) FROM video_gallery"),'label'=>'Видео','icon'=>'fa-solid fa-video','href'=>'admin/video-gallery.php'];
+if(is_site_admin()){
+  $stats[]=['key'=>'pages','value'=>$dashboardCount("SELECT COUNT(*) FROM static_pages"),'label'=>'Статичные страницы','icon'=>'fa-regular fa-file-lines','href'=>'admin/static-pages.php'];
+  $stats[]=['key'=>'menu','value'=>$dashboardCount("SELECT COUNT(*) FROM main_menu_items WHERE is_active=1"),'label'=>'Пунктов меню','icon'=>'fa-solid fa-bars','href'=>'admin/main-menu.php'];
+  $stats[]=['key'=>'social','value'=>$dashboardCount("SELECT COUNT(*) FROM social_links WHERE is_active=1"),'label'=>'Соцсети','icon'=>'fa-solid fa-share-nodes','href'=>'admin/social-links.php'];
+  $stats[]=['key'=>'home_blocks','value'=>$dashboardCount("SELECT COUNT(*) FROM homepage_right_blocks WHERE area='home' AND is_active=1"),'label'=>'Блоки на главной','icon'=>'fa-solid fa-table-columns','href'=>'admin/right-block.php?area=home'];
+  $stats[]=['key'=>'page_blocks','value'=>$dashboardCount("SELECT COUNT(*) FROM homepage_right_blocks WHERE area='pages' AND is_active=1"),'label'=>'Блоки на страницах','icon'=>'fa-regular fa-rectangle-list','href'=>'admin/right-block.php?area=pages'];
+}
+
+$recent=$canNews ? $dashboardRows("SELECT id,title,status,published_at,created_at,updated_at,views FROM articles ORDER BY updated_at DESC LIMIT 8") : [];
+$latestVideos=$canVideos ? $dashboardRows("SELECT * FROM video_gallery ORDER BY video_date DESC,updated_at DESC,id DESC LIMIT 6") : [];
 
 require __DIR__.'/_top.php';
 ?>
@@ -51,8 +62,8 @@ require __DIR__.'/_top.php';
     <p>Основные данные по наполнению сайта на текущий момент.</p>
   </div>
   <div class="dashboard-report-actions">
-    <a class="secondary" href="<?=e(base_url('admin/static-pages.php'))?>">Статичная страница</a>
-    <a class="primary" href="<?=e(base_url('admin/article-edit.php'))?>">+ Добавить новость</a>
+    <?php if(is_site_admin()):?><a class="secondary" href="<?=e(base_url('admin/static-pages.php'))?>">Статичная страница</a><?php endif;?>
+    <?php if($canNews):?><a class="primary" href="<?=e(base_url('admin/article-edit.php'))?>">+ Добавить новость</a><?php endif;?>
   </div>
 </div>
 
@@ -70,6 +81,7 @@ require __DIR__.'/_top.php';
 </section>
 
 <div class="dashboard-main-grid">
+  <?php if($canNews):?>
   <section class="admin-card dashboard-recent-card">
     <div class="card-head dashboard-card-head">
       <div>
@@ -103,6 +115,9 @@ require __DIR__.'/_top.php';
     <?php endif;?>
   </section>
 
+  <?php endif;?>
+
+  <?php if($canVideos):?>
   <section class="admin-card dashboard-video-card">
     <div class="card-head dashboard-card-head">
       <div>
@@ -142,6 +157,7 @@ require __DIR__.'/_top.php';
       </div>
     <?php endif;?>
   </section>
+  <?php endif;?>
 </div>
 
 <?php require __DIR__.'/_bottom.php'; ?>
