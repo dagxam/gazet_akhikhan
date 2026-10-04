@@ -247,6 +247,13 @@ $users=is_site_admin()
 $usersPager=admin_paginate_array($users,10,'users_page');
 $users=$usersPager['items'];
 $editorPermissionCatalog=editor_permission_catalog();
+$editorPermissionMeta=[
+    'news'=>['icon'=>'fa-solid fa-newspaper','description'=>'Новости, публикации и рубрики'],
+    'photos'=>['icon'=>'fa-regular fa-images','description'=>'Фотоальбомы и фотографии'],
+    'videos'=>['icon'=>'fa-solid fa-video','description'=>'Видео и обложки'],
+    'newspapers'=>['icon'=>'fa-solid fa-book-open','description'=>'PDF-выпуски газеты'],
+    'documents'=>['icon'=>'fa-regular fa-file-lines','description'=>'Документы и файлы'],
+];
 
 $adminTitle='Профиль';
 require __DIR__.'/_top.php';
@@ -460,16 +467,19 @@ unset($_SESSION['two_factor_recovery_plain']);
         </select>
       </label>
 
-      <fieldset class="editor-permissions-box">
+      <fieldset class="editor-permissions-box editor-permissions-create">
         <legend>Разделы управления редактора</legend>
-        <p>Выберите один или несколько разделов. Администратор всегда получает полный доступ.</p>
+        <p>Отметьте только те разделы, за которые сотрудник будет отвечать. Для администратора ограничения не применяются.</p>
         <div class="editor-permissions-grid">
-          <?php foreach($editorPermissionCatalog as $permissionKey=>$permissionLabel):?>
+          <?php foreach($editorPermissionCatalog as $permissionKey=>$permissionLabel):
+            $permissionMeta=$editorPermissionMeta[$permissionKey]??['icon'=>'fa-solid fa-shield-halved','description'=>'Доступ к разделу'];
+          ?>
             <label class="editor-permission-check">
               <input type="checkbox" name="new_editor_permissions[]" value="<?=e($permissionKey)?>">
-              <span>
+              <span class="editor-permission-visual"><i class="<?=e($permissionMeta['icon'])?>" aria-hidden="true"></i></span>
+              <span class="editor-permission-copy">
                 <b><?=e($permissionLabel)?></b>
-                <?php if($permissionKey==='news'):?><small>Добавление и редактирование новостей + управление рубриками</small><?php endif;?>
+                <small><?=e($permissionMeta['description'])?></small>
               </span>
             </label>
           <?php endforeach;?>
@@ -484,14 +494,20 @@ unset($_SESSION['two_factor_recovery_plain']);
       <?php foreach($users as $user):
         $assignedPermissions=$user['role']==='editor'
           ? normalize_editor_permissions($user['editor_permissions']??null,true)
-          : array_keys($editorPermissionCatalog);
+          : [];
       ?>
         <article class="user-admin-row">
-          <div class="user-admin-identity">
-            <span class="user-mini-avatar"><?=e(function_exists('mb_substr') ? mb_strtoupper(mb_substr($user['name'],0,1,'UTF-8'),'UTF-8') : strtoupper(substr($user['name'],0,1)))?></span>
-            <div>
-              <strong><?=e($user['name'])?> <?=((int)$user['id']===(int)$current['id'])?'<em>Вы</em>':''?></strong>
-              <small><?=e($user['email'])?></small>
+          <div class="user-admin-row-head">
+            <div class="user-admin-identity">
+              <span class="user-mini-avatar"><?=e(function_exists('mb_substr') ? mb_strtoupper(mb_substr($user['name'],0,1,'UTF-8'),'UTF-8') : strtoupper(substr($user['name'],0,1)))?></span>
+              <div>
+                <strong><?=e($user['name'])?> <?=((int)$user['id']===(int)$current['id'])?'<em>Вы</em>':''?></strong>
+                <small><?=e($user['email'])?></small>
+              </div>
+            </div>
+            <div class="user-admin-state">
+              <span class="user-role-pill <?=e($user['role'])?>"><?=e(role_label($user['role']))?></span>
+              <span class="user-status-pill <?=$user['status']==='active'?'is-active':'is-blocked'?>"><?=$user['status']==='active'?'Активен':'Заблокирован'?></span>
             </div>
           </div>
 
@@ -500,19 +516,36 @@ unset($_SESSION['two_factor_recovery_plain']);
             <input type="hidden" name="action" value="update_user">
             <input type="hidden" name="user_id" value="<?=$user['id']?>">
 
-            <select name="user_role" aria-label="Должность <?=e($user['name'])?>">
-              <option value="admin" <?=$user['role']==='admin'?'selected':''?>>Администратор</option>
-              <option value="editor" <?=$user['role']==='editor'?'selected':''?>>Редактор</option>
-            </select>
-            <select name="user_status" aria-label="Статус <?=e($user['name'])?>">
-              <option value="active" <?=$user['status']==='active'?'selected':''?>>Активен</option>
-              <option value="blocked" <?=$user['status']==='blocked'?'selected':''?>>Заблокирован</option>
-            </select>
+            <div class="user-access-toolbar">
+              <label class="user-access-control">
+                <span>Роль</span>
+                <select name="user_role" aria-label="Должность <?=e($user['name'])?>">
+                  <option value="admin" <?=$user['role']==='admin'?'selected':''?>>Администратор</option>
+                  <option value="editor" <?=$user['role']==='editor'?'selected':''?>>Редактор</option>
+                </select>
+              </label>
+              <label class="user-access-control">
+                <span>Статус</span>
+                <select name="user_status" aria-label="Статус <?=e($user['name'])?>">
+                  <option value="active" <?=$user['status']==='active'?'selected':''?>>Активен</option>
+                  <option value="blocked" <?=$user['status']==='blocked'?'selected':''?>>Заблокирован</option>
+                </select>
+              </label>
+              <button class="secondary user-access-save" type="submit">Сохранить права</button>
+            </div>
 
             <fieldset class="editor-permissions-box editor-permissions-compact">
               <legend>Доступ к разделам</legend>
+              <?php if($user['role']==='admin'):?>
+                <div class="editor-full-access-note">
+                  <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                  <span><b>Полный доступ администратора</b><small>Галочки ниже используются только при переводе этого сотрудника в роль редактора.</small></span>
+                </div>
+              <?php endif;?>
               <div class="editor-permissions-grid">
-                <?php foreach($editorPermissionCatalog as $permissionKey=>$permissionLabel):?>
+                <?php foreach($editorPermissionCatalog as $permissionKey=>$permissionLabel):
+                  $permissionMeta=$editorPermissionMeta[$permissionKey]??['icon'=>'fa-solid fa-shield-halved','description'=>'Доступ к разделу'];
+                ?>
                   <label class="editor-permission-check">
                     <input
                       type="checkbox"
@@ -520,19 +553,15 @@ unset($_SESSION['two_factor_recovery_plain']);
                       value="<?=e($permissionKey)?>"
                       <?=in_array($permissionKey,$assignedPermissions,true)?'checked':''?>
                     >
-                    <span>
+                    <span class="editor-permission-visual"><i class="<?=e($permissionMeta['icon'])?>" aria-hidden="true"></i></span>
+                    <span class="editor-permission-copy">
                       <b><?=e($permissionLabel)?></b>
-                      <?php if($permissionKey==='news'):?><small>включая рубрики</small><?php endif;?>
+                      <small><?=e($permissionMeta['description'])?></small>
                     </span>
                   </label>
                 <?php endforeach;?>
               </div>
-              <?php if($user['role']==='admin'):?>
-                <small class="editor-permissions-note">Для администратора эти галочки не ограничивают доступ. Они пригодятся, если изменить роль на редактора.</small>
-              <?php endif;?>
             </fieldset>
-
-            <button class="secondary" type="submit">Сохранить права</button>
           </form>
         </article>
       <?php endforeach;?>
