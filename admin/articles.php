@@ -1,6 +1,6 @@
 <?php
 require dirname(__DIR__) . '/app/bootstrap.php';
-require_admin();
+require_editor_permission('news');
 
 $perPage=15;
 $page=max(1,(int)($_GET['page']??1));
