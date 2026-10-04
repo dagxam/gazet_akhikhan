@@ -4957,3 +4957,62 @@ button[type="submit"]:disabled{
     grid-column:auto;
   }
 }
+
+
+/* Compact employee cards — 2026-10-04 */
+.user-admin-collapsible[hidden]{
+  display:none!important;
+}
+.user-admin-toggle{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  min-height:30px;
+  padding:0 10px;
+  border:1px solid #ddcdbd;
+  border-radius:999px;
+  background:#fff;
+  color:#705033;
+  font-size:9px;
+  font-weight:800;
+  cursor:pointer;
+  transition:background .16s ease,border-color .16s ease,transform .16s ease;
+}
+.user-admin-toggle:hover,
+.user-admin-toggle.is-open{
+  background:#f5ecdf;
+  border-color:#c5a887;
+  transform:translateY(-1px);
+}
+.user-admin-toggle i{
+  font-size:9px;
+}
+.user-admin-row-head{
+  cursor:default;
+}
+.user-admin-collapsible{
+  border-top:1px solid #eee5dc;
+  background:#fff;
+}
+.user-admin-collapsible .user-access-form{
+  padding-top:16px;
+}
+@media(max-width:760px){
+  .user-admin-state{
+    width:100%;
+  }
+  .user-admin-toggle{
+    margin-left:auto;
+  }
+}
+@media(max-width:520px){
+  .user-admin-state{
+    justify-content:flex-start;
+  }
+  .user-admin-toggle{
+    width:100%;
+    margin-left:0;
+    border-radius:10px;
+  }
+}
