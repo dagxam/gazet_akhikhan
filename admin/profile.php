@@ -148,6 +148,10 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             $email=trim($_POST['new_email']??'');
             $password=(string)($_POST['new_password']??'');
             $role=in_array($_POST['new_role']??'editor',['admin','editor'],true)?$_POST['new_role']:'editor';
+            $editorPermissions=$role==='editor' ? posted_editor_permissions('new_editor_permissions') : [];
+            if($role==='editor' && !$editorPermissions){
+                throw new RuntimeException('Выберите хотя бы один раздел для редактора.');
+            }
 
             if($name==='') throw new RuntimeException('Введите имя нового пользователя.');
             if(!filter_var($email,FILTER_VALIDATE_EMAIL)) throw new RuntimeException('Введите корректный e-mail нового пользователя.');
@@ -158,8 +162,19 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             $q->execute([$email]);
             if($q->fetchColumn()!==false) throw new RuntimeException('Пользователь с таким e-mail уже существует.');
 
-            $q=db()->prepare("INSERT INTO users(name,email,password_hash,role,status) VALUES(?,?,?,?,'active')");
-            $q->execute([$name,$email,password_hash($password,PASSWORD_DEFAULT),$role]);
+            $q=db()->prepare("INSERT INTO users(name,email,password_hash,role,status,editor_permissions) VALUES(?,?,?,?,'active',?)");
+            $q->execute([
+                $name,
+                $email,
+                password_hash($password,PASSWORD_DEFAULT),
+                $role,
+                $role==='editor' ? editor_permissions_json($editorPermissions) : null,
+            ]);
+            security_log_event('editor-access-created',[
+                'created_user_id'=>(int)db()->lastInsertId(),
+                'role'=>$role,
+                'permissions'=>$role==='editor' ? $editorPermissions : ['all'],
+            ]);
 
             header('Location: '.base_url('admin/profile.php?user_added=1'));
             exit;
@@ -171,8 +186,12 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             $userId=(int)($_POST['user_id']??0);
             $role=in_array($_POST['user_role']??'editor',['admin','editor'],true)?$_POST['user_role']:'editor';
             $status=in_array($_POST['user_status']??'active',['active','blocked'],true)?$_POST['user_status']:'active';
+            $editorPermissions=$role==='editor' ? posted_editor_permissions('user_editor_permissions') : [];
+            if($role==='editor' && !$editorPermissions){
+                throw new RuntimeException('Для редактора выберите хотя бы один раздел управления.');
+            }
 
-            $q=db()->prepare('SELECT id,role,status FROM users WHERE id=? LIMIT 1');
+            $q=db()->prepare('SELECT id,role,status,editor_permissions FROM users WHERE id=? LIMIT 1');
             $q->execute([$userId]);
             $target=$q->fetch();
             if(!$target) throw new RuntimeException('Пользователь не найден.');
@@ -183,7 +202,19 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 throw new RuntimeException('Нельзя отключить или понизить последнего активного администратора.');
             }
 
-            db()->prepare('UPDATE users SET role=?,status=? WHERE id=?')->execute([$role,$status,$userId]);
+            db()->prepare('UPDATE users SET role=?,status=?,editor_permissions=? WHERE id=?')
+                ->execute([
+                    $role,
+                    $status,
+                    $role==='editor' ? editor_permissions_json($editorPermissions) : null,
+                    $userId,
+                ]);
+            security_log_event('editor-access-updated',[
+                'target_user_id'=>$userId,
+                'role'=>$role,
+                'status'=>$status,
+                'permissions'=>$role==='editor' ? $editorPermissions : ['all'],
+            ]);
 
             if($userId===(int)$me['id']){
                 if($status!=='active'){
@@ -192,6 +223,9 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                     exit;
                 }
                 $_SESSION['admin_user']['role']=$role;
+                $_SESSION['admin_user']['editor_permissions']=$role==='editor'
+                    ? editor_permissions_json($editorPermissions)
+                    : null;
             }
 
             header('Location: '.base_url('admin/profile.php?users_saved=1'));
@@ -204,14 +238,15 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     }
 }
 
-$q=db()->prepare('SELECT id,name,email,role,status,two_factor_enabled,two_factor_confirmed_at,created_at FROM users WHERE id=? LIMIT 1');
+$q=db()->prepare('SELECT id,name,email,role,status,editor_permissions,two_factor_enabled,two_factor_confirmed_at,created_at FROM users WHERE id=? LIMIT 1');
 $q->execute([(int)$me['id']]);
 $current=$q->fetch() ?: $me;
 $users=is_site_admin()
-    ? db()->query("SELECT id,name,email,role,status,created_at FROM users ORDER BY CASE WHEN role='admin' THEN 0 ELSE 1 END,name")->fetchAll()
+    ? db()->query("SELECT id,name,email,role,status,editor_permissions,created_at FROM users ORDER BY CASE WHEN role='admin' THEN 0 ELSE 1 END,name")->fetchAll()
     : [];
 $usersPager=admin_paginate_array($users,10,'users_page');
 $users=$usersPager['items'];
+$editorPermissionCatalog=editor_permission_catalog();
 
 $adminTitle='Профиль';
 require __DIR__.'/_top.php';
