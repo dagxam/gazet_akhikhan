@@ -80,6 +80,8 @@ jobs:
           grep -q "preventScroll:true" assets/js/app.js
           grep -q "2026-10-04-editor-rbac-v1" app/bootstrap.php
           grep -q "editor_permissions" app/helpers.php
+          grep -q "normalize_editor_permissions(\$user\['editor_permissions'\]??null,false)" app/helpers.php
+          grep -q "normalize_editor_permissions(\$user\['editor_permissions'\]??null,false)" admin/profile.php
           grep -q "require_editor_permission('news')" admin/articles.php
           grep -q "require_editor_permission('news')" admin/categories.php
           grep -q "require_editor_permission('photos')" admin/photo-gallery.php
@@ -230,7 +232,7 @@ jobs:
           fi
           echo "Public privacy documents and links verified."
 
-          admin_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/admin.css?v=20261004-rbac2')"
+          admin_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/admin.css?v=20261004-rbac3')"
           echo "check: admin CSS HTTP $admin_css_code"
           test "$admin_css_code" = "200"
           grep -q 'Unified admin buttons and top Open site action' /tmp/akhikhan-admin.css
@@ -249,6 +251,7 @@ jobs:
           grep -q '.admin-logout-form' /tmp/akhikhan-admin.css
           grep -q '.editor-permissions-box' /tmp/akhikhan-admin.css
           grep -q '.editor-permission-check' /tmp/akhikhan-admin.css
+          grep -q '.editor-no-access-note' /tmp/akhikhan-admin.css
 
           right_blocks_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-right-blocks.html --write-out '%{http_code}' https://akhikhan.ru/admin/right-block.php)"
           test "$right_blocks_code" = "302" -o "$right_blocks_code" = "303"
