@@ -90,6 +90,9 @@ jobs:
           grep -q "require_editor_permission('documents')" admin/documents.php
           grep -q "new_editor_permissions" admin/profile.php
           grep -q "user_editor_permissions" admin/profile.php
+          grep -q "action==='delete_user'" admin/profile.php
+          grep -q "Нельзя удалить собственную учётную запись" admin/profile.php
+          grep -q "User management controls polish" assets/css/admin.css
           grep -q "Editor permissions polished layout" assets/css/admin.css
           node --check assets/js/app.js
           python3 -m py_compile tests/load/staging_load.py
@@ -232,7 +235,7 @@ jobs:
           fi
           echo "Public privacy documents and links verified."
 
-          admin_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/admin.css?v=20261004-rbac3')"
+          admin_css_code="$(curl --silent --show-error --location --max-time 30 --output /tmp/akhikhan-admin.css --write-out '%{http_code}' 'https://akhikhan.ru/assets/css/admin.css?v=20261004-users1')"
           echo "check: admin CSS HTTP $admin_css_code"
           test "$admin_css_code" = "200"
           grep -q 'Unified admin buttons and top Open site action' /tmp/akhikhan-admin.css
@@ -252,6 +255,8 @@ jobs:
           grep -q '.editor-permissions-box' /tmp/akhikhan-admin.css
           grep -q '.editor-permission-check' /tmp/akhikhan-admin.css
           grep -q '.editor-no-access-note' /tmp/akhikhan-admin.css
+          grep -q '.user-admin-danger-zone' /tmp/akhikhan-admin.css
+          grep -q '.user-delete-button' /tmp/akhikhan-admin.css
 
           right_blocks_code="$(curl --silent --show-error --max-time 30 --output /tmp/akhikhan-right-blocks.html --write-out '%{http_code}' https://akhikhan.ru/admin/right-block.php)"
           test "$right_blocks_code" = "302" -o "$right_blocks_code" = "303"
