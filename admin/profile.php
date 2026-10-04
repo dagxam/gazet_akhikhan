@@ -539,9 +539,20 @@ unset($_SESSION['two_factor_recovery_plain']);
             <div class="user-admin-state">
               <span class="user-role-pill <?=e($user['role'])?>"><?=e(role_label($user['role']))?></span>
               <span class="user-status-pill <?=$user['status']==='active'?'is-active':'is-blocked'?>"><?=$user['status']==='active'?'Активен':'Заблокирован'?></span>
+              <button
+                class="user-admin-toggle"
+                type="button"
+                data-user-access-toggle
+                aria-expanded="false"
+                aria-controls="user-access-<?=$user['id']?>"
+              >
+                <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                <span>Настроить</span>
+              </button>
             </div>
           </div>
 
+          <div class="user-admin-collapsible" id="user-access-<?=$user['id']?>" data-user-access-panel hidden>
           <form method="post" class="user-access-form">
             <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
             <input type="hidden" name="action" value="update_user">
@@ -612,6 +623,7 @@ unset($_SESSION['two_factor_recovery_plain']);
               </form>
             </div>
           <?php endif;?>
+          </div>
         </article>
       <?php endforeach;?>
       <?php render_admin_pagination('admin/profile.php',$usersPager['page'],$usersPager['total_pages'],[],'users_page','Страницы пользователей'); ?>
