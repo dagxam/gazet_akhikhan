@@ -1452,7 +1452,7 @@ function user_has_editor_permission(string $permission, ?array $user = null): bo
 
     return in_array(
         $permission,
-        normalize_editor_permissions($user['editor_permissions']??null,true),
+        normalize_editor_permissions($user['editor_permissions']??null,false),
         true
     );
 }
