@@ -1,6 +1,6 @@
 <?php
 require dirname(__DIR__) . '/app/bootstrap.php';
-require_admin();
+require_editor_permission('photos');
 
 $error='';
 $albumId=(int)($_GET['album_id']??0);
